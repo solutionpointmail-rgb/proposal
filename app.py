@@ -1,43 +1,124 @@
 """
-app.py — TBG Proposal Generation Server v2
-Synchronous pipeline execution to avoid Render free tier thread timeout.
+app.py — TBG Proposal Generation Server v3
+- Fixed plan parsing (INCLUDE vs EXCLUDE)
+- Dynamic Dropbox folder routing to existing client structure
 """
 
-import os, json, re, sys
+import os, re, sys
 from datetime import datetime
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-def parse_plan_names(notes_text, section):
+def parse_selected_plans(notes_text, section):
+    """
+    Parse INCLUDE plans from notes field.
+    Handles both formats:
+    - MEDICAL: Plan A, Plan B (comma-separated on one line)
+    - MEDICAL - MARK INCLUDE OR EXCLUDE
+      - INCLUDE - Plan A - $X/mo
+      - EXCLUDE - Plan B - $X/mo
+    """
+    if not notes_text:
+        return []
+
     lines = notes_text.split('\n')
-    in_section = False
     plans = []
+    in_section = False
+
     for line in lines:
-        line = line.strip()
-        if line.upper().startswith(section.upper() + ':') or line.upper().startswith(section.upper() + ' -'):
+        stripped = line.strip()
+        upper = stripped.upper()
+
+        # Detect section header
+        if upper.startswith(section.upper() + ':') or upper.startswith(section.upper() + ' - MARK') or upper.startswith(section.upper() + ' -MARK'):
             in_section = True
-            # Check if plans are on same line
-            rest = line[len(section):].lstrip(':- ').strip()
-            if rest:
-                for plan in rest.split(','):
+            # Plans may be on same line after colon
+            after_colon = stripped[len(section):].lstrip(':- ').strip()
+            if after_colon and 'MARK' not in after_colon.upper():
+                for plan in after_colon.split(','):
                     plan = plan.strip()
                     if plan and 'EXCLUDE' not in plan.upper():
-                        plans.append(plan)
-            continue
-        if in_section:
-            if any(line.upper().startswith(s) for s in ['MEDICAL', 'DENTAL', 'VISION', 'CLIENT', 'SUBMITTED']):
-                break
-            if line:
-                for plan in line.split(','):
-                    plan = plan.strip()
-                    if plan and 'EXCLUDE' not in plan.upper():
-                        # Clean up plan name
-                        plan = re.sub(r'\s*-\s*\$[\d,\.]+/mo.*', '', plan).strip()
-                        plan = re.sub(r'^INCLUDE\s*-?\s*', '', plan, flags=re.IGNORECASE).strip()
+                        plan = re.sub(r'\s*-\s*\$[\d,\.]+.*', '', plan).strip()
+                        plan = re.sub(r'^INCLUDE\s*[-–]\s*', '', plan, flags=re.IGNORECASE).strip()
                         if plan:
                             plans.append(plan)
+            continue
+
+        if in_section:
+            # Stop at next section
+            if any(upper.startswith(s) for s in ['MEDICAL', 'DENTAL', 'VISION', 'CLIENT', 'SUBMITTED', '---']):
+                if not upper.startswith(section.upper()):
+                    break
+
+            if not stripped:
+                continue
+
+            # Handle "- INCLUDE - Plan Name - $X/mo" format
+            if 'INCLUDE' in upper and 'EXCLUDE' not in upper[:upper.find('INCLUDE') + 10]:
+                # Extract plan name — between INCLUDE and the price
+                plan = re.sub(r'^[-–•]\s*', '', stripped)
+                plan = re.sub(r'^INCLUDE\s*[-–]\s*', '', plan, flags=re.IGNORECASE).strip()
+                plan = re.sub(r'\s*[-–]\s*\$[\d,\.]+.*', '', plan).strip()
+                plan = re.sub(r'\s*-\s*Level Fund.*', '', plan, flags=re.IGNORECASE).strip()
+                plan = re.sub(r'\s*-\s*HSA eligible.*', '', plan, flags=re.IGNORECASE).strip()
+                if plan and len(plan) > 3:
+                    plans.append(plan)
+            # Skip explicit EXCLUDE lines
+            elif 'EXCLUDE' in upper:
+                continue
+            # Handle comma-separated plan names (no INCLUDE/EXCLUDE prefix)
+            elif ',' in stripped and '$' not in stripped:
+                for plan in stripped.split(','):
+                    plan = plan.strip()
+                    if plan:
+                        plans.append(plan)
+
     return plans
+
+
+def find_client_dropbox_folder(client_name, dbx):
+    """
+    Try to find existing client folder in Dropbox.
+    Searches common TBG folder structures.
+    Returns path if found, None if not.
+    """
+    # Clean client name for searching
+    search_name = client_name.replace(' — Review for Proposal', '').strip()
+
+    try:
+        import dropbox
+        results = dbx.files_search_v2(
+            dropbox.files.SearchV2Arg(
+                query=search_name,
+                options=dropbox.files.SearchOptions(
+                    filename_only=True,
+                    max_results=5,
+                    file_categories=[dropbox.files.FileCategory.folder]
+                )
+            )
+        )
+        # Look for a "3. Proposal" subfolder under the client name
+        for match in results.matches:
+            meta = match.metadata.get_metadata()
+            if hasattr(meta, 'path_display'):
+                path = meta.path_display
+                if search_name.lower() in path.lower():
+                    # Check if there's a Proposal subfolder
+                    proposal_path = f"{path}/Quoting/3. Proposal"
+                    try:
+                        dbx.files_get_metadata(proposal_path)
+                        print(f"Found existing proposal folder: {proposal_path}", flush=True)
+                        return proposal_path
+                    except:
+                        # Use the client folder itself
+                        print(f"Using client folder: {path}", flush=True)
+                        return path
+    except Exception as e:
+        print(f"Folder search error: {e}", flush=True)
+
+    return None
+
 
 def run_pipeline(client_name, effective_date, quote_id, task_id, notes):
     print(f"=== PIPELINE START: {client_name} ===", flush=True)
@@ -47,43 +128,55 @@ def run_pipeline(client_name, effective_date, quote_id, task_id, notes):
         from proposal_data import CLIENT, CONTRIBUTIONS, MEDICAL_PLANS, DENTAL_PLANS, VISION_PLANS
         print("✅ proposal_data imported", flush=True)
 
-        # Update client
-        CLIENT['name'] = client_name.replace(' — Review for Proposal', '').strip()
+        # Clean client name
+        clean_name = client_name.replace(' — Review for Proposal', '').strip()
+        CLIENT['name']         = clean_name
         CLIENT['effective_date'] = effective_date or CLIENT['effective_date']
-        CLIENT['quote_id'] = quote_id or CLIENT['quote_id']
+        CLIENT['quote_id']     = quote_id or CLIENT['quote_id']
 
         # Parse selected plans
-        med_sel = parse_plan_names(notes, 'MEDICAL')
-        den_sel = parse_plan_names(notes, 'DENTAL')
-        vis_sel = parse_plan_names(notes, 'VISION')
-        print(f"Medical: {med_sel}", flush=True)
-        print(f"Dental:  {den_sel}", flush=True)
-        print(f"Vision:  {vis_sel}", flush=True)
+        med_sel = parse_selected_plans(notes, 'MEDICAL')
+        den_sel = parse_selected_plans(notes, 'DENTAL')
+        vis_sel = parse_selected_plans(notes, 'VISION')
+        print(f"Medical selected:  {med_sel}", flush=True)
+        print(f"Dental selected:   {den_sel}", flush=True)
+        print(f"Vision selected:   {vis_sel}", flush=True)
 
-        # Set include flags — if parsing finds nothing, include all
+        # Set include flags
         for p in MEDICAL_PLANS:
-            p['include'] = not med_sel or any(
+            p['include'] = bool(med_sel) and any(
                 s.lower() in p['plan_name'].lower() or p['plan_name'].lower() in s.lower()
                 for s in med_sel)
         for p in DENTAL_PLANS:
-            p['include'] = not den_sel or any(
+            p['include'] = bool(den_sel) and any(
                 s.lower() in p['plan_name'].lower() or p['plan_name'].lower() in s.lower()
                 for s in den_sel)
         for p in VISION_PLANS:
-            p['include'] = not vis_sel or any(
+            p['include'] = bool(vis_sel) and any(
                 s.lower() in p['plan_name'].lower() or p['plan_name'].lower() in s.lower()
                 for s in vis_sel)
 
-        included_med = [p['plan_name'] for p in MEDICAL_PLANS if p['include']]
-        included_den = [p['plan_name'] for p in DENTAL_PLANS  if p['include']]
-        included_vis = [p['plan_name'] for p in VISION_PLANS  if p['include']]
-        print(f"Including medical: {included_med}", flush=True)
-        print(f"Including dental:  {included_den}", flush=True)
-        print(f"Including vision:  {included_vis}", flush=True)
+        # Fallback: include all if parsing found nothing
+        if not any(p['include'] for p in MEDICAL_PLANS):
+            print("⚠️ No medical plans matched — including all", flush=True)
+            for p in MEDICAL_PLANS: p['include'] = True
+        if not any(p['include'] for p in DENTAL_PLANS):
+            print("⚠️ No dental plans matched — including all", flush=True)
+            for p in DENTAL_PLANS: p['include'] = True
+        if not any(p['include'] for p in VISION_PLANS):
+            print("⚠️ No vision plans matched — including all", flush=True)
+            for p in VISION_PLANS: p['include'] = True
+
+        inc_med = [p['plan_name'] for p in MEDICAL_PLANS if p['include']]
+        inc_den = [p['plan_name'] for p in DENTAL_PLANS  if p['include']]
+        inc_vis = [p['plan_name'] for p in VISION_PLANS  if p['include']]
+        print(f"Including medical: {inc_med}", flush=True)
+        print(f"Including dental:  {inc_den}", flush=True)
+        print(f"Including vision:  {inc_vis}", flush=True)
 
         # Generate files
         timestamp  = datetime.now().strftime('%Y%m%d_%H%M%S')
-        safe_name  = CLIENT['name'].replace(' ', '_').replace('/', '-')
+        safe_name  = clean_name.replace(' ', '_').replace('/', '-')
         pdf_name   = f"Proposal_{safe_name}_{timestamp}.pdf"
         excel_name = f"Proposal_{safe_name}_{timestamp}.xlsx"
         pdf_path   = f"/tmp/{pdf_name}"
@@ -92,58 +185,67 @@ def run_pipeline(client_name, effective_date, quote_id, task_id, notes):
         print("Generating PDF...", flush=True)
         from generate_pdf import generate_pdf
         generate_pdf(pdf_path)
-        print(f"✅ PDF done: {pdf_name}", flush=True)
+        print(f"✅ PDF: {pdf_name}", flush=True)
 
         print("Generating Excel...", flush=True)
         from generate_excel import generate_excel
         generate_excel(excel_path)
-        print(f"✅ Excel done: {excel_name}", flush=True)
+        print(f"✅ Excel: {excel_name}", flush=True)
 
         # Upload to Dropbox
         print("Uploading to Dropbox...", flush=True)
-        import dropbox
-        dbx = dropbox.Dropbox(os.environ['DROPBOX_TOKEN'])
-        folder = f"/Benefits Group/Proposals/2026/{CLIENT['name'].replace(' ', '_')}"
-        links = {}
+        import dropbox as dbx_module
+        dbx = dbx_module.Dropbox(os.environ['DROPBOX_TOKEN'])
 
+        # Try to find existing client folder, fall back to Benefits Group structure
+        existing_folder = find_client_dropbox_folder(clean_name, dbx)
+        if existing_folder:
+            folder = existing_folder
+        else:
+            folder = f"/Benefits Group/Proposals/2026/{safe_name}"
+            print(f"Using new folder: {folder}", flush=True)
+
+        links = {}
         for local_path, file_name in [(pdf_path, pdf_name), (excel_path, excel_name)]:
             db_path = f"{folder}/{file_name}"
             with open(local_path, 'rb') as f:
                 dbx.files_upload(f.read(), db_path,
-                                 mode=dropbox.files.WriteMode.overwrite)
+                                 mode=dbx_module.files.WriteMode.overwrite)
             try:
                 link = dbx.sharing_create_shared_link_with_settings(db_path)
                 links[file_name] = link.url.replace('?dl=0', '?dl=1')
-            except dropbox.exceptions.ApiError:
+            except dbx_module.exceptions.ApiError:
                 existing = dbx.sharing_list_shared_links(path=db_path)
                 links[file_name] = existing.links[0].url.replace('?dl=0', '?dl=1')
-            print(f"✅ Uploaded: {file_name}", flush=True)
+            print(f"✅ Uploaded: {file_name} → {folder}", flush=True)
 
         # Update Asana
         print("Updating Asana...", flush=True)
         import requests
-        token   = os.environ['ASANA_TOKEN']
-        headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
+        headers = {
+            'Authorization': f"Bearer {os.environ['ASANA_TOKEN']}",
+            'Content-Type': 'application/json'
+        }
 
-        # Move to Delivered
-        delivered_section = '1216532264374832'
+        # Move to Delivered section
         requests.post(
-            f'https://app.asana.com/api/1.0/sections/{delivered_section}/addTask',
+            'https://app.asana.com/api/1.0/sections/1216532264374832/addTask',
             headers=headers,
             json={'data': {'task': task_id}}
         )
 
-        # Add comment
         pdf_link   = links.get(pdf_name,   'Not available')
         excel_link = links.get(excel_name, 'Not available')
+
         comment = (
-            f"Proposal generated!\n\n"
-            f"PDF: {pdf_link}\n"
-            f"Excel: {excel_link}\n\n"
+            f"✅ Proposal generated!\n\n"
+            f"📄 PDF: {pdf_link}\n"
+            f"📊 Excel: {excel_link}\n\n"
+            f"📁 Saved to: {folder}\n\n"
             f"Plans included:\n"
-            f"Medical: {', '.join(included_med)}\n"
-            f"Dental: {', '.join(included_den)}\n"
-            f"Vision: {', '.join(included_vis)}\n\n"
+            f"Medical ({len(inc_med)}): {', '.join(inc_med)}\n"
+            f"Dental ({len(inc_den)}):  {', '.join(inc_den)}\n"
+            f"Vision ({len(inc_vis)}):  {', '.join(inc_vis)}\n\n"
             f"Generated: {datetime.now().strftime('%B %d, %Y at %I:%M %p')}"
         )
         requests.post(
@@ -151,20 +253,20 @@ def run_pipeline(client_name, effective_date, quote_id, task_id, notes):
             headers=headers,
             json={'data': {'text': comment}}
         )
-        print(f"✅ Asana updated — task {task_id} moved to Delivered", flush=True)
-        print(f"=== PIPELINE COMPLETE: {CLIENT['name']} ===", flush=True)
-        return True
+        print(f"✅ Asana task {task_id} → Delivered", flush=True)
+        print(f"=== PIPELINE COMPLETE: {clean_name} ===", flush=True)
+        return True, folder, pdf_link, excel_link
 
     except Exception as e:
         print(f"❌ PIPELINE ERROR: {e}", flush=True)
         import traceback
         traceback.print_exc()
-        return False
+        return False, None, None, None
 
 
 @app.route('/', methods=['GET'])
 def health():
-    return jsonify({'status': 'TBG Proposal Generator running', 'version': '2.0'})
+    return jsonify({'status': 'TBG Proposal Generator v3', 'version': '3.0'})
 
 
 @app.route('/generate', methods=['POST'])
@@ -182,11 +284,18 @@ def generate():
     if not client_name or not task_id:
         return jsonify({'error': 'Missing client_name or task_id'}), 400
 
-    # Run synchronously — Render free tier kills background threads
-    success = run_pipeline(client_name, effective_date, quote_id, task_id, notes)
+    success, folder, pdf_link, excel_link = run_pipeline(
+        client_name, effective_date, quote_id, task_id, notes
+    )
 
     if success:
-        return jsonify({'status': 'complete', 'message': f'Proposal generated for {client_name}'}), 200
+        return jsonify({
+            'status':     'complete',
+            'message':    f'Proposal generated for {client_name}',
+            'folder':     folder,
+            'pdf_link':   pdf_link,
+            'excel_link': excel_link
+        }), 200
     else:
         return jsonify({'status': 'error', 'message': 'Pipeline failed — check Render logs'}), 500
 

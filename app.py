@@ -139,16 +139,14 @@ def run_pipeline(client_name, effective_date, quote_id, task_id, notes):
                 s.lower() in p['plan_name'].lower() or p['plan_name'].lower() in s.lower()
                 for s in vis_sel)
 
-        # Fallback: include all if parsing found nothing
-        if not any(p['include'] for p in MEDICAL_PLANS):
-            print("⚠️ No medical plans matched — including all", flush=True)
+        # Only use fallback if NO lines of coverage were selected at all
+        # If broker selected 0 medical plans intentionally, respect that
+        nothing_selected = not med_sel and not den_sel and not vis_sel
+        if nothing_selected:
+            print("⚠️ No plans selected at all — including all as fallback", flush=True)
             for p in MEDICAL_PLANS: p['include'] = True
-        if not any(p['include'] for p in DENTAL_PLANS):
-            print("⚠️ No dental plans matched — including all", flush=True)
-            for p in DENTAL_PLANS: p['include'] = True
-        if not any(p['include'] for p in VISION_PLANS):
-            print("⚠️ No vision plans matched — including all", flush=True)
-            for p in VISION_PLANS: p['include'] = True
+            for p in DENTAL_PLANS:  p['include'] = True
+            for p in VISION_PLANS:  p['include'] = True
 
         inc_med = [p['plan_name'] for p in MEDICAL_PLANS if p['include']]
         inc_den = [p['plan_name'] for p in DENTAL_PLANS  if p['include']]

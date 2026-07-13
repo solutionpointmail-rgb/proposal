@@ -86,10 +86,10 @@ def find_client_dropbox_folder(client_name, dbx):
 
     # Known path patterns to check in order
     candidates = [
+        f"/Solutionpoint Groups/1. Solutionpoint Groups/Proposals/2026/{search_name}",
         f"/Solutionpoint Groups/1. Solutionpoint Groups/2.  HOT LEADS/{search_name}/Quoting/3. Proposal",
         f"/Solutionpoint Groups/1. Solutionpoint Groups/3. WARM LEADS/{search_name}/Quoting/3. Proposal",
         f"/Solutionpoint Groups/1. Solutionpoint Groups/4. RENEWALS/{search_name}/Quoting/3. Proposal",
-        f"/Benefits Group/Proposals/2026/{search_name}",
     ]
 
     for path in candidates:

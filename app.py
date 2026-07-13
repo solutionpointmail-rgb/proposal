@@ -79,43 +79,26 @@ def parse_selected_plans(notes_text, section):
 
 def find_client_dropbox_folder(client_name, dbx):
     """
-    Try to find existing client folder in Dropbox.
-    Searches common TBG folder structures.
-    Returns path if found, None if not.
+    Try to find existing client proposal folder using direct path checks.
+    Checks known TBG folder structures before falling back to new folder.
     """
-    # Clean client name for searching
     search_name = client_name.replace(' — Review for Proposal', '').strip()
 
-    try:
-        import dropbox
-        results = dbx.files_search_v2(
-            dropbox.files.SearchV2Arg(
-                query=search_name,
-                options=dropbox.files.SearchOptions(
-                    filename_only=True,
-                    max_results=5,
-                    file_categories=[dropbox.files.FileCategory.folder]
-                )
-            )
-        )
-        # Look for a "3. Proposal" subfolder under the client name
-        for match in results.matches:
-            meta = match.metadata.get_metadata()
-            if hasattr(meta, 'path_display'):
-                path = meta.path_display
-                if search_name.lower() in path.lower():
-                    # Check if there's a Proposal subfolder
-                    proposal_path = f"{path}/Quoting/3. Proposal"
-                    try:
-                        dbx.files_get_metadata(proposal_path)
-                        print(f"Found existing proposal folder: {proposal_path}", flush=True)
-                        return proposal_path
-                    except:
-                        # Use the client folder itself
-                        print(f"Using client folder: {path}", flush=True)
-                        return path
-    except Exception as e:
-        print(f"Folder search error: {e}", flush=True)
+    # Known path patterns to check in order
+    candidates = [
+        f"/Solutionpoint Groups/1. Solutionpoint Groups/2.  HOT LEADS/{search_name}/Quoting/3. Proposal",
+        f"/Solutionpoint Groups/1. Solutionpoint Groups/3. WARM LEADS/{search_name}/Quoting/3. Proposal",
+        f"/Solutionpoint Groups/1. Solutionpoint Groups/4. RENEWALS/{search_name}/Quoting/3. Proposal",
+        f"/Benefits Group/Proposals/2026/{search_name}",
+    ]
+
+    for path in candidates:
+        try:
+            dbx.files_get_metadata(path)
+            print(f"Found existing folder: {path}", flush=True)
+            return path
+        except Exception:
+            continue
 
     return None
 

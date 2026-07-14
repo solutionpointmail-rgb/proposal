@@ -173,6 +173,7 @@ def run_pipeline(client_name, effective_date, quote_id, task_id, notes, medical_
             f"Medical ({len(inc_med)}): {', '.join(inc_med)}\n"
             f"Dental ({len(inc_den)}):  {', '.join(inc_den)}\n"
             f"Vision ({len(inc_vis)}):  {', '.join(inc_vis)}\n\n"
+            f"🔄 Revise selections: https://solutionpointmail-rgb.github.io/proposal/tenngreen-aug2026.html\n\n"
             f"Generated: {datetime.now().strftime('%B %d, %Y at %I:%M %p')}"
         )
         requests.post(

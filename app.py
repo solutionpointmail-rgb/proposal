@@ -10,70 +10,16 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-def parse_selected_plans(notes_text, section):
-    """
-    Parse INCLUDE plans from notes field.
-    Handles both formats:
-    - MEDICAL: Plan A, Plan B (comma-separated on one line)
-    - MEDICAL - MARK INCLUDE OR EXCLUDE
-      - INCLUDE - Plan A - $X/mo
-      - EXCLUDE - Plan B - $X/mo
-    """
-    if not notes_text:
+def parse_selected_plans(plans_text):
+    """Parse comma-separated plan names from webhook field."""
+    if not plans_text:
         return []
-
-    lines = notes_text.split('\n')
+    # Handle both comma-separated and newline-separated
     plans = []
-    in_section = False
-
-    for line in lines:
-        stripped = line.strip()
-        upper = stripped.upper()
-
-        # Detect section header
-        if upper.startswith(section.upper() + ':') or upper.startswith(section.upper() + ' - MARK') or upper.startswith(section.upper() + ' -MARK'):
-            in_section = True
-            # Plans may be on same line after colon
-            after_colon = stripped[len(section):].lstrip(':- ').strip()
-            if after_colon and 'MARK' not in after_colon.upper():
-                for plan in after_colon.split(','):
-                    plan = plan.strip()
-                    if plan and 'EXCLUDE' not in plan.upper():
-                        plan = re.sub(r'\s*-\s*\$[\d,\.]+.*', '', plan).strip()
-                        plan = re.sub(r'^INCLUDE\s*[-–]\s*', '', plan, flags=re.IGNORECASE).strip()
-                        if plan:
-                            plans.append(plan)
-            continue
-
-        if in_section:
-            # Stop at next section
-            if any(upper.startswith(s) for s in ['MEDICAL', 'DENTAL', 'VISION', 'CLIENT', 'SUBMITTED', '---']):
-                if not upper.startswith(section.upper()):
-                    break
-
-            if not stripped:
-                continue
-
-            # Handle "- INCLUDE - Plan Name - $X/mo" format
-            if 'INCLUDE' in upper and 'EXCLUDE' not in upper[:upper.find('INCLUDE') + 10]:
-                # Extract plan name — between INCLUDE and the price
-                plan = re.sub(r'^[-–•]\s*', '', stripped)
-                plan = re.sub(r'^INCLUDE\s*[-–]\s*', '', plan, flags=re.IGNORECASE).strip()
-                plan = re.sub(r'\s*[-–]\s*\$[\d,\.]+.*', '', plan).strip()
-                plan = re.sub(r'\s*-\s*Level Fund.*', '', plan, flags=re.IGNORECASE).strip()
-                plan = re.sub(r'\s*-\s*HSA eligible.*', '', plan, flags=re.IGNORECASE).strip()
-                if plan and len(plan) > 3:
-                    plans.append(plan)
-            # Skip explicit EXCLUDE lines
-            elif 'EXCLUDE' in upper:
-                continue
-            # Handle comma-separated plan names (no INCLUDE/EXCLUDE prefix)
-            elif ',' in stripped and '$' not in stripped:
-                for plan in stripped.split(','):
-                    plan = plan.strip()
-                    if plan:
-                        plans.append(plan)
-
+    for p in re.split(r'[,\n]', plans_text):
+        p = p.strip()
+        if p and len(p) > 2:
+            plans.append(p)
     return plans
 
 
@@ -103,7 +49,7 @@ def find_client_dropbox_folder(client_name, dbx):
     return None
 
 
-def run_pipeline(client_name, effective_date, quote_id, task_id, notes):
+def run_pipeline(client_name, effective_date, quote_id, task_id, notes, medical_plans='', dental_plans='', vision_plans=''):
     print(f"=== PIPELINE START: {client_name} ===", flush=True)
 
     try:
@@ -117,10 +63,10 @@ def run_pipeline(client_name, effective_date, quote_id, task_id, notes):
         CLIENT['effective_date'] = effective_date or CLIENT['effective_date']
         CLIENT['quote_id']     = quote_id or CLIENT['quote_id']
 
-        # Parse selected plans
-        med_sel = parse_selected_plans(notes, 'MEDICAL')
-        den_sel = parse_selected_plans(notes, 'DENTAL')
-        vis_sel = parse_selected_plans(notes, 'VISION')
+        # Parse selected plans from dedicated webhook fields
+        med_sel = parse_selected_plans(medical_plans)
+        den_sel = parse_selected_plans(dental_plans)
+        vis_sel = parse_selected_plans(vision_plans)
         print(f"Medical selected:  {med_sel}", flush=True)
         print(f"Dental selected:   {den_sel}", flush=True)
         print(f"Vision selected:   {vis_sel}", flush=True)
@@ -259,14 +205,21 @@ def generate():
     quote_id       = data.get('quote_id', '')
     task_id        = data.get('task_id', '')
     notes          = data.get('notes', '')
+    medical_plans  = data.get('medical_plans', '')
+    dental_plans   = data.get('dental_plans', '')
+    vision_plans   = data.get('vision_plans', '')
 
     print(f"Received: {client_name} | task: {task_id}", flush=True)
+    print(f"Medical: {medical_plans}", flush=True)
+    print(f"Dental:  {dental_plans}", flush=True)
+    print(f"Vision:  {vision_plans}", flush=True)
 
     if not client_name or not task_id:
         return jsonify({'error': 'Missing client_name or task_id'}), 400
 
     success, folder, pdf_link, excel_link = run_pipeline(
-        client_name, effective_date, quote_id, task_id, notes
+        client_name, effective_date, quote_id, task_id, notes,
+        medical_plans, dental_plans, vision_plans
     )
 
     if success:

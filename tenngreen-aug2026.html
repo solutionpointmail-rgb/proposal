@@ -330,9 +330,13 @@ async function submitSelections() {
   btn.textContent = 'Submitting…';
   spinner.style.display = 'inline-block';
 
+  const selected = getSelectedPlans();
   const payload = {
     client: CLIENT_DATA,
-    selected_plans: getSelectedPlans(),
+    selected_plans: selected,
+    medical_plans: selected.medical.join(','),
+    dental_plans: selected.dental.join(','),
+    vision_plans: selected.vision.join(','),
     submitted_at: new Date().toISOString(),
     source: 'proposal-selector'
   };

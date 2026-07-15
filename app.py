@@ -237,7 +237,39 @@ def generate():
         }), 200
     else:
         return jsonify({'status': 'error', 'message': 'Pipeline failed — check Render logs'}), 500
-
+@app.route('/push-to-github', methods=['POST'])
+def push_to_github():
+    data = request.get_json(force=True, silent=True) or {}
+    filename     = data.get('filename', '')
+    html_content = data.get('content', '')
+    gh_token     = data.get('github_token', '') or os.environ.get('GITHUB_TOKEN', '')
+    if not filename or not html_content:
+        return jsonify({'error': 'Missing filename or content'}), 400
+    if not gh_token:
+        return jsonify({'error': 'Missing github_token'}), 400
+    import base64 as b64, urllib.request as ur
+    api_url = f'https://api.github.com/repos/solutionpointmail-rgb/proposal/contents/{filename}'
+    headers = {'Authorization': f'token {gh_token}', 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json'}
+    sha = None
+    try:
+        req = ur.Request(api_url, headers=headers)
+        with ur.urlopen(req) as r:
+            sha = json.loads(r.read()).get('sha')
+    except Exception:
+        pass
+    payload = {'message': f'Auto-generate selector: {filename}', 'content': b64.b64encode(html_content.encode()).decode()}
+    if sha:
+        payload['sha'] = sha
+    try:
+        req = ur.Request(api_url, data=json.dumps(payload).encode(), method='PUT', headers=headers)
+        with ur.urlopen(req) as r:
+            json.loads(r.read())
+        url = f'https://solutionpointmail-rgb.github.io/proposal/{filename}'
+        print(f'✅ Pushed {filename}', flush=True)
+        return jsonify({'status': 'success', 'filename': filename, 'url': url}), 200
+    except Exception as e:
+        print(f'❌ GitHub push error: {e}', flush=True)
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

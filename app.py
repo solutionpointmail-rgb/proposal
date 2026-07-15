@@ -122,7 +122,11 @@ def run_pipeline(client_name, effective_date, quote_id, task_id, notes, medical_
         # Upload to Dropbox
         print("Uploading to Dropbox...", flush=True)
         import dropbox as dbx_module
-        dbx = dbx_module.Dropbox(os.environ['DROPBOX_TOKEN'])
+        dbx = dbx_module.Dropbox(
+    oauth2_refresh_token=os.environ['DROPBOX_REFRESH_TOKEN'],
+    app_key=os.environ['DROPBOX_APP_KEY'],
+    app_secret=os.environ['DROPBOX_APP_SECRET']
+)
 
         # Try to find existing client folder, fall back to Benefits Group structure
         existing_folder = find_client_dropbox_folder(clean_name, dbx)

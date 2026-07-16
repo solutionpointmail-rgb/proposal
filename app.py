@@ -60,6 +60,7 @@ def build_client_and_plans(client_name, effective_date, quote_id, enrolling_empl
         'county': 'Davidson',
         'sic': '9512',
         'address': '',
+        'city_state_zip': 'Nashville, TN 37212',
         'total_employees': int(enrolling_employees) if enrolling_employees else 15,
         'eligible_employees': int(enrolling_employees) if enrolling_employees else 15,
         'enrolling_employees': int(enrolling_employees) if enrolling_employees else 15,

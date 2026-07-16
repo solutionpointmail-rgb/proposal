@@ -191,7 +191,7 @@ def build_medical(wb):
         _set(ws, r, 2, label, fill=bg, border=True)
         for i, p in enumerate(plans):
             in_col = col_start + i * 2
-            _set(ws, r, in_col, _money(p[key]), fill=bg, halign="right", border=True)
+            _set(ws, r, in_col, _money(p.get(key, 0)), fill=bg, halign="right", border=True)
         r += 1
 
     r += 1
@@ -204,7 +204,7 @@ def build_medical(wb):
         for i, p in enumerate(plans):
             in_col = col_start + i * 2
             color = WHITE if bg == ORANGE else "FF000000"
-            _set(ws, r, in_col, _money(p[key]), bold=True,
+            _set(ws, r, in_col, _money(p.get(key, "See SBC")), bold=True,
                  fill=bg, halign="right", border=True, color=color)
         r += 1
 
@@ -298,7 +298,7 @@ def build_dental(wb):
         _set(ws, r, 2, label, fill=bg, border=True)
         for i, p in enumerate(plans):
             c = col_start + i * 2
-            _set(ws, r, c, _money(p[key]), fill=bg, halign="right", border=True)
+            _set(ws, r, c, _money(p.get(key, "See SBC")), fill=bg, halign="right", border=True)
         r += 1
 
     r += 1
@@ -311,7 +311,7 @@ def build_dental(wb):
         for i, p in enumerate(plans):
             c = col_start + i * 2
             color = WHITE if bg == ORANGE else "FF000000"
-            _set(ws, r, c, _money(p[key]), bold=True,
+            _set(ws, r, c, _money(p.get(key, "See SBC")), bold=True,
                  fill=bg, halign="right", border=True, color=color)
         r += 1
 
@@ -369,7 +369,7 @@ def build_vision(wb):
         bg = LIGHT_TEAL if idx % 2 == 0 else WHITE
         _set(ws, r, 2, label, fill=bg, border=True)
         for i, p in enumerate(plans):
-            _set(ws, r, col_start + i, _money(p[key]), fill=bg, halign="right", border=True)
+            _set(ws, r, col_start + i, _money(p.get(key, "See SBC")), fill=bg, halign="right", border=True)
         r += 1
 
     r += 1
@@ -381,7 +381,7 @@ def build_vision(wb):
         _set(ws, r, 2, label, bold=True, fill=bg, border=True)
         for i, p in enumerate(plans):
             color = WHITE if bg == ORANGE else "FF000000"
-            _set(ws, r, col_start + i, _money(p[key]), bold=True,
+            _set(ws, r, col_start + i, _money(p.get(key, "See SBC")), bold=True,
                  fill=bg, halign="right", border=True, color=color)
         r += 1
 

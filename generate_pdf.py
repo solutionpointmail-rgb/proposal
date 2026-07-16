@@ -524,6 +524,17 @@ def card_grid(cards):
 
 # ── MAIN ─────────────────────────────────────────────────────────────────────
 def generate_pdf(output_path=None):
+    # Re-read from proposal_data at call time so app.py injections are picked up
+    import proposal_data as _pd
+    global CLIENT, CONTRIBUTIONS, MEDICAL_PLANS, DENTAL_PLANS, VISION_PLANS, DISCLAIMER_TEXT, PRODUCER
+    CLIENT        = _pd.CLIENT
+    CONTRIBUTIONS = _pd.CONTRIBUTIONS
+    MEDICAL_PLANS = _pd.MEDICAL_PLANS
+    DENTAL_PLANS  = _pd.DENTAL_PLANS
+    VISION_PLANS  = _pd.VISION_PLANS
+    DISCLAIMER_TEXT = getattr(_pd, 'DISCLAIMER_TEXT', '')
+    PRODUCER      = getattr(_pd, 'PRODUCER', {})
+
     if output_path is None:
         safe      = CLIENT["name"].replace(" ","_").replace("/","-")
         eff       = CLIENT["effective_date_mmddyyyy"].replace("/","")

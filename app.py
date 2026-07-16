@@ -59,6 +59,7 @@ def build_client_and_plans(client_name, effective_date, quote_id, enrolling_empl
         'zip': '37212',
         'county': 'Davidson',
         'sic': '9512',
+        'sic_code': '9512',
         'address': '',
         'city_state_zip': 'Nashville, TN 37212',
         'total_employees': int(enrolling_employees) if enrolling_employees else 15,
@@ -283,14 +284,19 @@ def generate():
         try:
             import json as _j
             raw = _j.loads(raw_payload) if isinstance(raw_payload, str) else raw_payload
-            all_medical_json = _j.dumps(raw.get('all_medical_json') or [])
-            all_dental_json  = _j.dumps(raw.get('all_dental_json')  or [])
-            all_vision_json  = _j.dumps(raw.get('all_vision_json')  or [])
-            if not enrolling_employees:
-                enrolling_employees = str(raw.get('enrolling_employees', ''))
-            if not selector_url:
-                selector_url = raw.get('selector_url', '')
-            print(f"✅ Parsed plan data from raw_payload", flush=True)
+            # raw_payload may be nested under 'raw_output' or direct
+            if isinstance(raw, dict):
+                med = raw.get('all_medical_json') or raw.get('allMedicalJson', [])
+                den = raw.get('all_dental_json')  or raw.get('allDentalJson', [])
+                vis = raw.get('all_vision_json')  or raw.get('allVisionJson', [])
+                all_medical_json = _j.dumps(med) if not isinstance(med, str) else med
+                all_dental_json  = _j.dumps(den) if not isinstance(den, str) else den
+                all_vision_json  = _j.dumps(vis) if not isinstance(vis, str) else vis
+                if not enrolling_employees:
+                    enrolling_employees = str(raw.get('enrolling_employees', ''))
+                if not selector_url:
+                    selector_url = raw.get('selector_url', '')
+            print(f"✅ Parsed plan data from raw_payload — med:{len(all_medical_json)} den:{len(all_dental_json)} vis:{len(all_vision_json)} chars", flush=True)
         except Exception as e:
             print(f"⚠️ raw_payload parse error: {e}", flush=True)
 

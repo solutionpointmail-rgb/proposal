@@ -295,71 +295,44 @@ def generate():
     all_dental_json     = data.get('all_dental_json', '')
     all_vision_json     = data.get('all_vision_json', '')
 
-    # Zapier flattens JSON arrays into individual fields like:
-    # raw_payload.all_medical_json.1.carrier, raw_payload.all_medical_json.1.plan_name, etc.
-    # We reconstruct the plan arrays from the raw_payload dict.
-    import json as _j
+    import json as _j, base64 as _b64
 
+    def decode_plan_field(val):
+        """Decode base64-encoded plan JSON from selector page, or fall back to raw string."""
+        if not val:
+            return ''
+        if isinstance(val, list):
+            return _j.dumps(val)
+        s = str(val).strip()
+        # Try base64 decode first
+        try:
+            decoded = _b64.b64decode(s).decode('utf-8')
+            if decoded.startswith('[') or decoded.startswith('{'):
+                print(f"  ✅ base64 decoded: {len(decoded)} chars", flush=True)
+                return decoded
+        except Exception:
+            pass
+        # Already a JSON string?
+        if s.startswith('['):
+            return s
+        return s
+
+    all_medical_json = decode_plan_field(all_medical_json)
+    all_dental_json  = decode_plan_field(all_dental_json)
+    all_vision_json  = decode_plan_field(all_vision_json)
+
+    # Also check raw_payload for enrolling_employees and selector_url
     raw_payload = data.get('raw_payload', '')
-    print(f"DEBUG raw_payload: {len(str(raw_payload))} chars", flush=True)
-
-    def reconstruct_plans_from_flat(raw_dict, prefix):
-        """Rebuild plan array from Zapier-flattened fields like prefix.1.carrier, prefix.2.carrier..."""
-        plans = []
-        i = 1
-        while True:
-            carrier = raw_dict.get(f'{prefix}.{i}.carrier') or raw_dict.get(f'{prefix}_{i}_carrier')
-            plan_name = raw_dict.get(f'{prefix}.{i}.plan_name') or raw_dict.get(f'{prefix}_{i}_plan_name')
-            if not carrier and not plan_name:
-                break
-            plan = {
-                'carrier':        carrier or '',
-                'plan_name':      plan_name or '',
-                'monthly_premium': float(raw_dict.get(f'{prefix}.{i}.monthly_premium') or raw_dict.get(f'{prefix}_{i}_monthly_premium') or 0),
-                'plan_type':      raw_dict.get(f'{prefix}.{i}.plan_type') or raw_dict.get(f'{prefix}_{i}_plan_type') or '',
-                'funding':        raw_dict.get(f'{prefix}.{i}.funding') or raw_dict.get(f'{prefix}_{i}_funding') or '',
-                'deductible_in_ind': raw_dict.get(f'{prefix}.{i}.deductible_in_ind') or raw_dict.get(f'{prefix}_{i}_deductible_in_ind') or '',
-                'oop_in_ind':     raw_dict.get(f'{prefix}.{i}.oop_in_ind') or raw_dict.get(f'{prefix}_{i}_oop_in_ind') or '',
-                'coinsurance_in': raw_dict.get(f'{prefix}.{i}.coinsurance_in') or raw_dict.get(f'{prefix}_{i}_coinsurance_in') or '',
-                'doctor_visit':   raw_dict.get(f'{prefix}.{i}.doctor_visit') or raw_dict.get(f'{prefix}_{i}_doctor_visit') or '',
-                'rate_ee':        float(raw_dict.get(f'{prefix}.{i}.rate_ee') or raw_dict.get(f'{prefix}_{i}_rate_ee') or 0),
-                'include':        True,
-            }
-            plans.append(plan)
-            i += 1
-        return plans
-
     if raw_payload:
         try:
             raw = _j.loads(raw_payload) if isinstance(raw_payload, str) else raw_payload
             if isinstance(raw, dict):
-                print(f"DEBUG raw keys sample: {list(raw.keys())[:15]}", flush=True)
-                # Print ALL keys that contain 'medical' to find exact format
-                med_keys = [k for k in raw.keys() if 'medical' in k.lower() or 'all_med' in k.lower()]
-                print(f"DEBUG medical-related keys: {med_keys[:10]}", flush=True)
-                
-                # Try to reconstruct plans from flattened Zapier fields
-                med_plans = reconstruct_plans_from_flat(raw, 'all_medical_json')
-                den_plans = reconstruct_plans_from_flat(raw, 'all_dental_json')
-                vis_plans = reconstruct_plans_from_flat(raw, 'all_vision_json')
-                
-                if med_plans:
-                    all_medical_json = _j.dumps(med_plans)
-                    print(f"✅ Reconstructed {len(med_plans)} medical plans from flat fields", flush=True)
-                if den_plans:
-                    all_dental_json = _j.dumps(den_plans)
-                    print(f"✅ Reconstructed {len(den_plans)} dental plans from flat fields", flush=True)
-                if vis_plans:
-                    all_vision_json = _j.dumps(vis_plans)
-                    print(f"✅ Reconstructed {len(vis_plans)} vision plans from flat fields", flush=True)
-
                 if not enrolling_employees:
                     enrolling_employees = str(raw.get('enrolling_employees', ''))
                 if not selector_url:
                     selector_url = raw.get('selector_url', '')
-        except Exception as e:
-            print(f"⚠️ raw_payload parse error: {e}", flush=True)
-            import traceback; traceback.print_exc()
+        except Exception:
+            pass
 
     print(f"✅ Final plan data — med:{len(str(all_medical_json))} den:{len(str(all_dental_json))} vis:{len(str(all_vision_json))} chars", flush=True)
 

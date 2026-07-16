@@ -324,7 +324,7 @@ def plan_card(plan, rank, accent, ctype):
     # ── Header: coloured rank box + carrier name ──────────────────────────
     hdr = tbl([[
         p(f"#{rank}", size=9, color=WHITE, font="Helvetica-Bold", align=TA_CENTER),
-        p(plan["carrier"], size=8.5, color=WHITE, font="Helvetica-Bold"),
+        p(plan.get("carrier", "See SBC"), size=8.5, color=WHITE, font="Helvetica-Bold"),
     ]], [0.30*inch, CARD_W - 0.30*inch], [
         ("BACKGROUND",    (0,0),(0,-1),  accent),
         ("BACKGROUND",    (1,0),(1,-1),  NAVY),
@@ -350,7 +350,7 @@ def plan_card(plan, rank, accent, ctype):
     rows.append([badge])
 
     # Plan name strip
-    name = tbl([[p(plan["plan_name"], size=6.5,
+    name = tbl([[p(plan.get("plan_name", "See SBC"), size=6.5,
                     color=colors.HexColor("#CBD5E0"), leading=8.5)]],
                [CARD_W], [
         ("BACKGROUND",    (0,0),(-1,-1), NAVY_MID),
@@ -365,7 +365,7 @@ def plan_card(plan, rank, accent, ctype):
     prem = tbl([
         [p("TOTAL MONTHLY COST", size=6, color=SLATE_LT,
            font="Helvetica-Bold", align=TA_CENTER)],
-        [p(money(plan["monthly_premium"]), size=18, color=accent,
+        [p(money(plan.get("monthly_premium", "See SBC")), size=18, color=accent,
            font="Helvetica-Bold", align=TA_CENTER, leading=22)],
         [p(plan.get("quote_type",""), size=6, color=SLATE_LT, align=TA_CENTER)],
     ], [CARD_W], [
@@ -395,38 +395,38 @@ def plan_card(plan, rank, accent, ctype):
 
     if ctype == "medical":
         benefits = [
-            ("Ded (In) Ind",   plan["deductible_in_ind"]),
-            ("Ded (In) Fam",   plan["deductible_in_fam"]),
-            ("OOP Max Ind",    plan["oop_in_ind"]),
-            ("OOP Max Fam",    plan["oop_in_fam"]),
-            ("Coinsurance",    plan["coinsurance_in"]),
-            ("Doctor Visit",   plan["doctor_visit"]),
-            ("Specialist",     plan["specialist"]),
-            ("Urgent Care",    plan["urgent_care"]),
-            ("ER",             plan["er"]),
-            ("Hospital",       plan["hospital"]),
-            ("Rx",             plan["rx"]),
+            ("Ded (In) Ind",   plan.get("deductible_in_ind", "See SBC")),
+            ("Ded (In) Fam",   plan.get("deductible_in_fam", "See SBC")),
+            ("OOP Max Ind",    plan.get("oop_in_ind", "See SBC")),
+            ("OOP Max Fam",    plan.get("oop_in_fam", "See SBC")),
+            ("Coinsurance",    plan.get("coinsurance_in", "See SBC")),
+            ("Doctor Visit",   plan.get("doctor_visit", "See SBC")),
+            ("Specialist",     plan.get("specialist", "See SBC")),
+            ("Urgent Care",    plan.get("urgent_care", "See SBC")),
+            ("ER",             plan.get("er", "See SBC")),
+            ("Hospital",       plan.get("hospital", "See SBC")),
+            ("Rx",             plan.get("rx", "See SBC")),
             ("HSA",            "Yes" if plan.get("hsa_eligible") else "No"),
         ]
     elif ctype == "dental":
         benefits = [
-            ("Ded Ind",        plan["deductible_in_ind"]),
-            ("Ded Fam",        plan["deductible_in_fam"]),
-            ("Annual Max",     plan["annual_max_in"]),
-            ("Preventive",     plan["preventive"]),
-            ("Basic",          plan["basic"]),
-            ("Major",          plan["major"]),
-            ("Endodontics",    plan["endodontics"]),
-            ("Periodontics",   plan["periodontics"]),
-            ("Implants",       plan["implants"]),
-            ("Ortho Max",      plan["ortho_max"]),
+            ("Ded Ind",        plan.get("deductible_in_ind", "See SBC")),
+            ("Ded Fam",        plan.get("deductible_in_fam", "See SBC")),
+            ("Annual Max",     plan.get("annual_max_in", "See SBC")),
+            ("Preventive",     plan.get("preventive", "See SBC")),
+            ("Basic",          plan.get("basic", "See SBC")),
+            ("Major",          plan.get("major", "See SBC")),
+            ("Endodontics",    plan.get("endodontics", "See SBC")),
+            ("Periodontics",   plan.get("periodontics", "See SBC")),
+            ("Implants",       plan.get("implants", "See SBC")),
+            ("Ortho Max",      plan.get("ortho_max", "See SBC")),
         ]
     else:  # vision
         benefits = [
-            ("Exam",           plan["exam_frequency"]),
-            ("Lenses",         plan["lenses_frequency"]),
-            ("Frames",         plan["frames_frequency"]),
-            ("Contact Lens",   plan["contacts_frequency"]),
+            ("Exam",           plan.get("exam_frequency", "See SBC")),
+            ("Lenses",         plan.get("lenses_frequency", "See SBC")),
+            ("Frames",         plan.get("frames_frequency", "See SBC")),
+            ("Contact Lens",   plan.get("contacts_frequency", "See SBC")),
         ]
 
     for i, (lbl, val) in enumerate(benefits):
@@ -445,19 +445,19 @@ def plan_card(plan, rank, accent, ctype):
 
     ee = CLIENT["tier_ee"]
     for i, (lbl, val) in enumerate([
-        (f"EE Only ({ee})",  money(plan["rate_ee"])),
-        ("EE + Spouse",      money(plan["rate_es"])),
-        ("EE + Children",    money(plan["rate_ec"])),
-        ("EE + Family",      money(plan["rate_ef"])),
-        ("Employer Cost",    money(plan["employer_cost"])),
-        ("Employee Cost",    money(plan["employee_cost"])),
+        (f"EE Only ({ee})",  money(plan.get("rate_ee", "See SBC"))),
+        ("EE + Spouse",      money(plan.get("rate_es", "See SBC"))),
+        ("EE + Children",    money(plan.get("rate_ec", "See SBC"))),
+        ("EE + Family",      money(plan.get("rate_ef", "See SBC"))),
+        ("Employer Cost",    money(plan.get("employer_cost", "See SBC"))),
+        ("Employee Cost",    money(plan.get("employee_cost", "See SBC"))),
     ]):
         rows.append([brow(lbl, val, i)])
 
     # Total premium footer
     foot = tbl([[
         p("Monthly Premium", size=7.5, color=WHITE, font="Helvetica-Bold"),
-        p(money(plan["monthly_premium"]), size=9, color=WHITE,
+        p(money(plan.get("monthly_premium", "See SBC")), size=9, color=WHITE,
           font="Helvetica-Bold", align=TA_RIGHT),
     ]], [LW, VW], [
         ("BACKGROUND",    (0,0),(-1,-1), accent),

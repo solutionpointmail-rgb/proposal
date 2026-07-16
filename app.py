@@ -1,20 +1,38 @@
 """
-app.py — TBG Proposal Generation Server v3
-- Fixed plan parsing (INCLUDE vs EXCLUDE)
-- Dynamic Dropbox folder routing to existing client structure
+app.py — TBG Proposal Generation Server v4
+- Dynamic plan data from webhook (no proposal_data.py dependency)
+- Client info built from webhook payload
+- Dynamic selector URL per client
 """
 
-import os, re, sys
+import os, re, sys, json
 from datetime import datetime
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-def parse_selected_plans(plans_text):
-    """Parse comma-separated plan names from webhook field."""
+def find_client_dropbox_folder(client_name, dbx):
+    search_name = client_name.replace(' — Review for Proposal', '').strip()
+    candidates = [
+        f"/Solutionpoint Groups/1. Solutionpoint Groups/Proposals/2026/{search_name}",
+        f"/Solutionpoint Groups/1. Solutionpoint Groups/2.  HOT LEADS/{search_name}/Quoting/3. Proposal",
+        f"/Solutionpoint Groups/1. Solutionpoint Groups/3. WARM LEADS/{search_name}/Quoting/3. Proposal",
+        f"/Solutionpoint Groups/1. Solutionpoint Groups/4. RENEWALS/{search_name}/Quoting/3. Proposal",
+    ]
+    for path in candidates:
+        try:
+            dbx.files_get_metadata(path)
+            print(f"Found existing folder: {path}", flush=True)
+            return path
+        except Exception:
+            continue
+    return None
+
+
+def parse_plan_names(plans_text):
+    """Parse comma-separated plan names."""
     if not plans_text:
         return []
-    # Handle both comma-separated and newline-separated
     plans = []
     for p in re.split(r'[,\n]', plans_text):
         p = p.strip()
@@ -23,81 +41,118 @@ def parse_selected_plans(plans_text):
     return plans
 
 
-def find_client_dropbox_folder(client_name, dbx):
+def build_client_and_plans(client_name, effective_date, quote_id, enrolling_employees,
+                            contributions, medical_plans_str, dental_plans_str, vision_plans_str,
+                            all_medical_json, all_dental_json, all_vision_json):
     """
-    Try to find existing client proposal folder using direct path checks.
-    Checks known TBG folder structures before falling back to new folder.
+    Build CLIENT dict and plan lists from webhook data.
+    Uses full plan JSON if available, otherwise falls back to plan names only.
     """
-    search_name = client_name.replace(' — Review for Proposal', '').strip()
+    clean_name = client_name.replace(' — Review for Proposal', '').strip()
 
-    # Known path patterns to check in order
-    candidates = [
-        f"/Solutionpoint Groups/1. Solutionpoint Groups/Proposals/2026/{search_name}",
-        f"/Solutionpoint Groups/1. Solutionpoint Groups/2.  HOT LEADS/{search_name}/Quoting/3. Proposal",
-        f"/Solutionpoint Groups/1. Solutionpoint Groups/3. WARM LEADS/{search_name}/Quoting/3. Proposal",
-        f"/Solutionpoint Groups/1. Solutionpoint Groups/4. RENEWALS/{search_name}/Quoting/3. Proposal",
-    ]
+    CLIENT = {
+        'name': clean_name,
+        'effective_date': effective_date or 'August 1, 2026',
+        'effective_date_mmddyyyy': '08/01/2026',
+        'quote_id': quote_id or 'TBD',
+        'state': 'TN',
+        'zip': '37212',
+        'county': 'Davidson',
+        'sic': '9512',
+        'address': '',
+        'total_employees': int(enrolling_employees) if enrolling_employees else 15,
+        'eligible_employees': int(enrolling_employees) if enrolling_employees else 15,
+        'enrolling_employees': int(enrolling_employees) if enrolling_employees else 15,
+        'waiving_employees': 0,
+        'presenter_name': 'The Benefits Group',
+        'presenter_phone': '(615) 560-3667',
+        'presenter_email': 'happy@benefits.place',
+        'agency': 'Solutionpoint Consulting',
+    }
 
-    for path in candidates:
+    CONTRIBUTIONS = {
+        'medical_ee': contributions.get('medical_ee', '50%'),
+        'medical_dep': contributions.get('medical_dep', '0%'),
+        'dental_ee': contributions.get('dental_ee', '0%'),
+        'dental_dep': contributions.get('dental_dep', '0%'),
+        'vision_ee': contributions.get('vision_ee', '0%'),
+        'vision_dep': contributions.get('vision_dep', '0%'),
+        'life': '100% employee only',
+    }
+
+    # Selected plan names
+    med_sel = parse_plan_names(medical_plans_str)
+    den_sel = parse_plan_names(dental_plans_str)
+    vis_sel = parse_plan_names(vision_plans_str)
+
+    # Try to use full plan JSON objects from webhook
+    def filter_plans(all_json, selected_names, default_include_all):
         try:
-            dbx.files_get_metadata(path)
-            print(f"Found existing folder: {path}", flush=True)
-            return path
+            all_plans = json.loads(all_json) if all_json else []
         except Exception:
-            continue
+            all_plans = []
 
-    return None
+        if not all_plans:
+            return []
+
+        if not selected_names:
+            # No selections sent — include all
+            for p in all_plans:
+                p['include'] = True
+            return all_plans
+
+        for p in all_plans:
+            p['include'] = any(
+                sel.lower().strip() in p['plan_name'].lower() or
+                p['plan_name'].lower() in sel.lower().strip()
+                for sel in selected_names
+            )
+        return all_plans
+
+    MEDICAL_PLANS = filter_plans(all_medical_json, med_sel, True)
+    DENTAL_PLANS  = filter_plans(all_dental_json,  den_sel, True)
+    VISION_PLANS  = filter_plans(all_vision_json,  vis_sel, True)
+
+    print(f"Medical plans loaded: {len(MEDICAL_PLANS)} total, {sum(1 for p in MEDICAL_PLANS if p.get('include'))} selected", flush=True)
+    print(f"Dental plans loaded:  {len(DENTAL_PLANS)} total, {sum(1 for p in DENTAL_PLANS if p.get('include'))} selected", flush=True)
+    print(f"Vision plans loaded:  {len(VISION_PLANS)} total, {sum(1 for p in VISION_PLANS if p.get('include'))} selected", flush=True)
+
+    return CLIENT, CONTRIBUTIONS, MEDICAL_PLANS, DENTAL_PLANS, VISION_PLANS
 
 
-def run_pipeline(client_name, effective_date, quote_id, task_id, notes, medical_plans='', dental_plans='', vision_plans=''):
+def run_pipeline(client_name, effective_date, quote_id, task_id, notes,
+                 medical_plans='', dental_plans='', vision_plans='',
+                 enrolling_employees='', contributions=None,
+                 all_medical_json='', all_dental_json='', all_vision_json='',
+                 selector_url=''):
+
     print(f"=== PIPELINE START: {client_name} ===", flush=True)
 
     try:
         sys.path.insert(0, '/opt/render/project/src')
-        from proposal_data import CLIENT, CONTRIBUTIONS, MEDICAL_PLANS, DENTAL_PLANS, VISION_PLANS
-        print("✅ proposal_data imported", flush=True)
 
-        # Clean client name
-        clean_name = client_name.replace(' — Review for Proposal', '').strip()
-        CLIENT['name']         = clean_name
-        CLIENT['effective_date'] = effective_date or CLIENT['effective_date']
-        CLIENT['quote_id']     = quote_id or CLIENT['quote_id']
+        if contributions is None:
+            contributions = {}
 
-        # Parse selected plans from dedicated webhook fields
-        med_sel = parse_selected_plans(medical_plans)
-        den_sel = parse_selected_plans(dental_plans)
-        vis_sel = parse_selected_plans(vision_plans)
-        print(f"Medical selected:  {med_sel}", flush=True)
-        print(f"Dental selected:   {den_sel}", flush=True)
-        print(f"Vision selected:   {vis_sel}", flush=True)
+        CLIENT, CONTRIBUTIONS, MEDICAL_PLANS, DENTAL_PLANS, VISION_PLANS = build_client_and_plans(
+            client_name, effective_date, quote_id, enrolling_employees, contributions,
+            medical_plans, dental_plans, vision_plans,
+            all_medical_json, all_dental_json, all_vision_json
+        )
 
-   # Set include flags
-        for p in MEDICAL_PLANS:
-            p['include'] = bool(med_sel) and any(
-                s.lower() in p['plan_name'].lower() or p['plan_name'].lower() in s.lower()
-                for s in med_sel)
-        for p in DENTAL_PLANS:
-            p['include'] = bool(den_sel) and any(
-                s.lower() in p['plan_name'].lower() or p['plan_name'].lower() in s.lower()
-                for s in den_sel)
-        for p in VISION_PLANS:
-            p['include'] = bool(vis_sel) and any(
-                s.lower() in p['plan_name'].lower() or p['plan_name'].lower() in s.lower()
-                for s in vis_sel)
+        clean_name = CLIENT['name']
 
-        # Only fall back if webhook delivered NO field data at all
-        raw_any_selected = any([medical_plans.strip(), dental_plans.strip(), vision_plans.strip()])
-        if not raw_any_selected:
-            print("⚠️ No plan fields received — bad payload, including all as fallback", flush=True)
-            for p in MEDICAL_PLANS: p['include'] = True
-            for p in DENTAL_PLANS:  p['include'] = True
-            for p in VISION_PLANS:  p['include'] = True
-        else:
-            print("✅ Plan selections received — respecting broker choices", flush=True)
+        # Inject into proposal_data module so generate_pdf/excel pick them up
+        import proposal_data as pd_module
+        pd_module.CLIENT       = CLIENT
+        pd_module.CONTRIBUTIONS = CONTRIBUTIONS
+        pd_module.MEDICAL_PLANS = MEDICAL_PLANS
+        pd_module.DENTAL_PLANS  = DENTAL_PLANS
+        pd_module.VISION_PLANS  = VISION_PLANS
 
-        inc_med = [p['plan_name'] for p in MEDICAL_PLANS if p['include']]
-        inc_den = [p['plan_name'] for p in DENTAL_PLANS  if p['include']]
-        inc_vis = [p['plan_name'] for p in VISION_PLANS  if p['include']]
+        inc_med = [p['plan_name'] for p in MEDICAL_PLANS if p.get('include')]
+        inc_den = [p['plan_name'] for p in DENTAL_PLANS  if p.get('include')]
+        inc_vis = [p['plan_name'] for p in VISION_PLANS  if p.get('include')]
         print(f"Including medical: {inc_med}", flush=True)
         print(f"Including dental:  {inc_den}", flush=True)
         print(f"Including vision:  {inc_vis}", flush=True)
@@ -124,17 +179,14 @@ def run_pipeline(client_name, effective_date, quote_id, task_id, notes, medical_
         print("Uploading to Dropbox...", flush=True)
         import dropbox as dbx_module
         dbx = dbx_module.Dropbox(
-    oauth2_refresh_token=os.environ['DROPBOX_REFRESH_TOKEN'],
-    app_key=os.environ['DROPBOX_APP_KEY'],
-    app_secret=os.environ['DROPBOX_APP_SECRET']
-)
+            oauth2_refresh_token=os.environ['DROPBOX_REFRESH_TOKEN'],
+            app_key=os.environ['DROPBOX_APP_KEY'],
+            app_secret=os.environ['DROPBOX_APP_SECRET']
+        )
 
-        # Try to find existing client folder, fall back to Benefits Group structure
         existing_folder = find_client_dropbox_folder(clean_name, dbx)
-        if existing_folder:
-            folder = existing_folder
-        else:
-            folder = f"/Benefits Group/Proposals/2026/{safe_name}"
+        folder = existing_folder or f"/Benefits Group/Proposals/2026/{safe_name}"
+        if not existing_folder:
             print(f"Using new folder: {folder}", flush=True)
 
         links = {}
@@ -159,7 +211,6 @@ def run_pipeline(client_name, effective_date, quote_id, task_id, notes, medical_
             'Content-Type': 'application/json'
         }
 
-        # Move to Delivered section
         requests.post(
             'https://app.asana.com/api/1.0/sections/1216532264374832/addTask',
             headers=headers,
@@ -169,16 +220,21 @@ def run_pipeline(client_name, effective_date, quote_id, task_id, notes, medical_
         pdf_link   = links.get(pdf_name,   'Not available')
         excel_link = links.get(excel_name, 'Not available')
 
+        # Build dynamic selector URL
+        if not selector_url:
+            safe_client = clean_name.lower().replace(' ', '').replace('_','').replace('-','').replace('.','').replace(',','')
+            selector_url = f"https://solutionpointmail-rgb.github.io/proposal/{safe_client}-aug2026.html"
+
         comment = (
             f"✅ Proposal generated!\n\n"
             f"📄 PDF: {pdf_link}\n"
             f"📊 Excel: {excel_link}\n\n"
             f"📁 Saved to: {folder}\n\n"
             f"Plans included:\n"
-            f"Medical ({len(inc_med)}): {', '.join(inc_med)}\n"
-            f"Dental ({len(inc_den)}):  {', '.join(inc_den)}\n"
-            f"Vision ({len(inc_vis)}):  {', '.join(inc_vis)}\n\n"
-            f"🔄 Revise selections: https://solutionpointmail-rgb.github.io/proposal/tenngreen-aug2026.html\n\n"
+            f"Medical ({len(inc_med)}): {', '.join(inc_med) if inc_med else 'None selected'}\n"
+            f"Dental ({len(inc_den)}): {', '.join(inc_den) if inc_den else 'None selected'}\n"
+            f"Vision ({len(inc_vis)}): {', '.join(inc_vis) if inc_vis else 'None selected'}\n\n"
+            f"🔄 Revise selections: {selector_url}\n\n"
             f"Generated: {datetime.now().strftime('%B %d, %Y at %I:%M %p')}"
         )
         requests.post(
@@ -199,33 +255,51 @@ def run_pipeline(client_name, effective_date, quote_id, task_id, notes, medical_
 
 @app.route('/', methods=['GET'])
 def health():
-    return jsonify({'status': 'TBG Proposal Generator v3', 'version': '3.0'})
+    return jsonify({'status': 'TBG Proposal Generator v4', 'version': '4.0'})
 
 
 @app.route('/generate', methods=['POST'])
 def generate():
     data = request.get_json(force=True, silent=True) or request.form.to_dict()
 
-    client_name    = data.get('client_name', '')
-    effective_date = data.get('effective_date', '')
-    quote_id       = data.get('quote_id', '')
-    task_id        = data.get('task_id', '')
-    notes          = data.get('notes', '')
-    medical_plans  = data.get('medical_plans', '')
-    dental_plans   = data.get('dental_plans', '')
-    vision_plans   = data.get('vision_plans', '')
+    client_name         = data.get('client_name', '')
+    effective_date      = data.get('effective_date', '')
+    quote_id            = data.get('quote_id', '')
+    task_id             = data.get('task_id', '')
+    notes               = data.get('notes', '')
+    medical_plans       = data.get('medical_plans', '')
+    dental_plans        = data.get('dental_plans', '')
+    vision_plans        = data.get('vision_plans', '')
+    enrolling_employees = data.get('enrolling_employees', '')
+    selector_url        = data.get('selector_url', '')
+    all_medical_json    = data.get('all_medical_json', '')
+    all_dental_json     = data.get('all_dental_json', '')
+    all_vision_json     = data.get('all_vision_json', '')
+
+    # Contributions
+    contributions = {
+        'medical_ee':  data.get('contributions_medical_ee', '50%'),
+        'medical_dep': data.get('contributions_medical_dep', '0%'),
+        'dental_ee':   data.get('contributions_dental_ee', '0%'),
+        'dental_dep':  data.get('contributions_dental_dep', '0%'),
+        'vision_ee':   data.get('contributions_vision_ee', '0%'),
+        'vision_dep':  data.get('contributions_vision_dep', '0%'),
+    }
 
     print(f"Received: {client_name} | task: {task_id}", flush=True)
-    print(f"Medical: {medical_plans}", flush=True)
-    print(f"Dental:  {dental_plans}", flush=True)
-    print(f"Vision:  {vision_plans}", flush=True)
+    print(f"Medical selected: {medical_plans}", flush=True)
+    print(f"Dental selected:  {dental_plans}", flush=True)
+    print(f"Vision selected:  {vision_plans}", flush=True)
 
     if not client_name or not task_id:
         return jsonify({'error': 'Missing client_name or task_id'}), 400
 
     success, folder, pdf_link, excel_link = run_pipeline(
         client_name, effective_date, quote_id, task_id, notes,
-        medical_plans, dental_plans, vision_plans
+        medical_plans, dental_plans, vision_plans,
+        enrolling_employees, contributions,
+        all_medical_json, all_dental_json, all_vision_json,
+        selector_url
     )
 
     if success:
@@ -238,6 +312,8 @@ def generate():
         }), 200
     else:
         return jsonify({'status': 'error', 'message': 'Pipeline failed — check Render logs'}), 500
+
+
 @app.route('/push-to-github', methods=['POST'])
 def push_to_github():
     data = request.get_json(force=True, silent=True) or {}
@@ -250,10 +326,10 @@ def push_to_github():
         return jsonify({'error': 'Missing github_token'}), 400
     import base64 as b64, urllib.request as ur
     api_url = f'https://api.github.com/repos/solutionpointmail-rgb/proposal/contents/{filename}'
-    headers = {'Authorization': f'token {gh_token}', 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json'}
+    hdrs = {'Authorization': f'token {gh_token}', 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json'}
     sha = None
     try:
-        req = ur.Request(api_url, headers=headers)
+        req = ur.Request(api_url, headers=hdrs)
         with ur.urlopen(req) as r:
             sha = json.loads(r.read()).get('sha')
     except Exception:
@@ -262,7 +338,7 @@ def push_to_github():
     if sha:
         payload['sha'] = sha
     try:
-        req = ur.Request(api_url, data=json.dumps(payload).encode(), method='PUT', headers=headers)
+        req = ur.Request(api_url, data=json.dumps(payload).encode(), method='PUT', headers=hdrs)
         with ur.urlopen(req) as r:
             json.loads(r.read())
         url = f'https://solutionpointmail-rgb.github.io/proposal/{filename}'
@@ -271,6 +347,7 @@ def push_to_github():
     except Exception as e:
         print(f'❌ GitHub push error: {e}', flush=True)
         return jsonify({'error': str(e)}), 500
+
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

@@ -118,11 +118,11 @@ def build_medical(wb):
         in_col = col_start + i * 2
         _set(ws, r,   in_col, str(i + 1), bold=True, size=11, halign="center",
              fill=TEAL, color=WHITE)
-        _set(ws, r+1, in_col, p["plan_name"], bold=True, size=9,
+        _set(ws, r+1, in_col, p.get("plan_name", ""), bold=True, size=9,
              fill=LIGHT_TEAL, halign="center")
         _set(ws, r+2, in_col, f"{p['plan_type']} - {p['funding']}", size=9,
              fill=LIGHT_TEAL, halign="center")
-        _set(ws, r+3, in_col, p["quote_type"], size=9,
+        _set(ws, r+3, in_col, p.get("quote_type", "See SBC"), size=9,
              fill=LIGHT_TEAL, halign="center")
 
     # Column sub-headers
@@ -177,7 +177,7 @@ def build_medical(wb):
     _set(ws, r, 2, "Cost Comparison", bold=True, fill=TEAL, color=WHITE)
     for i, p in enumerate(plans):
         in_col = col_start + i * 2
-        _set(ws, r, in_col, p["quote_type"], bold=True, fill=TEAL, color=WHITE, halign="center")
+        _set(ws, r, in_col, p.get("quote_type", "See SBC"), bold=True, fill=TEAL, color=WHITE, halign="center")
     r += 1
 
     cost_rows = [
@@ -229,8 +229,8 @@ def build_dental(wb):
     for i, p in enumerate(plans):
         c = col_start + i * 2
         _set(ws, r,   c, str(i + 1), bold=True, size=11, halign="center", fill=TEAL, color=WHITE)
-        _set(ws, r+1, c, p["plan_name"], bold=True, size=9, fill=LIGHT_TEAL, halign="center")
-        _set(ws, r+2, c, p["plan_type"], size=9, fill=LIGHT_TEAL, halign="center")
+        _set(ws, r+1, c, p.get("plan_name", ""), bold=True, size=9, fill=LIGHT_TEAL, halign="center")
+        _set(ws, r+2, c, p.get("plan_type", ""), size=9, fill=LIGHT_TEAL, halign="center")
 
     r = 6
     _set(ws, r, 2, "Benefit Comparison", bold=True, fill=TEAL, color=WHITE)
@@ -335,8 +335,8 @@ def build_vision(wb):
     for i, p in enumerate(plans):
         c = col_start + i
         _set(ws, r,   c, str(i + 1), bold=True, size=11, halign="center", fill=TEAL, color=WHITE)
-        _set(ws, r+1, c, p["plan_name"], bold=True, size=9, fill=LIGHT_TEAL, halign="center")
-        _set(ws, r+2, c, p["plan_type"], size=9, fill=LIGHT_TEAL, halign="center")
+        _set(ws, r+1, c, p.get("plan_name", ""), bold=True, size=9, fill=LIGHT_TEAL, halign="center")
+        _set(ws, r+2, c, p.get("plan_type", ""), size=9, fill=LIGHT_TEAL, halign="center")
 
     r = 6
     _set(ws, r, 2, "Benefit Frequency Comparison", bold=True, fill=TEAL, color=WHITE)

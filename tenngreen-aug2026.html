@@ -331,14 +331,25 @@ async function submitSelections() {
   spinner.style.display = 'inline-block';
 
   const selected = getSelectedPlans();
-  const payload = {
-    client: CLIENT_DATA,
-    selected_plans: selected,
-    medical_plans: selected.medical.join(','),
-    dental_plans: selected.dental.join(','),
-    vision_plans: selected.vision.join(','),
-    submitted_at: new Date().toISOString(),
-    source: 'proposal-selector'
+  const payload={
+    client:CLIENT_DATA,
+    selected_plans:selected,
+    medical_plans:selected.medical.join(','),
+    dental_plans:selected.dental.join(','),
+    vision_plans:selected.vision.join(','),
+    all_medical_json:JSON.stringify(PLAN_DATA.medical),
+    all_dental_json:JSON.stringify(PLAN_DATA.dental),
+    all_vision_json:JSON.stringify(PLAN_DATA.vision),
+    enrolling_employees:CLIENT_DATA.enrolling_employees,
+    contributions_medical_ee:(CLIENT_DATA.contributions||{}).medical_ee||'50%',
+    contributions_medical_dep:(CLIENT_DATA.contributions||{}).medical_dep||'0%',
+    contributions_dental_ee:(CLIENT_DATA.contributions||{}).dental_ee||'0%',
+    contributions_dental_dep:(CLIENT_DATA.contributions||{}).dental_dep||'0%',
+    contributions_vision_ee:(CLIENT_DATA.contributions||{}).vision_ee||'0%',
+    contributions_vision_dep:(CLIENT_DATA.contributions||{}).vision_dep||'0%',
+    selector_url:window.location.href,
+    submitted_at:new Date().toISOString(),
+    source:'proposal-selector'
   };
 
   try {

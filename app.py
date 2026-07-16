@@ -334,6 +334,9 @@ def generate():
             raw = _j.loads(raw_payload) if isinstance(raw_payload, str) else raw_payload
             if isinstance(raw, dict):
                 print(f"DEBUG raw keys sample: {list(raw.keys())[:15]}", flush=True)
+                # Print ALL keys that contain 'medical' to find exact format
+                med_keys = [k for k in raw.keys() if 'medical' in k.lower() or 'all_med' in k.lower()]
+                print(f"DEBUG medical-related keys: {med_keys[:10]}", flush=True)
                 
                 # Try to reconstruct plans from flattened Zapier fields
                 med_plans = reconstruct_plans_from_flat(raw, 'all_medical_json')

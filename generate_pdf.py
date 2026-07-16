@@ -44,7 +44,11 @@ WHITE       = colors.white
 INK         = colors.HexColor("#1A202C")
 
 # ── HELPERS ───────────────────────────────────────────────────────────────────
-def money(v): return f"${v:,.2f}"
+def money(v):
+    try:
+        return f"${float(v):,.2f}"
+    except (ValueError, TypeError):
+        return str(v) if v else "See SBC"
 
 def p(text, size=9, color=INK, font="Helvetica", align=TA_LEFT,
       leading=None, after=0, before=0):

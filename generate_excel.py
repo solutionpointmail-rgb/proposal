@@ -42,7 +42,10 @@ def _align(h="left", v="center", wrap=True):
     return Alignment(horizontal=h, vertical=v, wrap_text=wrap)
 
 def _money(val):
-    return f"${val:,.2f}"
+    try:
+        return f"${float(val):,.2f}"
+    except (ValueError, TypeError):
+        return str(val) if val else "See SBC"
 
 def _set(ws, row, col, value, bold=False, size=10, color="FF000000",
          fill=None, halign="left", wrap=True, border=False):

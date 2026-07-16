@@ -295,28 +295,53 @@ def generate():
     all_dental_json     = data.get('all_dental_json', '')
     all_vision_json     = data.get('all_vision_json', '')
 
-    # Parse from raw_payload if individual JSON fields not present
+    # Parse from raw_payload — Zapier sends the full selector payload here as JSON string
+    import json as _j
     raw_payload = data.get('raw_payload', '')
-    if raw_payload and not all_medical_json:
+    
+    # Debug: log what we actually received
+    print(f"DEBUG all_medical_json direct: {len(str(all_medical_json))} chars, type: {type(all_medical_json)}", flush=True)
+    print(f"DEBUG raw_payload: {len(str(raw_payload))} chars, type: {type(raw_payload)}", flush=True)
+    
+    # Try to parse raw_payload to get the full plan JSON
+    if raw_payload:
         try:
-            import json as _j
             raw = _j.loads(raw_payload) if isinstance(raw_payload, str) else raw_payload
-            print(f"raw_payload type: {type(raw)}, keys: {list(raw.keys()) if isinstance(raw, dict) else 'not dict'}", flush=True)
             if isinstance(raw, dict):
-                med = raw.get('all_medical_json') or raw.get('allMedicalJson', [])
-                den = raw.get('all_dental_json')  or raw.get('allDentalJson', [])
-                vis = raw.get('all_vision_json')  or raw.get('allVisionJson', [])
-                print(f"med type:{type(med)} len:{len(med) if med else 0}", flush=True)
-                all_medical_json = _j.dumps(med) if not isinstance(med, str) else med
-                all_dental_json  = _j.dumps(den) if not isinstance(den, str) else den
-                all_vision_json  = _j.dumps(vis) if not isinstance(vis, str) else vis
+                print(f"DEBUG raw keys: {list(raw.keys())}", flush=True)
+                # Try every possible key name Zapier might use
+                def get_json_field(d, *keys):
+                    for k in keys:
+                        v = d.get(k)
+                        if v and v != '[]' and v != '""':
+                            return v
+                    return None
+                
+                med_raw = get_json_field(raw, 'all_medical_json', 'allMedicalJson', 'medical_plans_json')
+                den_raw = get_json_field(raw, 'all_dental_json', 'allDentalJson', 'dental_plans_json')
+                vis_raw = get_json_field(raw, 'all_vision_json', 'allVisionJson', 'vision_plans_json')
+                
+                if med_raw and not all_medical_json:
+                    all_medical_json = _j.dumps(med_raw) if not isinstance(med_raw, str) else med_raw
+                if den_raw and not all_dental_json:
+                    all_dental_json = _j.dumps(den_raw) if not isinstance(den_raw, str) else den_raw
+                if vis_raw and not all_vision_json:
+                    all_vision_json = _j.dumps(vis_raw) if not isinstance(vis_raw, str) else vis_raw
+                
                 if not enrolling_employees:
                     enrolling_employees = str(raw.get('enrolling_employees', ''))
                 if not selector_url:
                     selector_url = raw.get('selector_url', '')
-            print(f"✅ Parsed plan data from raw_payload — med:{len(all_medical_json)} den:{len(all_dental_json)} vis:{len(all_vision_json)} chars", flush=True)
         except Exception as e:
             print(f"⚠️ raw_payload parse error: {e}", flush=True)
+    
+    # If all_medical_json came through directly from Zapier mapping, parse if it's a string
+    if isinstance(all_medical_json, str) and all_medical_json.startswith('['):
+        pass  # already a JSON string, good
+    elif isinstance(all_medical_json, list):
+        all_medical_json = _j.dumps(all_medical_json)
+    
+    print(f"✅ Final plan data — med:{len(str(all_medical_json))} den:{len(str(all_dental_json))} vis:{len(str(all_vision_json))} chars", flush=True)
 
     # Contributions
     contributions = {

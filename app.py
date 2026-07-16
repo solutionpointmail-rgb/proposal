@@ -71,7 +71,7 @@ def run_pipeline(client_name, effective_date, quote_id, task_id, notes, medical_
         print(f"Dental selected:   {den_sel}", flush=True)
         print(f"Vision selected:   {vis_sel}", flush=True)
 
-        # Set include flags
+   # Set include flags
         for p in MEDICAL_PLANS:
             p['include'] = bool(med_sel) and any(
                 s.lower() in p['plan_name'].lower() or p['plan_name'].lower() in s.lower()
@@ -85,20 +85,15 @@ def run_pipeline(client_name, effective_date, quote_id, task_id, notes, medical_
                 s.lower() in p['plan_name'].lower() or p['plan_name'].lower() in s.lower()
                 for s in vis_sel)
 
-       # Determine if the broker actually submitted any selections at all
-# by checking the raw strings before parsing, not after
-raw_any_selected = any([medical_plans.strip(), dental_plans.strip(), vision_plans.strip()])
-
-if not raw_any_selected:
-    # Nothing came through at all — likely a bad webhook payload, use fallback
-    print("⚠️ No plan fields received — including all as fallback", flush=True)
-    for p in MEDICAL_PLANS: p['include'] = True
-    for p in DENTAL_PLANS:  p['include'] = True
-    for p in VISION_PLANS:  p['include'] = True
-else:
-    # Broker made real selections — respect them even if a line is empty
-    # (empty line = broker intentionally excluded that coverage type)
-    print("✅ Plan selections received — respecting broker choices", flush=True)
+        # Only fall back if webhook delivered NO field data at all
+        raw_any_selected = any([medical_plans.strip(), dental_plans.strip(), vision_plans.strip()])
+        if not raw_any_selected:
+            print("⚠️ No plan fields received — bad payload, including all as fallback", flush=True)
+            for p in MEDICAL_PLANS: p['include'] = True
+            for p in DENTAL_PLANS:  p['include'] = True
+            for p in VISION_PLANS:  p['include'] = True
+        else:
+            print("✅ Plan selections received — respecting broker choices", flush=True)
 
         inc_med = [p['plan_name'] for p in MEDICAL_PLANS if p['include']]
         inc_den = [p['plan_name'] for p in DENTAL_PLANS  if p['include']]

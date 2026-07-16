@@ -60,7 +60,7 @@ def build_client_and_plans(client_name, effective_date, quote_id, enrolling_empl
         'county': 'Davidson',
         'sic': '9512',
         'sic_code': '9512',
-        'address': '',
+        'address': '1213 16th Ave South',
         'city_state_zip': 'Nashville, TN 37212',
         'tier_ee': 'Employee Only',
         'tier_es': 'Employee + Spouse',
@@ -155,6 +155,19 @@ def run_pipeline(client_name, effective_date, quote_id, task_id, notes,
         pd_module.MEDICAL_PLANS = MEDICAL_PLANS
         pd_module.DENTAL_PLANS  = DENTAL_PLANS
         pd_module.VISION_PLANS  = VISION_PLANS
+        pd_module.PRODUCER = {
+            'name':      'William Brown',
+            'agency':    'The Benefits Group',
+            'sub_agency': 'Solutionpoint Consulting',
+            'phone':     '(615) 560-3667',
+            'email':     'happy@benefits.place',
+        }
+        if not hasattr(pd_module, 'DISCLAIMER_TEXT') or not pd_module.DISCLAIMER_TEXT:
+            pd_module.DISCLAIMER_TEXT = (
+                'This proposal is for informational purposes only and is subject to carrier approval. '
+                'Rates and benefits are not guaranteed until formally issued by the carrier. '
+                'Prepared by The Benefits Group / Solutionpoint Consulting.'
+            )
 
         inc_med = [p['plan_name'] for p in MEDICAL_PLANS if p.get('include')]
         inc_den = [p['plan_name'] for p in DENTAL_PLANS  if p.get('include')]

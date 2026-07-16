@@ -276,6 +276,23 @@ def generate():
     all_dental_json     = data.get('all_dental_json', '')
     all_vision_json     = data.get('all_vision_json', '')
 
+    # Parse from raw_payload if individual JSON fields not present
+    raw_payload = data.get('raw_payload', '')
+    if raw_payload and not all_medical_json:
+        try:
+            import json as _j
+            raw = _j.loads(raw_payload) if isinstance(raw_payload, str) else raw_payload
+            all_medical_json = _j.dumps(raw.get('all_medical_json') or [])
+            all_dental_json  = _j.dumps(raw.get('all_dental_json')  or [])
+            all_vision_json  = _j.dumps(raw.get('all_vision_json')  or [])
+            if not enrolling_employees:
+                enrolling_employees = str(raw.get('enrolling_employees', ''))
+            if not selector_url:
+                selector_url = raw.get('selector_url', '')
+            print(f"✅ Parsed plan data from raw_payload", flush=True)
+        except Exception as e:
+            print(f"⚠️ raw_payload parse error: {e}", flush=True)
+
     # Contributions
     contributions = {
         'medical_ee':  data.get('contributions_medical_ee', '50%'),

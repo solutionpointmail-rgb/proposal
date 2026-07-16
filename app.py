@@ -62,6 +62,10 @@ def build_client_and_plans(client_name, effective_date, quote_id, enrolling_empl
         'sic_code': '9512',
         'address': '',
         'city_state_zip': 'Nashville, TN 37212',
+        'tier_ee': 'Employee Only',
+        'tier_es': 'Employee + Spouse',
+        'tier_ec': 'Employee + Children',
+        'tier_ef': 'Employee + Family',
         'total_employees': int(enrolling_employees) if enrolling_employees else 15,
         'eligible_employees': int(enrolling_employees) if enrolling_employees else 15,
         'enrolling_employees': int(enrolling_employees) if enrolling_employees else 15,
@@ -284,11 +288,12 @@ def generate():
         try:
             import json as _j
             raw = _j.loads(raw_payload) if isinstance(raw_payload, str) else raw_payload
-            # raw_payload may be nested under 'raw_output' or direct
+            print(f"raw_payload type: {type(raw)}, keys: {list(raw.keys()) if isinstance(raw, dict) else 'not dict'}", flush=True)
             if isinstance(raw, dict):
                 med = raw.get('all_medical_json') or raw.get('allMedicalJson', [])
                 den = raw.get('all_dental_json')  or raw.get('allDentalJson', [])
                 vis = raw.get('all_vision_json')  or raw.get('allVisionJson', [])
+                print(f"med type:{type(med)} len:{len(med) if med else 0}", flush=True)
                 all_medical_json = _j.dumps(med) if not isinstance(med, str) else med
                 all_dental_json  = _j.dumps(den) if not isinstance(den, str) else den
                 all_vision_json  = _j.dumps(vis) if not isinstance(vis, str) else vis

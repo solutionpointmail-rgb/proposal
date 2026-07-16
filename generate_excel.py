@@ -399,6 +399,14 @@ def build_disclaimers(wb):
 
 # ── MAIN ──────────────────────────────────────────────────────────────────────
 def generate_excel(output_path=None):
+    # Re-read from proposal_data at call time so app.py injections are picked up
+    import proposal_data as _pd
+    global CLIENT, CONTRIBUTIONS, MEDICAL_PLANS, DENTAL_PLANS, VISION_PLANS
+    CLIENT        = _pd.CLIENT
+    CONTRIBUTIONS = _pd.CONTRIBUTIONS
+    MEDICAL_PLANS = _pd.MEDICAL_PLANS
+    DENTAL_PLANS  = _pd.DENTAL_PLANS
+    VISION_PLANS  = _pd.VISION_PLANS
     wb = openpyxl.Workbook()
     # Remove default sheet
     wb.remove(wb.active)

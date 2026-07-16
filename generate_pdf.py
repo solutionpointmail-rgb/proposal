@@ -20,7 +20,7 @@ from proposal_data import (
 
 # ── LOGO ──────────────────────────────────────────────────────────────────────
 import os
-LOGO_PATH = os.path.join(os.path.dirname(__file__), "tbg_logo.png")
+LOGO_PATH = os.path.join(os.path.dirname(__file__), "tbg-logo.png")
 
 # ── PAGE SIZE ─────────────────────────────────────────────────────────────────
 PAGE = landscape(letter)   # 792 x 612

@@ -295,52 +295,69 @@ def generate():
     all_dental_json     = data.get('all_dental_json', '')
     all_vision_json     = data.get('all_vision_json', '')
 
-    # Parse from raw_payload — Zapier sends the full selector payload here as JSON string
+    # Zapier flattens JSON arrays into individual fields like:
+    # raw_payload.all_medical_json.1.carrier, raw_payload.all_medical_json.1.plan_name, etc.
+    # We reconstruct the plan arrays from the raw_payload dict.
     import json as _j
+
     raw_payload = data.get('raw_payload', '')
-    
-    # Debug: log what we actually received
-    print(f"DEBUG all_medical_json direct: {len(str(all_medical_json))} chars, type: {type(all_medical_json)}", flush=True)
-    print(f"DEBUG raw_payload: {len(str(raw_payload))} chars, type: {type(raw_payload)}", flush=True)
-    
-    # Try to parse raw_payload to get the full plan JSON
+    print(f"DEBUG raw_payload: {len(str(raw_payload))} chars", flush=True)
+
+    def reconstruct_plans_from_flat(raw_dict, prefix):
+        """Rebuild plan array from Zapier-flattened fields like prefix.1.carrier, prefix.2.carrier..."""
+        plans = []
+        i = 1
+        while True:
+            carrier = raw_dict.get(f'{prefix}.{i}.carrier') or raw_dict.get(f'{prefix}_{i}_carrier')
+            plan_name = raw_dict.get(f'{prefix}.{i}.plan_name') or raw_dict.get(f'{prefix}_{i}_plan_name')
+            if not carrier and not plan_name:
+                break
+            plan = {
+                'carrier':        carrier or '',
+                'plan_name':      plan_name or '',
+                'monthly_premium': float(raw_dict.get(f'{prefix}.{i}.monthly_premium') or raw_dict.get(f'{prefix}_{i}_monthly_premium') or 0),
+                'plan_type':      raw_dict.get(f'{prefix}.{i}.plan_type') or raw_dict.get(f'{prefix}_{i}_plan_type') or '',
+                'funding':        raw_dict.get(f'{prefix}.{i}.funding') or raw_dict.get(f'{prefix}_{i}_funding') or '',
+                'deductible_in_ind': raw_dict.get(f'{prefix}.{i}.deductible_in_ind') or raw_dict.get(f'{prefix}_{i}_deductible_in_ind') or '',
+                'oop_in_ind':     raw_dict.get(f'{prefix}.{i}.oop_in_ind') or raw_dict.get(f'{prefix}_{i}_oop_in_ind') or '',
+                'coinsurance_in': raw_dict.get(f'{prefix}.{i}.coinsurance_in') or raw_dict.get(f'{prefix}_{i}_coinsurance_in') or '',
+                'doctor_visit':   raw_dict.get(f'{prefix}.{i}.doctor_visit') or raw_dict.get(f'{prefix}_{i}_doctor_visit') or '',
+                'rate_ee':        float(raw_dict.get(f'{prefix}.{i}.rate_ee') or raw_dict.get(f'{prefix}_{i}_rate_ee') or 0),
+                'include':        True,
+            }
+            plans.append(plan)
+            i += 1
+        return plans
+
     if raw_payload:
         try:
             raw = _j.loads(raw_payload) if isinstance(raw_payload, str) else raw_payload
             if isinstance(raw, dict):
-                print(f"DEBUG raw keys: {list(raw.keys())}", flush=True)
-                # Try every possible key name Zapier might use
-                def get_json_field(d, *keys):
-                    for k in keys:
-                        v = d.get(k)
-                        if v and v != '[]' and v != '""':
-                            return v
-                    return None
+                print(f"DEBUG raw keys sample: {list(raw.keys())[:15]}", flush=True)
                 
-                med_raw = get_json_field(raw, 'all_medical_json', 'allMedicalJson', 'medical_plans_json')
-                den_raw = get_json_field(raw, 'all_dental_json', 'allDentalJson', 'dental_plans_json')
-                vis_raw = get_json_field(raw, 'all_vision_json', 'allVisionJson', 'vision_plans_json')
+                # Try to reconstruct plans from flattened Zapier fields
+                med_plans = reconstruct_plans_from_flat(raw, 'all_medical_json')
+                den_plans = reconstruct_plans_from_flat(raw, 'all_dental_json')
+                vis_plans = reconstruct_plans_from_flat(raw, 'all_vision_json')
                 
-                if med_raw and not all_medical_json:
-                    all_medical_json = _j.dumps(med_raw) if not isinstance(med_raw, str) else med_raw
-                if den_raw and not all_dental_json:
-                    all_dental_json = _j.dumps(den_raw) if not isinstance(den_raw, str) else den_raw
-                if vis_raw and not all_vision_json:
-                    all_vision_json = _j.dumps(vis_raw) if not isinstance(vis_raw, str) else vis_raw
-                
+                if med_plans:
+                    all_medical_json = _j.dumps(med_plans)
+                    print(f"✅ Reconstructed {len(med_plans)} medical plans from flat fields", flush=True)
+                if den_plans:
+                    all_dental_json = _j.dumps(den_plans)
+                    print(f"✅ Reconstructed {len(den_plans)} dental plans from flat fields", flush=True)
+                if vis_plans:
+                    all_vision_json = _j.dumps(vis_plans)
+                    print(f"✅ Reconstructed {len(vis_plans)} vision plans from flat fields", flush=True)
+
                 if not enrolling_employees:
                     enrolling_employees = str(raw.get('enrolling_employees', ''))
                 if not selector_url:
                     selector_url = raw.get('selector_url', '')
         except Exception as e:
             print(f"⚠️ raw_payload parse error: {e}", flush=True)
-    
-    # If all_medical_json came through directly from Zapier mapping, parse if it's a string
-    if isinstance(all_medical_json, str) and all_medical_json.startswith('['):
-        pass  # already a JSON string, good
-    elif isinstance(all_medical_json, list):
-        all_medical_json = _j.dumps(all_medical_json)
-    
+            import traceback; traceback.print_exc()
+
     print(f"✅ Final plan data — med:{len(str(all_medical_json))} den:{len(str(all_dental_json))} vis:{len(str(all_vision_json))} chars", flush=True)
 
     # Contributions

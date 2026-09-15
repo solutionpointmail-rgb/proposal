@@ -11,6 +11,15 @@ jobs:
   push-file:
     runs-on: ubuntu-latest
     steps:
+      - name: Only allow .html files
+        env:
+          FILENAME: ${{ github.event.client_payload.filename }}
+        run: |
+          case "$FILENAME" in
+            *.html) echo "OK: $FILENAME" ;;
+            *) echo "Blocked non-HTML file: $FILENAME"; exit 1 ;;
+          esac
+
       - name: Checkout repo
         uses: actions/checkout@v4
         with:

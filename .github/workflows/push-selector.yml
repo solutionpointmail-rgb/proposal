@@ -4,6 +4,9 @@ on:
   repository_dispatch:
     types: [push-selector]
 
+permissions:
+  contents: write
+
 jobs:
   push-file:
     runs-on: ubuntu-latest
@@ -21,7 +24,6 @@ jobs:
           echo "Fetching $FILENAME from Dropbox..."
           curl -L -o "$FILENAME" "$DROPBOX_URL"
           echo "✅ Downloaded $(wc -c < $FILENAME) bytes"
-          ls -la "$FILENAME"
 
       - name: Commit and push
         env:

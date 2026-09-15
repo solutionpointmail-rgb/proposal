@@ -1,0 +1,31 @@
+name: Push Selector Page
+
+on:
+  repository_dispatch:
+    types: [push-selector]
+
+jobs:
+  push-file:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Write selector file
+        run: |
+          FILENAME="${{ github.event.client_payload.filename }}"
+          CONTENT="${{ github.event.client_payload.content }}"
+          echo "$CONTENT" | base64 -d > "$FILENAME"
+          echo "✅ Wrote $FILENAME ($(wc -c < $FILENAME) bytes)"
+
+      - name: Commit and push
+        run: |
+          git config user.name "TBG Proposal Bot"
+          git config user.email "solutionpointmail@gmail.com"
+          FILENAME="${{ github.event.client_payload.filename }}"
+          git add "$FILENAME"
+          git diff --staged --quiet || git commit -m "Auto: add selector for $FILENAME"
+          git push
+          echo "✅ Pushed $FILENAME to GitHub Pages"

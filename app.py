@@ -178,9 +178,13 @@ def build_client_and_plans(client_name, effective_date, quote_id, enrolling_empl
             return []
 
         if not selected_names:
-            # No selections sent — include all
+            # Nothing selected for this coverage line. An empty selection means the broker
+            # deliberately left this line out — include none. Before 2026-10-12 this
+            # included every plan, which is how a proposal ended up with 47 dental plans.
+            # The include-everything fallback only applies when the request carried no
+            # selection fields at all (default_include_all), i.e. an older caller.
             for p in all_plans:
-                p['include'] = True
+                p['include'] = bool(default_include_all)
             return all_plans
 
         for p in all_plans:
@@ -191,9 +195,12 @@ def build_client_and_plans(client_name, effective_date, quote_id, enrolling_empl
             )
         return all_plans
 
-    MEDICAL_PLANS = filter_plans(all_medical_json, med_sel, True)
-    DENTAL_PLANS  = filter_plans(all_dental_json,  den_sel, True)
-    VISION_PLANS  = filter_plans(all_vision_json,  vis_sel, True)
+    # True only when the caller sent no selection fields whatsoever (legacy payload).
+    legacy_payload = all(v is None for v in (medical_plans_str, dental_plans_str, vision_plans_str))
+
+    MEDICAL_PLANS = filter_plans(all_medical_json, med_sel, legacy_payload)
+    DENTAL_PLANS  = filter_plans(all_dental_json,  den_sel, legacy_payload)
+    VISION_PLANS  = filter_plans(all_vision_json,  vis_sel, legacy_payload)
 
     print(f"Medical plans loaded: {len(MEDICAL_PLANS)} total, {sum(1 for p in MEDICAL_PLANS if p.get('include'))} selected", flush=True)
     print(f"Dental plans loaded:  {len(DENTAL_PLANS)} total, {sum(1 for p in DENTAL_PLANS if p.get('include'))} selected", flush=True)
@@ -360,9 +367,9 @@ def generate():
     quote_id            = data.get('quote_id', '')
     task_id             = data.get('task_id', '')
     notes               = data.get('notes', '')
-    medical_plans       = data.get('medical_plans', '')
-    dental_plans        = data.get('dental_plans', '')
-    vision_plans        = data.get('vision_plans', '')
+    medical_plans       = data.get('medical_plans')
+    dental_plans        = data.get('dental_plans')
+    vision_plans        = data.get('vision_plans')
     enrolling_employees = data.get('enrolling_employees', '')
     selector_url        = data.get('selector_url', '')
     all_medical_json    = data.get('all_medical_json', '')

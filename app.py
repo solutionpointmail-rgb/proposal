@@ -640,6 +640,157 @@ def tbg_health():
     }), 200
 
 
+
+# ============================================================
+# LIVE GROUP LIST — added 2026-10-12
+# GET /clients?t=<TBG_READ_TOKEN>
+# Returns the groups currently in the pipeline, read from Asana, so the
+# Action Center's picker stops being a hand-typed list.
+# ============================================================
+
+TBG_READ_TOKEN = os.environ.get('TBG_READ_TOKEN', '')
+
+_CLIENTS_CACHE = {'at': 0, 'payload': None}
+_CLIENTS_TTL = 300          # seconds; Asana is polled at most once every 5 minutes
+_PAGES_BASE = 'https://solutionpointmail-rgb.github.io/proposal/'
+
+# Sandbox and placeholder projects that must never reach the picker.
+_SKIP_WORDS = ('test', 'acme', 'testco', 'not sure', 'bofa deez', 'sample', 'demo')
+
+
+def _asana_get(path, params=None):
+    import requests as _rq
+    r = _rq.get(
+        f'https://app.asana.com/api/1.0/{path}',
+        headers={'Authorization': f"Bearer {os.environ['ASANA_TOKEN']}"},
+        params=params or {}, timeout=25,
+    )
+    r.raise_for_status()
+    return r.json()
+
+
+def _slug(name):
+    out = []
+    for ch in (name or '').lower():
+        if ch.isalnum():
+            out.append(ch)
+    return ''.join(out)
+
+
+def _selector_index():
+    """Map slug -> live selector page URL, from the files in the proposal repo."""
+    import urllib.request as ur
+    index = {}
+    token = os.environ.get('GITHUB_TOKEN', '')
+    if not token:
+        return index
+    req = ur.Request(
+        'https://api.github.com/repos/solutionpointmail-rgb/proposal/contents/',
+        headers={'Authorization': f'token {token}', 'Accept': 'application/vnd.github.v3+json'},
+    )
+    try:
+        with ur.urlopen(req, timeout=20) as r:
+            for entry in json.loads(r.read()):
+                name = entry.get('name', '')
+                if entry.get('type') == 'file' and name.endswith('.html') and 'template' not in name:
+                    index[_slug(name.rsplit('-', 1)[0])] = _PAGES_BASE + name
+    except Exception as e:
+        print(f'selector index failed: {e}', flush=True)
+    return index
+
+
+def _group_name_from_project(project_name):
+    """'Acme Co Quoting 12/01/2026' -> ('Acme Co', 'quoting'). None if it isn't one of ours."""
+    import re as _re
+    low = project_name.lower()
+    kind = 'renewal' if 'renewal' in low else ('quoting' if 'quoting' in low else None)
+    if not kind:
+        return None, None
+    cut = _re.split(r'\b(quoting|renewal)\b', project_name, maxsplit=1, flags=_re.I)[0]
+    cut = _re.sub(r'[\s,\-–—:]+$', '', cut).strip()
+    return (cut or None), kind
+
+
+def _match_selector(name, index):
+    """Find this group's selector page. File names drop suffixes like Inc/LLC, so match loosely."""
+    import re as _re
+    want = _slug(name)
+    if want in index:
+        return index[want]
+    core = _slug(_re.sub(r'[,\s]+(inc|llc|l\.l\.c\.|co|corp|corporation|ltd)\.?$', '', name, flags=_re.I))
+    if core and core in index:
+        return index[core]
+    for key, url in index.items():
+        if len(key) >= 6 and (want.startswith(key) or key.startswith(core or want)):
+            return url
+    return None
+
+
+@app.route('/clients', methods=['GET'])
+def clients():
+    """Live group list for the Action Center picker. Read-only, its own token."""
+    import time as _t
+    supplied = request.args.get('t', '') or request.headers.get('X-TBG-Read', '')
+    if not TBG_READ_TOKEN or supplied != TBG_READ_TOKEN:
+        return jsonify({'error': 'unauthorized'}), 401
+
+    if _CLIENTS_CACHE['payload'] and (_t.time() - _CLIENTS_CACHE['at']) < _CLIENTS_TTL:
+        body = dict(_CLIENTS_CACHE['payload'], cached=True)
+        resp = jsonify(body)
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 200
+
+    try:
+        workspaces = _asana_get('workspaces').get('data', [])
+        if not workspaces:
+            raise RuntimeError('no Asana workspace visible to this token')
+        ws = workspaces[0]['gid']
+
+        projects, offset = [], None
+        while True:
+            params = {'workspace': ws, 'archived': 'false', 'limit': 100, 'opt_fields': 'name'}
+            if offset:
+                params['offset'] = offset
+            page = _asana_get('projects', params)
+            projects.extend(page.get('data', []))
+            offset = (page.get('next_page') or {}).get('offset')
+            if not offset or len(projects) > 600:
+                break
+
+        selectors = _selector_index()
+        seen, groups = set(), []
+        for p in projects:
+            raw = (p.get('name') or '').strip()
+            low = raw.lower()
+            if any(w in low for w in _SKIP_WORDS):
+                continue
+            name, kind = _group_name_from_project(raw)
+            if not name or name.lower() in seen:
+                continue
+            seen.add(name.lower())
+            entry = {'name': name, 'kind': kind, 'project': raw}
+            url = _match_selector(name, selectors)
+            if url:
+                entry['selector'] = url
+            groups.append(entry)
+
+        groups.sort(key=lambda g: g['name'].lower())
+        payload = {'generated': _t.strftime('%Y-%m-%dT%H:%M:%SZ', _t.gmtime()),
+                   'count': len(groups), 'groups': groups}
+        _CLIENTS_CACHE['at'] = _t.time()
+        _CLIENTS_CACHE['payload'] = payload
+        print(f'/clients: {len(groups)} groups from {len(projects)} projects', flush=True)
+        resp = jsonify(dict(payload, cached=False))
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 200
+
+    except Exception as e:
+        print(f'/clients error: {e}', flush=True)
+        resp = jsonify({'error': str(e)})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 500
+
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)

@@ -81,6 +81,30 @@ def find_client_dropbox_folder(client_name, dbx):
     return None
 
 
+def canonical_selector_url(url, clean_name=''):
+    """Always hand Asana the live GitHub Pages link.
+
+    The selector page sends selector_url = window.location.href. Opened from the Dropbox
+    backup copy that is a file:///C:/Users/... path, which only resolves on one machine —
+    Lindsey or Alex clicking it gets nothing (Will, 2026-10-12). Keep https URLs as they
+    are; rebuild anything else from the page's filename.
+    """
+    import os as _os, urllib.parse as _up
+    PAGES = 'https://solutionpointmail-rgb.github.io/proposal/'
+    if url and url.lower().startswith('https://'):
+        return url
+    name = ''
+    if url:
+        cleaned = url.split('?')[0].split('#')[0].replace('\\', '/')
+        name = _os.path.basename(_up.unquote(cleaned))
+    if not name.lower().endswith('.html'):
+        safe_client = (clean_name or '').lower()
+        for ch in (' ', '_', '-', '.', ',', '&'):
+            safe_client = safe_client.replace(ch, '')
+        name = f"{safe_client}-aug2026.html" if safe_client else ''
+    return PAGES + name if name else ''
+
+
 def parse_plan_names(plans_text):
     """Parse comma-separated plan names."""
     if not plans_text:
@@ -291,10 +315,8 @@ def run_pipeline(client_name, effective_date, quote_id, task_id, notes,
         pdf_link   = links.get(pdf_name,   'Not available')
         excel_link = links.get(excel_name, 'Not available')
 
-        # Build dynamic selector URL
-        if not selector_url:
-            safe_client = clean_name.lower().replace(' ', '').replace('_','').replace('-','').replace('.','').replace(',','')
-            selector_url = f"https://solutionpointmail-rgb.github.io/proposal/{safe_client}-aug2026.html"
+        # Always link Asana to the live page, never to a local Dropbox copy
+        selector_url = canonical_selector_url(selector_url, clean_name)
 
         comment = (
             f"✅ Proposal generated!\n\n"
@@ -305,7 +327,7 @@ def run_pipeline(client_name, effective_date, quote_id, task_id, notes,
             f"Medical ({len(inc_med)}): {', '.join(inc_med) if inc_med else 'None selected'}\n"
             f"Dental ({len(inc_den)}): {', '.join(inc_den) if inc_den else 'None selected'}\n"
             f"Vision ({len(inc_vis)}): {', '.join(inc_vis) if inc_vis else 'None selected'}\n\n"
-            f"🔄 Revise selections: {selector_url}\n\n"
+            f"🔄 Revise selections: {selector_url}\n(A backup copy of this page is also in the client's Quoting/3. Proposal folder.)\n\n"
             f"Generated: {datetime.now().strftime('%B %d, %Y at %I:%M %p')}"
         )
         requests.post(

@@ -544,7 +544,7 @@ def push_selector():
 
 
 @app.route('/health', methods=['GET'])
-def health():
+def tbg_health():
     """Quick check that the app is awake and configured. No secret required."""
     return jsonify({
         'status': 'ok',

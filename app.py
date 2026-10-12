@@ -655,7 +655,7 @@ _CLIENTS_TTL = 300          # seconds; Asana is polled at most once every 5 minu
 _PAGES_BASE = 'https://solutionpointmail-rgb.github.io/proposal/'
 
 # Sandbox and placeholder projects that must never reach the picker.
-_SKIP_WORDS = ('test', 'acme', 'testco', 'not sure', 'bofa deez', 'sample', 'demo')
+_SKIP_WORDS = ('test', 'acme', 'testco', 'not sure', 'bofa deez', 'sample', 'demo', 'keep here', 'retrieval', 'group status')
 
 
 def _asana_get(path, params=None):
@@ -700,15 +700,38 @@ def _selector_index():
 
 
 def _group_name_from_project(project_name):
-    """'Acme Co Quoting 12/01/2026' -> ('Acme Co', 'quoting'). None if it isn't one of ours."""
+    """
+    'Acme Co Quoting 12/01/2026' -> ('Acme Co', 'quoting'). None if it isn't one of ours.
+
+    A real project name ends with the keyword or with an effective date. Utility
+    boards put words after it instead — "Carrier Renewal Retrieval", "LEAD &
+    RENEWAL GROUP STATUS", "AAA - KEEP HERE - Renewal Acceptance from website" —
+    so anything with a non-date tail is dropped.
+    """
     import re as _re
     low = project_name.lower()
     kind = 'renewal' if 'renewal' in low else ('quoting' if 'quoting' in low else None)
     if not kind:
         return None, None
-    cut = _re.split(r'\b(quoting|renewal)\b', project_name, maxsplit=1, flags=_re.I)[0]
-    cut = _re.sub(r'[\s,\-–—:]+$', '', cut).strip()
-    return (cut or None), kind
+
+    parts = _re.split(r'\b(quoting|renewal)\b', project_name, maxsplit=1, flags=_re.I)
+    head = parts[0]
+    tail = parts[2] if len(parts) > 2 else ''
+
+    # Tail must be empty or just an effective date.
+    if not _re.match(r'^[\s,\-–—:()]*(\d{1,2}[/\-.]\d{1,2}([/\-.]\d{2,4})?)?[\s,\-–—:()]*$', tail):
+        return None, None
+
+    name = _re.sub(r'[\s,\-–—:]+$', '', head).strip()
+
+    # An unmatched "(" means the date sat inside the parens:
+    # "Nashville InnerCity Ministries Client (01/01 Renewal)" — a duplicate board.
+    if name.count('(') != name.count(')'):
+        return None, None
+    if len(name) < 3:
+        return None, None
+
+    return name, kind
 
 
 def _match_selector(name, index):

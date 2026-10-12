@@ -360,6 +360,8 @@ def health():
 
 @app.route('/generate', methods=['POST'])
 def generate():
+    if not _tbg_authorized():
+        return jsonify({'error': 'unauthorized'}), 401
     data = request.get_json(force=True, silent=True) or request.form.to_dict()
 
     client_name         = data.get('client_name', '')
@@ -457,6 +459,8 @@ def generate():
 
 @app.route('/push-to-github', methods=['POST'])
 def push_to_github():
+    if not _tbg_authorized():
+        return jsonify({'error': 'unauthorized'}), 401
     data = request.get_json(force=True, silent=True) or {}
     filename     = data.get('filename', '')
     html_content = data.get('content', '')

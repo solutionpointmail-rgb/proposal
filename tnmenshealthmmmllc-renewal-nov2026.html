@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TN Men's Health (MMM, LLC) — Proposal Plan Selector</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #F0F4F8; min-height: 100vh; }
+  .header { background: #0D1B2A; padding: 0; }
+  .header-inner { max-width: 1100px; margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; }
+  .header-logo { display: flex; align-items: center; gap: 12px; }
+  .header-logo img { height: 42px; width: auto; display: block; }
+  .header-logo-text { color: #fff; font-size: 15px; font-weight: 600; }
+  .header-bar { height: 3px; background: #4CAF7D; }
+  .hero { background: #1B2E45; padding: 28px 24px; }
+  .hero-inner { max-width: 1100px; margin: 0 auto; }
+  .hero-label { color: #4CAF7D; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; }
+  .hero-title { color: #fff; font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .hero-meta { color: #A0AEC0; font-size: 13px; display: flex; flex-wrap: wrap; gap: 16px; margin-top: 10px; }
+  .hero-meta strong { color: #CBD5E0; }
+  .instructions { background: #EAF7F1; border-left: 3px solid #4CAF7D; max-width: 1100px; margin: 20px auto 0; padding: 12px 16px; border-radius: 0 6px 6px 0; font-size: 13px; color: #2D6A4F; }
+  .main { max-width: 1100px; margin: 20px auto; padding: 0 24px 40px; }
+  .section { margin-bottom: 28px; }
+  .section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 2px solid #E2E8F0; }
+  .section-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .icon-medical { background: #EAF7F1; }
+  .icon-dental  { background: #FFF8E8; }
+  .icon-vision  { background: #EDF4FB; }
+  .section-title { font-size: 16px; font-weight: 700; color: #0D1B2A; }
+  .section-contrib { font-size: 12px; color: #718096; margin-left: auto; background: #F7F9FC; padding: 4px 10px; border-radius: 20px; border: 1px solid #E2E8F0; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+  .plan-card { background: #fff; border: 2px solid #E2E8F0; border-radius: 10px; padding: 14px; cursor: pointer; transition: all 0.15s; position: relative; user-select: none; }
+  .plan-card:hover { border-color: #4CAF7D; box-shadow: 0 2px 8px rgba(76,175,125,0.12); }
+  .plan-card.selected { border-color: #4CAF7D; background: #EAF7F1; }
+  .check { position: absolute; top: 10px; right: 10px; width: 20px; height: 20px; background: #4CAF7D; border-radius: 50%; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.15s; }
+  .plan-card.selected .check { opacity: 1; }
+  .check svg { width: 11px; height: 11px; stroke: #fff; stroke-width: 2.5; fill: none; }
+  .card-carrier { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #718096; margin-bottom: 4px; }
+  .card-name { font-size: 13px; font-weight: 600; color: #1A202C; margin-bottom: 8px; line-height: 1.35; }
+  .card-premium { font-size: 18px; font-weight: 800; color: #4CAF7D; margin-bottom: 2px; }
+  .card-premium-label { font-size: 10px; color: #A0AEC0; margin-bottom: 8px; }
+  .card-badges { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
+  .badge { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 10px; }
+  .badge-blue { background: #EBF4FF; color: #2B6CB0; }
+  .badge-green { background: #EAF7F1; color: #276749; }
+  .badge-gold { background: #FFFFF0; color: #975A16; }
+  .card-details { border-top: 1px solid #E2E8F0; padding-top: 8px; }
+  .card-detail-row { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 3px; }
+  .card-detail-row span:first-child { color: #718096; }
+  .card-detail-row span:last-child { color: #2D3748; font-weight: 500; }
+  .carrier-group { margin-bottom: 16px; }
+  .carrier-label { font-size: 11px; font-weight: 700; color: #4A5568; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 8px; padding: 4px 0; }
+  .submit-bar { position: sticky; bottom: 0; background: #0D1B2A; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 -4px 20px rgba(0,0,0,0.15); }
+  .submit-count { color: #A0AEC0; font-size: 13px; }
+  .submit-count strong { color: #4CAF7D; font-size: 16px; }
+  .submit-btn { background: #4CAF7D; color: #fff; border: none; padding: 12px 32px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; transition: background 0.15s; }
+  .submit-btn:hover { background: #3A8C61; }
+  .submit-btn:disabled { background: #A0AEC0; cursor: not-allowed; }
+  .success-overlay { display: none; position: fixed; inset: 0; background: rgba(13,27,42,0.92); z-index: 100; align-items: center; justify-content: center; }
+  .success-overlay.show { display: flex; }
+  .success-box { background: #fff; border-radius: 16px; padding: 40px; max-width: 440px; text-align: center; }
+  .success-icon { width: 64px; height: 64px; background: #EAF7F1; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+  .success-icon svg { width: 32px; height: 32px; stroke: #4CAF7D; stroke-width: 2.5; fill: none; }
+  .success-title { font-size: 20px; font-weight: 700; color: #0D1B2A; margin-bottom: 8px; }
+  .success-msg { font-size: 14px; color: #718096; line-height: 1.6; }
+  .success-client { color: #4CAF7D; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-inner">
+    <div class="header-logo">
+      <img src="https://solutionpointmail-rgb.github.io/proposal/tbg-logo.png" alt="The Benefits Group" style="height:42px;width:auto;display:block">
+      <div>
+        <div class="header-logo-text">The Benefits Group</div>
+      </div>
+    </div>
+    <div style="color:#A0AEC0;font-size:12px;text-align:right">
+      Proposal Plan Selector<br>
+      <span style="color:#4CAF7D">November 1, 2026</span>
+    </div>
+  </div>
+  <div class="header-bar"></div>
+</div>
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-label">Proposal plan selection</div>
+    <div class="hero-title">TN Men's Health (MMM, LLC)</div>
+    <div class="hero-meta">
+      <span>&#128197; <strong>Effective:</strong> August 1, 2026</span>
+      <span>&#128101; <strong>Employees:</strong> 34 enrolling</span>
+    </div>
+  </div>
+</div>
+<div class="main">
+  <div class="instructions">
+    <strong>Instructions:</strong> Click each plan to toggle include/exclude. Green = included in proposal. When ready, hit <strong>Submit selections</strong> at the bottom — the proposal will generate automatically.
+  </div>
+  <div class="section" style="margin-top:20px">
+    <div class="section-header">
+      <div class="section-icon icon-medical">&#10010;</div>
+      <div class="section-title">Medical Coverage</div>
+      <div class="section-contrib">EE TBD / Dep TBD</div>
+    </div>
+    <div id="medical-plans"></div>
+  </div>
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon icon-dental">&#9673;</div>
+      <div class="section-title">Dental Coverage</div>
+      <div class="section-contrib">EE 0% / Dep 0%</div>
+    </div>
+    <div id="dental-plans"></div>
+  </div>
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon icon-vision">&#128065;</div>
+      <div class="section-title">Vision Coverage</div>
+      <div class="section-contrib">EE 0% / Dep 0%</div>
+    </div>
+    <div id="vision-plans"></div>
+  </div>
+  <div style="height:80px"></div>
+</div>
+<div class="submit-bar">
+  <div class="submit-count"><strong id="selected-count">0</strong> plans selected</div>
+  <button class="submit-btn" id="submit-btn" onclick="submitSelections()" disabled>Submit selections</button>
+</div>
+<div class="success-overlay" id="success-overlay">
+  <div class="success-box">
+    <div class="success-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <div class="success-title">Selections submitted!</div>
+    <div class="success-msg">The proposal for <span class="success-client">TN Men's Health (MMM, LLC)</span> is now generating automatically.<br><br>You'll find the PDF and Excel files in Dropbox and the Asana task will be marked complete once ready. You can close this tab.</div>
+  </div>
+</div>
+<script>
+const ZAPIER_WEBHOOK = 'https://hooks.zapier.com/hooks/catch/5928257/4ueg7t8/';
+const CLIENT_DATA = {"name":"TN Men's Health (MMM, LLC)","effective_date":"November 1, 2026","enrolling_employees":34,"county":"Davidson County, TN","contributions":{"medical_ee":"TBD","medical_dep":"TBD","dental_ee":"0%","dental_dep":"0%","vision_ee":"0%","vision_dep":"0%"}};
+const PLAN_DATA = {
+  medical: [{"carrier":"UnitedHealthcare (Current Plan Renewal)","plan_name":"P5000i80LXES21B — exact renewal","monthly_premium":43088.13,"plan_type":"PPO","funding":"Level Funded","deductible_in_ind":"$5,000","deductible_in_fam":"$10,000","oop_in_ind":"$8,150","oop_in_fam":"$16,300","coinsurance_in":"20%","doctor_visit":"$25","specialist":"$75","rate_ee":837.16,"rate_es":1716.24,"rate_ec":1516.45,"rate_ef":2355.57,"employer_cost":0,"employee_cost":43088.13,"include":true},{"carrier":"UnitedHealthcare (Current Plan Renewal)","plan_name":"CnHP50002575i80ES25B (UHC alternate)","monthly_premium":34785.79,"plan_type":"PPO","funding":"Level Funded","deductible_in_ind":"$5,000","deductible_in_fam":"$10,000","oop_in_ind":"$7,000","oop_in_fam":"$14,000","coinsurance_in":"20%","doctor_visit":"$25","specialist":"$75","rate_ee":678.42,"rate_es":1382.87,"rate_ec":1222.77,"rate_ef":1895.2,"employer_cost":0,"employee_cost":34785.79,"include":true},{"carrier":"UnitedHealthcare (Current Plan Renewal)","plan_name":"CnHP50002575i7025B (UHC alternate)","monthly_premium":34710.08,"plan_type":"PPO","funding":"Level Funded","deductible_in_ind":"$5,000","deductible_in_fam":"$10,000","oop_in_ind":"$7,000","oop_in_fam":"$14,000","coinsurance_in":"30%","doctor_visit":"$25","specialist":"$75","rate_ee":676.97,"rate_es":1379.83,"rate_ec":1220.09,"rate_ef":1891.01,"employer_cost":0,"employee_cost":34710.08,"include":true},{"carrier":"UnitedHealthcare (Current Plan Renewal)","plan_name":"HP50002575i50ES25B (UHC alternate)","monthly_premium":37463.67,"plan_type":"PPO","funding":"Level Funded","deductible_in_ind":"$5,000","deductible_in_fam":"$10,000","oop_in_ind":"$6,900","oop_in_fam":"$13,800","coinsurance_in":"50%","doctor_visit":"$25","specialist":"$75","rate_ee":729.62,"rate_es":1490.4,"rate_ec":1317.5,"rate_ef":2043.69,"employer_cost":0,"employee_cost":37463.67,"include":true},{"carrier":"UnitedHealthcare (Current Plan Renewal)","plan_name":"CnHP40002575i80ES25B (UHC alternate)","monthly_premium":37707.73,"plan_type":"PPO","funding":"Level Funded","deductible_in_ind":"$4,000","deductible_in_fam":"$8,000","oop_in_ind":"$7,000","oop_in_fam":"$14,000","coinsurance_in":"20%","doctor_visit":"$25","specialist":"$75","rate_ee":734.29,"rate_es":1500.19,"rate_ec":1326.12,"rate_ef":2057.22,"employer_cost":0,"employee_cost":37707.73,"include":true},{"carrier":"UnitedHealthcare (Current Plan Renewal)","plan_name":"CnP8550i100LXES22B (UHC alternate)","monthly_premium":31218.66,"plan_type":"PPO","funding":"Level Funded","deductible_in_ind":"$8,550","deductible_in_fam":"$17,100","oop_in_ind":"$8,550","oop_in_fam":"$17,100","coinsurance_in":"0% after ded","doctor_visit":"Ded, then $0","specialist":"Ded, then $0","rate_ee":610.21,"rate_es":1239.64,"rate_ec":1096.59,"rate_ef":1697.42,"employer_cost":0,"employee_cost":31218.66,"include":true},{"carrier":"Angle Health","plan_name":"ANG TRAD 2000 4000","monthly_premium":43435.36,"plan_type":"PPO","funding":"Level Funded","deductible_in_ind":"$2,000","deductible_in_fam":"$4,000","oop_in_ind":"$4,000","oop_in_fam":"$8,000","coinsurance_in":"20%","doctor_visit":"$20","specialist":"$50","rate_ee":852.59,"rate_es":1720.16,"rate_ec":1523.66,"rate_ef":2352.94,"employer_cost":0,"employee_cost":43435.36,"include":true},{"carrier":"Angle Health","plan_name":"ANG TRAD 3000 5000","monthly_premium":41945.78,"plan_type":"PPO","funding":"Level Funded","deductible_in_ind":"$3,000","deductible_in_fam":"$6,000","oop_in_ind":"$5,000","oop_in_fam":"$10,000","coinsurance_in":"20%","doctor_visit":"$20","specialist":"$50","rate_ee":823.35,"rate_es":1661.17,"rate_ec":1471.41,"rate_ef":2272.25,"employer_cost":0,"employee_cost":41945.78,"include":true},{"carrier":"Angle Health","plan_name":"ANG TRAD 4000 6000","monthly_premium":40268.79,"plan_type":"PPO","funding":"Level Funded","deductible_in_ind":"$4,000","deductible_in_fam":"$8,000","oop_in_ind":"$6,000","oop_in_fam":"$12,000","coinsurance_in":"20%","doctor_visit":"$25","specialist":"$75","rate_ee":790.43,"rate_es":1594.76,"rate_ec":1412.59,"rate_ef":2181.41,"employer_cost":0,"employee_cost":40268.79,"include":true},{"carrier":"Angle Health","plan_name":"ANG TRAD 5000 7000","monthly_premium":39140.67,"plan_type":"PPO","funding":"Level Funded","deductible_in_ind":"$5,000","deductible_in_fam":"$10,000","oop_in_ind":"$7,000","oop_in_fam":"$14,000","coinsurance_in":"20%","doctor_visit":"$25","specialist":"$75","rate_ee":768.29,"rate_es":1550.08,"rate_ec":1373.01,"rate_ef":2120.29,"employer_cost":0,"employee_cost":39140.67,"include":true},{"carrier":"Angle Health","plan_name":"ANG HDHP 5000 5000","monthly_premium":37910.87,"plan_type":"HDHP","funding":"Level Funded","deductible_in_ind":"$5,000","deductible_in_fam":"$10,000","oop_in_ind":"$5,000","oop_in_fam":"$10,000","coinsurance_in":"0% after ded","doctor_visit":"Ded, then $0","specialist":"Ded, then $0","rate_ee":744.15,"rate_es":1501.38,"rate_ec":1329.87,"rate_ef":2053.67,"employer_cost":0,"employee_cost":37910.87,"include":true},{"carrier":"Angle Health","plan_name":"ANG TRAD 7000 9200","monthly_premium":37319.84,"plan_type":"PPO","funding":"Level Funded","deductible_in_ind":"$7,000","deductible_in_fam":"$14,000","oop_in_ind":"$9,200","oop_in_fam":"$18,400","coinsurance_in":"30%","doctor_visit":"$25","specialist":"$75","rate_ee":732.55,"rate_es":1477.97,"rate_ec":1309.14,"rate_ef":2021.65,"employer_cost":0,"employee_cost":37319.84,"include":true},{"carrier":"Angle Health","plan_name":"ANG HDHP 7000 7000","monthly_premium":34661.66,"plan_type":"HDHP","funding":"Level Funded","deductible_in_ind":"$7,000","deductible_in_fam":"$14,000","oop_in_ind":"$7,000","oop_in_fam":"$14,000","coinsurance_in":"0% after ded","doctor_visit":"Ded, then $0","specialist":"Ded, then $0","rate_ee":680.37,"rate_es":1372.7,"rate_ec":1215.9,"rate_ef":1877.66,"employer_cost":0,"employee_cost":34661.66,"include":true},{"carrier":"Gravie","plan_name":"Copay $2,000 Ded/$7,000 OOPM (OAP)","monthly_premium":44496.43,"plan_type":"PPO","funding":"Level Funded","deductible_in_ind":"$2,000","deductible_in_fam":"$4,000","oop_in_ind":"$7,000","oop_in_fam":"$14,000","coinsurance_in":"20%","doctor_visit":"$30","specialist":"$50","rate_ee":813.84,"rate_es":1816.22,"rate_ec":1458.24,"rate_ef":2603.83,"employer_cost":0,"employee_cost":44496.43,"include":true},{"carrier":"Gravie","plan_name":"Copay $3,000 Ded/$7,000 OOPM (OAP)","monthly_premium":43690.27,"plan_type":"PPO","funding":"Level Funded","deductible_in_ind":"$3,000","deductible_in_fam":"$6,000","oop_in_ind":"$7,000","oop_in_fam":"$14,000","coinsurance_in":"20%","doctor_visit":"$30","specialist":"$50","rate_ee":799.82,"rate_es":1782.57,"rate_ec":1431.6,"rate_ef":2554.76,"employer_cost":0,"employee_cost":43690.27,"include":true},{"carrier":"Gravie","plan_name":"Copay $5,000 Ded/$7,900 OOPM (OAP)","monthly_premium":42402.83,"plan_type":"PPO","funding":"Level Funded","deductible_in_ind":"$5,000","deductible_in_fam":"$10,000","oop_in_ind":"$7,900","oop_in_fam":"$15,800","coinsurance_in":"20%","doctor_visit":"$30","specialist":"$50","rate_ee":777.43,"rate_es":1728.84,"rate_ec":1389.06,"rate_ef":2476.39,"employer_cost":0,"employee_cost":42402.83,"include":true},{"carrier":"Gravie","plan_name":"ComfortFit $5,000 OOPM (OAP)","monthly_premium":47024.11,"plan_type":"PPO","funding":"Level Funded","deductible_in_ind":"$5,000","deductible_in_fam":"$10,000","oop_in_ind":"$5,000","oop_in_fam":"$10,000","coinsurance_in":"0% after OOPM","doctor_visit":"$0","specialist":"$0","rate_ee":857.8,"rate_es":1921.72,"rate_ec":1541.76,"rate_ef":2757.69,"employer_cost":0,"employee_cost":47024.11,"include":true},{"carrier":"Gravie","plan_name":"Copay $5,000 Ded/$7,900 OOPM (LocalPlus)","monthly_premium":38795.77,"plan_type":"PPO","funding":"Level Funded","deductible_in_ind":"$5,000","deductible_in_fam":"$10,000","oop_in_ind":"$7,900","oop_in_fam":"$15,800","coinsurance_in":"20%","doctor_visit":"$30","specialist":"$50","rate_ee":714.7,"rate_es":1578.28,"rate_ec":1269.86,"rate_ef":2256.83,"employer_cost":0,"employee_cost":38795.77,"include":true},{"carrier":"Gravie","plan_name":"ComfortFit $7,000 OOPM (OAP)","monthly_premium":44923.6,"plan_type":"PPO","funding":"Level Funded","deductible_in_ind":"$7,000","deductible_in_fam":"$14,000","oop_in_ind":"$7,000","oop_in_fam":"$14,000","coinsurance_in":"0% after OOPM","doctor_visit":"$0","specialist":"$0","rate_ee":821.27,"rate_es":1834.05,"rate_ec":1472.35,"rate_ef":2629.83,"employer_cost":0,"employee_cost":44923.6,"include":true},{"carrier":"One Health Plus","plan_name":"$1,500 Classic","monthly_premium":50450.69,"plan_type":"PPO","funding":"Level Funded","deductible_in_ind":"$1,500","deductible_in_fam":"$3,000","oop_in_ind":"$7,350","oop_in_fam":"$14,700","coinsurance_in":"20%","doctor_visit":"$30","specialist":"$60","rate_ee":995.24,"rate_es":1880.43,"rate_ec":1707.39,"rate_ef":2785.62,"employer_cost":0,"employee_cost":50450.69,"include":true},{"carrier":"One Health Plus","plan_name":"$3,500 Classic","monthly_premium":44588.28,"plan_type":"PPO","funding":"Level Funded","deductible_in_ind":"$3,500","deductible_in_fam":"$7,000","oop_in_ind":"$7,350","oop_in_fam":"$14,700","coinsurance_in":"20%","doctor_visit":"$45","specialist":"$90","rate_ee":882.72,"rate_es":1658.4,"rate_ec":1507.27,"rate_ef":2454.1,"employer_cost":0,"employee_cost":44588.28,"include":true},{"carrier":"One Health Plus","plan_name":"$3,500 HSA","monthly_premium":40140.93,"plan_type":"HDHP","funding":"Level Funded","deductible_in_ind":"$3,500","deductible_in_fam":"$7,000","oop_in_ind":"$6,650","oop_in_fam":"$13,100","coinsurance_in":"20%","doctor_visit":"20% after ded","specialist":"20% after ded","rate_ee":797.36,"rate_es":1489.97,"rate_ec":1355.45,"rate_ef":2202.6,"employer_cost":0,"employee_cost":40140.93,"include":true},{"carrier":"One Health Plus","plan_name":"$5,000 Classic","monthly_premium":41941.48,"plan_type":"PPO","funding":"Level Funded","deductible_in_ind":"$5,000","deductible_in_fam":"$10,000","oop_in_ind":"$7,350","oop_in_fam":"$14,700","coinsurance_in":"20%","doctor_visit":"$45","specialist":"$90","rate_ee":831.92,"rate_es":1558.16,"rate_ec":1416.91,"rate_ef":2304.42,"employer_cost":0,"employee_cost":41941.48,"include":true},{"carrier":"One Health Plus","plan_name":"$5,000 HSA","monthly_premium":38425.93,"plan_type":"HDHP","funding":"Level Funded","deductible_in_ind":"$5,000","deductible_in_fam":"$10,000","oop_in_ind":"$6,650","oop_in_fam":"$13,100","coinsurance_in":"20%","doctor_visit":"20% after ded","specialist":"20% after ded","rate_ee":764.44,"rate_es":1425.03,"rate_ec":1296.91,"rate_ef":2105.62,"employer_cost":0,"employee_cost":38425.93,"include":true},{"carrier":"One Health Plus","plan_name":"$7,350 Value","monthly_premium":36792.7,"plan_type":"PPO","funding":"Level Funded","deductible_in_ind":"$7,350","deductible_in_fam":"$14,700","oop_in_ind":"$7,350","oop_in_fam":"$14,700","coinsurance_in":"0% after ded","doctor_visit":"$50","specialist":"$100","rate_ee":733.09,"rate_es":1363.17,"rate_ec":1241.16,"rate_ef":2013.27,"employer_cost":0,"employee_cost":36792.7,"include":true},{"carrier":"Navigation Health (NHP)","plan_name":"NAV 2000","monthly_premium":50738.58,"plan_type":"PPO","funding":"Self-Funded w/ Stop-Loss","deductible_in_ind":"$2,000","deductible_in_fam":"$4,000","oop_in_ind":"$5,500","oop_in_fam":"$11,000","coinsurance_in":"20%","doctor_visit":"$30","specialist":"$60","rate_ee":857.75,"rate_es":1936.5,"rate_ec":2056.37,"rate_ef":3135.12,"employer_cost":0,"employee_cost":50738.58,"include":true},{"carrier":"Navigation Health (NHP)","plan_name":"NAV 3000","monthly_premium":47149.83,"plan_type":"PPO","funding":"Self-Funded w/ Stop-Loss","deductible_in_ind":"$3,000","deductible_in_fam":"$6,000","oop_in_ind":"$6,500","oop_in_fam":"$13,000","coinsurance_in":"20%","doctor_visit":"$30","specialist":"$60","rate_ee":803.95,"rate_es":1794.72,"rate_ec":1904.82,"rate_ef":2895.59,"employer_cost":0,"employee_cost":47149.83,"include":true},{"carrier":"Navigation Health (NHP)","plan_name":"NAV 4000","monthly_premium":43671.81,"plan_type":"PPO","funding":"Self-Funded w/ Stop-Loss","deductible_in_ind":"$4,000","deductible_in_fam":"$8,000","oop_in_ind":"$7,500","oop_in_fam":"$15,000","coinsurance_in":"30%","doctor_visit":"$30","specialist":"$60","rate_ee":751.81,"rate_es":1657.32,"rate_ec":1757.94,"rate_ef":2663.45,"employer_cost":0,"employee_cost":43671.81,"include":true},{"carrier":"Navigation Health (NHP)","plan_name":"NAV 5000","monthly_premium":40194.09,"plan_type":"PPO","funding":"Self-Funded w/ Stop-Loss","deductible_in_ind":"$5,000","deductible_in_fam":"$10,000","oop_in_ind":"$8,500","oop_in_fam":"$17,000","coinsurance_in":"30%","doctor_visit":"$30","specialist":"$60","rate_ee":699.69,"rate_es":1519.92,"rate_ec":1611.06,"rate_ef":2431.29,"employer_cost":0,"employee_cost":40194.09,"include":true},{"carrier":"Navigation Health (NHP)","plan_name":"NAV HSA 5000","monthly_premium":45548.94,"plan_type":"HDHP","funding":"Self-Funded w/ Stop-Loss","deductible_in_ind":"$5,000","deductible_in_fam":"$10,000","oop_in_ind":"$5,000","oop_in_fam":"$10,000","coinsurance_in":"0% after ded","doctor_visit":"Ded, then $0","specialist":"Ded, then $0","rate_ee":779.95,"rate_es":1731.48,"rate_ec":1837.21,"rate_ef":2788.74,"employer_cost":0,"employee_cost":45548.94,"include":true},{"carrier":"Navigation Health (NHP)","plan_name":"NAV 6500","monthly_premium":38040.47,"plan_type":"PPO","funding":"Self-Funded w/ Stop-Loss","deductible_in_ind":"$6,500","deductible_in_fam":"$13,000","oop_in_ind":"$9,500","oop_in_fam":"$19,000","coinsurance_in":"30%","doctor_visit":"$30","specialist":"$60","rate_ee":667.39,"rate_es":1434.85,"rate_ec":1520.14,"rate_ef":2287.58,"employer_cost":0,"employee_cost":38040.47,"include":true},{"carrier":"Navigation Health (NHP)","plan_name":"NAV HSA 7000","monthly_premium":37047.04,"plan_type":"HDHP","funding":"Self-Funded w/ Stop-Loss","deductible_in_ind":"$7,000","deductible_in_fam":"$14,000","oop_in_ind":"$7,000","oop_in_fam":"$14,000","coinsurance_in":"0% after ded","doctor_visit":"Ded, then $0","specialist":"Ded, then $0","rate_ee":652.51,"rate_es":1395.59,"rate_ec":1478.15,"rate_ef":2221.25,"employer_cost":0,"employee_cost":37047.04,"include":true},{"carrier":"Edison RBP (optional)","plan_name":"RBP 5000-80","monthly_premium":45375.42,"plan_type":"RBP","funding":"Level Funded","deductible_in_ind":"$5,000 (ind)","deductible_in_fam":"","oop_in_ind":"See SBC","oop_in_fam":"See SBC","coinsurance_in":"20%","doctor_visit":"See SBC","specialist":"See SBC","rate_ee":838.77,"rate_es":1938.6,"rate_ec":1455.72,"rate_ef":2599.32,"employer_cost":0,"employee_cost":45375.42,"include":true}],
+  dental:  [],
+  vision:  []
+};
+const selections = {medical:{},dental:{},vision:{}};
+
+function formatMoney(n){return '$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+
+function renderMedicalCard(plan,idx){
+  const id='med-'+idx; selections.medical[id]=plan.include!==false;
+  const sel=selections.medical[id];
+  const badges=[plan.plan_type?`<span class="badge badge-blue">${plan.plan_type}</span>`:'',plan.funding?`<span class="badge badge-green">${plan.funding}</span>`:'',plan.hsa_eligible?`<span class="badge badge-gold">HSA eligible</span>`:''].join('');
+  return `<div class="plan-card ${sel?'selected':''}" id="${id}" onclick="toggle('medical','${id}')"><div class="check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div class="card-carrier">${plan.carrier}</div><div class="card-name">${plan.plan_name}</div><div class="card-premium">${formatMoney(plan.monthly_premium)}</div><div class="card-premium-label">total monthly cost</div><div class="card-badges">${badges}</div><div class="card-details"><div class="card-detail-row"><span>Deductible (Ind)</span><span>${plan.deductible_in_ind}</span></div><div class="card-detail-row"><span>OOP Max (Ind)</span><span>${plan.oop_in_ind}</span></div><div class="card-detail-row"><span>Coinsurance</span><span>${plan.coinsurance_in}</span></div><div class="card-detail-row"><span>Doctor visit</span><span>${plan.doctor_visit}</span></div><div class="card-detail-row"><span>EE only rate</span><span>${formatMoney(plan.rate_ee)}/mo</span></div></div></div>`;
+}
+
+function renderDentalCard(plan,idx){
+  const id='den-'+idx; selections.dental[id]=plan.include!==false;
+  const sel=selections.dental[id];
+  return `<div class="plan-card ${sel?'selected':''}" id="${id}" onclick="toggle('dental','${id}')"><div class="check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div class="card-carrier">${plan.carrier}</div><div class="card-name">${plan.plan_name}</div><div class="card-premium">${formatMoney(plan.monthly_premium)}</div><div class="card-premium-label">total monthly cost</div><div class="card-badges"><span class="badge badge-blue">${plan.plan_type}</span></div><div class="card-details"><div class="card-detail-row"><span>Ded Ind/Fam</span><span>${plan.deductible_in_ind}/${plan.deductible_in_fam}</span></div><div class="card-detail-row"><span>Annual max</span><span>${plan.annual_max_in}</span></div><div class="card-detail-row"><span>Preventive</span><span>${plan.preventive}</span></div><div class="card-detail-row"><span>Basic / Major</span><span>${plan.basic} / ${plan.major}</span></div></div></div>`;
+}
+
+function renderVisionCard(plan,idx){
+  const id='vis-'+idx; selections.vision[id]=plan.include!==false;
+  const sel=selections.vision[id];
+  return `<div class="plan-card ${sel?'selected':''}" id="${id}" onclick="toggle('vision','${id}')"><div class="check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div class="card-carrier">${plan.carrier}</div><div class="card-name">${plan.plan_name}</div><div class="card-premium">${formatMoney(plan.monthly_premium)}</div><div class="card-premium-label">total monthly cost</div><div class="card-badges"><span class="badge badge-blue">${plan.plan_type}</span></div><div class="card-details"><div class="card-detail-row"><span>Exam</span><span>${plan.exam_frequency}</span></div><div class="card-detail-row"><span>Lenses</span><span>${plan.lenses_frequency}</span></div><div class="card-detail-row"><span>Frames</span><span>${plan.frames_frequency}</span></div></div></div>`;
+}
+
+function groupByCarrier(plans){const g={};plans.forEach((p,i)=>{if(!g[p.carrier])g[p.carrier]=[];g[p.carrier].push({plan:p,idx:i});});return g;}
+
+function renderSection(containerId,plans,renderFn){
+  const container=document.getElementById(containerId);
+  if(!plans||plans.length===0){container.innerHTML='<p style="color:#A0AEC0;font-size:13px;padding:12px 0">No plans in this category</p>';return;}
+  const groups=groupByCarrier(plans);
+  let html='';
+  for(const[carrier,items]of Object.entries(groups)){html+=`<div class="carrier-group"><div class="carrier-label">${carrier}</div><div class="cards">`;items.forEach(({plan,idx})=>{html+=renderFn(plan,idx);});html+='</div></div>';}
+  container.innerHTML=html;
+}
+
+function toggle(line,id){selections[line][id]=!selections[line][id];document.getElementById(id).classList.toggle('selected',selections[line][id]);updateCount();}
+
+function updateCount(){let total=0;['medical','dental','vision'].forEach(line=>{Object.values(selections[line]).forEach(v=>{if(v)total++;});});document.getElementById('selected-count').textContent=total;document.getElementById('submit-btn').disabled=total===0;}
+
+function getSelectedPlans(){
+  const r={medical:[],dental:[],vision:[]};
+  PLAN_DATA.medical.forEach((p,i)=>{if(selections.medical['med-'+i])r.medical.push(p.plan_name);});
+  PLAN_DATA.dental.forEach((p,i)=>{if(selections.dental['den-'+i])r.dental.push(p.plan_name);});
+  PLAN_DATA.vision.forEach((p,i)=>{if(selections.vision['vis-'+i])r.vision.push(p.plan_name);});
+  return r;
+}
+
+async function submitSelections(){
+  const btn=document.getElementById('submit-btn');
+  btn.disabled=true;btn.textContent='Submitting…';
+  const selected=getSelectedPlans();
+  const payload={
+    client:CLIENT_DATA,
+    selected_plans:selected,
+    medical_plans:selected.medical.join(','),
+    dental_plans:selected.dental.join(','),
+    vision_plans:selected.vision.join(','),
+    all_medical_json:btoa(unescape(encodeURIComponent(JSON.stringify(PLAN_DATA.medical)))),
+    all_dental_json:btoa(unescape(encodeURIComponent(JSON.stringify(PLAN_DATA.dental)))),
+    all_vision_json:btoa(unescape(encodeURIComponent(JSON.stringify(PLAN_DATA.vision)))),
+    enrolling_employees:CLIENT_DATA.enrolling_employees,
+    contributions_medical_ee:(CLIENT_DATA.contributions||{}).medical_ee||'50%',
+    contributions_medical_dep:(CLIENT_DATA.contributions||{}).medical_dep||'0%',
+    contributions_dental_ee:(CLIENT_DATA.contributions||{}).dental_ee||'0%',
+    contributions_dental_dep:(CLIENT_DATA.contributions||{}).dental_dep||'0%',
+    contributions_vision_ee:(CLIENT_DATA.contributions||{}).vision_ee||'0%',
+    contributions_vision_dep:(CLIENT_DATA.contributions||{}).vision_dep||'0%',
+    selector_url:window.location.href,
+    submitted_at:new Date().toISOString(),
+    source:'proposal-selector'
+  };
+  try{await fetch(ZAPIER_WEBHOOK,{method:'POST',headers:{'Content-Type':'application/json'},mode:'no-cors',body:JSON.stringify(payload)});}catch(e){}
+  document.getElementById('success-overlay').classList.add('show');
+}
+
+renderSection('medical-plans',PLAN_DATA.medical,renderMedicalCard);
+renderSection('dental-plans',PLAN_DATA.dental,renderDentalCard);
+renderSection('vision-plans',PLAN_DATA.vision,renderVisionCard);
+updateCount();
+</script>
+<!-- BULK SELECT CONTROLS — added 2026-10-12 -->
+<style>
+.bulk-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0 14px}
+.bulk-btn{font:600 12px/1 inherit;padding:7px 12px;border-radius:6px;border:1px solid #2F72AD;background:#2F72AD;color:#fff;cursor:pointer}
+.bulk-btn.ghost{background:transparent;color:#2F72AD}
+.bulk-btn:hover{filter:brightness(1.07)}
+.bulk-count{font-size:12px;color:#718096;margin-left:4px}
+</style>
+<script>
+(function(){
+  var LINES = [['medical','medical-plans','med-'],['dental','dental-plans','den-'],['vision','vision-plans','vis-']];
+
+  window.setAll = function(line, on){
+    var prefix = {medical:'med-',dental:'den-',vision:'vis-'}[line];
+    (PLAN_DATA[line]||[]).forEach(function(p,i){
+      var id = prefix + i;
+      selections[line][id] = on;
+      var el = document.getElementById(id);
+      if (el) el.classList.toggle('selected', on);
+    });
+    updateCount();
+  };
+
+  function lineCount(line){
+    return Object.keys(selections[line]||{}).filter(function(k){return selections[line][k];}).length;
+  }
+
+  function refreshCounts(){
+    LINES.forEach(function(entry){
+      var line = entry[0];
+      var el = document.getElementById('count-' + line);
+      if (el) el.textContent = lineCount(line) + ' of ' + ((PLAN_DATA[line]||[]).length) + ' selected';
+    });
+  }
+
+  // Keep the existing count behaviour, add the per-section counts on top of it.
+  var originalUpdateCount = updateCount;
+  updateCount = function(){ originalUpdateCount(); refreshCounts(); };
+
+  LINES.forEach(function(entry){
+    var line = entry[0], containerId = entry[1];
+    var container = document.getElementById(containerId);
+    if (!container) return;
+    var total = (PLAN_DATA[line]||[]).length;
+    if (!total) return;
+    var bar = document.createElement('div');
+    bar.className = 'bulk-bar';
+    bar.innerHTML =
+      '<button type="button" class="bulk-btn" onclick="setAll(\'' + line + '\',true)">Select all</button>' +
+      '<button type="button" class="bulk-btn ghost" onclick="setAll(\'' + line + '\',false)">Clear</button>' +
+      '<span class="bulk-count" id="count-' + line + '">0 of ' + total + ' selected</span>';
+    container.parentNode.insertBefore(bar, container);
+  });
+
+  refreshCounts();
+})();
+</script>
+
+</body>
+</html>

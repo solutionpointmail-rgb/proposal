@@ -48,23 +48,40 @@ Rules for the layout:
 - The last body line is exactly **PLEASE REPLY ALL TO THIS EMAIL** including the four asterisks; the
   send routine turns it into bold text.
 
-THE FIRST LINE "AUTO-SEND READY" GOES IN ONLY WHEN THE DRAFT IS CLEAN. All of these must be true:
-- Address is complete (street, city, state, ZIP) and the sources agree. A conflict between the
-  Typeform, Info Sheet or census means NOT clean.
-- SIC is present.
-- Tax ID is exactly 9 digits (an EIN). 8 digits, letters or a missing value means NOT clean.
-- Desired Effective Date is a real date, not TBD or blank.
-- The census is attached in Asana, on the "Send for Quotes" task or the project's "Save Census" or
-  "Save Info Sheet" task, and ATTACH names that exact file.
-- Every TO address is one of the carrier contacts listed in Step 4 of these instructions.
-- Nothing about the group is unresolved (for example census headcount vs Info Sheet headcount).
+RESOLVE SMALL DISCREPANCIES YOURSELF — DO NOT LET THEM HOLD UP QUOTES (per Will, 2026-10-13)
+Carriers verify details along the way, so minor conflicts between documents are not a reason to hold a
+draft. Resolve them like this, and mention what you chose in the internal notes after "---END---":
+- ADDRESS: when sources disagree (suite, floor, ZIP), use the address from the MOST RECENT document
+  (Typeform, Info Sheet, renewal paperwork, carrier application, census — whichever is newest).
+- HEADCOUNT: when the census and the renewal/Info Sheet disagree, use whichever document is MOST
+  RECENT. Use that same count for every carrier minimum in Step 4.
+- SIC: use the SIC from the best available source, even an older document or a related entity's sheet.
+  If no SIC can be found anywhere, leave the SIC line out of the email; a missing SIC never holds a draft.
+- INFO SHEET: look in Dropbox "Quoting/3. Proposal/" AND in Asana — the project's "Save Info Sheet"
+  task notes and the "Typeform Web Responses" submission task (Step 0.5). Any one of them is enough.
+- CENSUS IN DROPBOX BUT NOT IN ASANA: attach it to Asana yourself. Take the census from the group's
+  "Quoting/1. Census/" folder (newest file with "census" in the name), get a temporary link with the
+  Dropbox connector's download_link tool, and attach it to the project's "Save Census" task with the
+  Zapier Asana attach-file / upload-attachment action (find it with inspect_zapier_actions or
+  discover_zapier_actions for Asana; pass the temporary link as the file URL). Confirm with
+  get_attachments that it is there. Census files contain personal data: attach them only to that
+  group's own Asana task, never anywhere else.
 
-If ANY item fails, write the same layout WITHOUT the "AUTO-SEND READY" line, and put one line after
-"---END---" starting "NOT READY: " that names exactly what is missing (e.g. "NOT READY: Tax ID 14090374
-is 8 digits; address ZIP conflicts with the Typeform"). A person then fixes the draft and adds
-"AUTO-SEND READY" as the first line when it is right. In a clean draft, do not write the words "NOTE:",
-"confirm", "adjust", "TBD", "verify" or "not provided" anywhere in the description; the send routine
-treats them as open questions and will hold the email.
+THE FIRST LINE "AUTO-SEND READY" GOES IN UNLESS ONE OF THESE REAL BLOCKERS APPLIES:
+- No census exists at all (not in Asana and not in Dropbox), or attaching it to Asana failed.
+- The Tax ID is missing or is not 9 digits (an EIN).
+- The Desired Effective Date is missing or not a real date (TBD, blank).
+- No street address exists in any source.
+- A TO address is not one of the carrier contacts listed in Step 4 of these instructions.
+- The census belongs to a different company (Step 0.5d).
+
+If a real blocker applies, write the same layout WITHOUT the "AUTO-SEND READY" line, and put one line
+after "---END---" starting "NOT READY: " that names exactly what is missing (e.g. "NOT READY: Tax ID
+14090374 is 8 digits"). A person then fixes the draft and adds "AUTO-SEND READY" as the first line.
+Everything else (choices you made under the rules above) goes in the internal notes as plain
+statements, e.g. "Address from the 12/2025 application (newest)." In any draft marked AUTO-SEND READY, do
+not write the words "NOTE:", "confirm", "adjust", "TBD", "verify" or "not provided" anywhere in the
+description; the send routine treats them as open questions and will hold the email.
 
 STEP 0 — HOT LEAD FOLDER TEMPLATING (intake-only by design — Plan Grader and Action Step leads should NOT get auto-created folders):
    a. Search Asana for live projects that look like new-business intake projects. Naming is inconsistent in practice, don't rely on a rigid exact pattern: the standard form is "[Group Name] Quoting [date]", but real projects have also shown up as "[Group Name] quoting" (lowercase, no date). Match ANY live project whose name contains "quoting" case-insensitively (not "renewal" — see below). Do NOT match "[Group Name] Renewal [date]" projects; those are existing clients already living under Dropbox "1. CURRENT CLIENTS", not Hot Leads.
@@ -96,8 +113,8 @@ STEPS (Send-for-Quotes logic):
 2. For each matching project, find its "Send for Quotes" task (get_task with subtasks included). Skip the project entirely if "Send for Quotes" is already marked complete, OR it already has one or more CARRIER subtasks (already handled, either by this automation previously or manually by Lindsey — never duplicate work or create competing subtasks). A carrier subtask is one named for a carrier or GA in Step 4 (e.g. "Aetna AFA - Cason Group", "UHCLF portal"); a non-carrier subtask such as "Formfire Setup" does not count and does not block drafting. If a project has no "Send for Quotes" task at all: check whether it's an AOR-acquired client's originating project (Step 0.h) — if so, this is expected, note it factually in your summary without treating it as an open flag needing Will's decision, and move on. If it's NOT an AOR-acquired client's originating project and still has no "Send for Quotes" task, that's a genuine structural anomaly — flag it for Will as before.
 
 3. For every remaining "untouched" project, check Dropbox under `2.  HOT LEADS/[Group Name]/` for the data this logic needs:
-   - New business: an Info Sheet file (`.docx` or `.md`) in `Quoting/3. Proposal/` and the census file in `Quoting/1. Census/`.
-   - Renewal: the equivalent renewal census/current-plan info for that group (check the Quoting/Renewal subfolders — file naming may vary, confirm real data exists, don't proceed on a guess).
+   - New business: an Info Sheet (a `.docx` or `.md` file in `Quoting/3. Proposal/`, OR the Info Sheet text in the project's "Save Info Sheet" task or its Typeform submission task) and a census (in `Quoting/1. Census/` or attached in Asana).
+   - Renewal: the equivalent renewal census/current-plan info for that group (check the Quoting/Renewal subfolders and the project's Asana tasks — file naming may vary, confirm real data exists, don't proceed on a guess).
    If the required files aren't there yet or look incomplete/placeholder, skip this group for now — no need to notify anyone, it's expected timing, not an error.
 
 4. For every group with confirmed, ready data, apply this carrier-matching logic (source of truth: the Asana "CARRIER LISTING" project, gid 1213325728914238 — re-read it live each run, since Will adds carriers there directly and this list may lag by a few days):

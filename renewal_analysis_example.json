@@ -37,7 +37,7 @@
     {
       "heading": "What the Market Is Telling Us",
       "blocks": [
-        {"type": "paragraph", "text": "**The market response strongly validates the UHC buy-down.** Nine required carrier requests were completed. Four carriers ultimately declined to quote: Cigna Direct, Aetna AFA/Cason, Great American, and Arlo."},
+        {"type": "paragraph", "text": "**The market response strongly validates the UHC buy-down.** Nine required carrier requests were completed. Four carriers ultimately declined to quote: Cigna, Aetna, Great American, and Arlo."},
         {"type": "table",
          "columns": ["Carrier / Option", "Monthly Cost", "Approx. vs. Current", "Read"],
          "widths": [1.7, 1.1, 1.1, 1.9],

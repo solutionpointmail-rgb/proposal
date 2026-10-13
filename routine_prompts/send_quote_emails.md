@@ -123,11 +123,11 @@ reason.
 
 RUN RECEIPT — SEND ONE EVERY RUN, NO EXCEPTIONS (added 2026-10-13 per Will)
 
-Will and Alex cannot see this run. So the LAST thing every run does, whether it sent anything or not,
+Will, Alex and Lindsey cannot see this run. So the LAST thing every run does, whether it sent anything or not,
 is send a short receipt email through the same Zapier Microsoft Outlook action, but from Will's normal
 Outlook connection (NOT quotes@benefits.place — that account is for carrier email only):
 
-  recipients: ["will@benefits.place", "alex@benefits.place"]
+  recipients: ["will@benefits.place", "alex@benefits.place", "lindsey@benefits.place"]
   bodyFormat: "HTML"
   subject:  "TBG Send Carrier Emails — [Group or 'all groups'] — [Sent N | Nothing to send | Problem]"
   body: a compact HTML block, Arial 13px, no images, in this exact shape:

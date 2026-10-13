@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anderson Design Studio — Proposal Plan Selector</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #F0F4F8; min-height: 100vh; }
+  .header { background: #0D1B2A; padding: 0; }
+  .header-inner { max-width: 1100px; margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; }
+  .header-logo { display: flex; align-items: center; gap: 12px; }
+  .header-logo img { height: 42px; width: auto; display: block; }
+  .header-logo-text { color: #fff; font-size: 15px; font-weight: 600; }
+  .header-bar { height: 3px; background: #4CAF7D; }
+  .hero { background: #1B2E45; padding: 28px 24px; }
+  .hero-inner { max-width: 1100px; margin: 0 auto; }
+  .hero-label { color: #4CAF7D; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; }
+  .hero-title { color: #fff; font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .hero-meta { color: #A0AEC0; font-size: 13px; display: flex; flex-wrap: wrap; gap: 16px; margin-top: 10px; }
+  .hero-meta strong { color: #CBD5E0; }
+  .instructions { background: #EAF7F1; border-left: 3px solid #4CAF7D; max-width: 1100px; margin: 20px auto 0; padding: 12px 16px; border-radius: 0 6px 6px 0; font-size: 13px; color: #2D6A4F; }
+  .main { max-width: 1100px; margin: 20px auto; padding: 0 24px 40px; }
+  .section { margin-bottom: 28px; }
+  .section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 2px solid #E2E8F0; }
+  .section-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .icon-medical { background: #EAF7F1; }
+  .icon-dental  { background: #FFF8E8; }
+  .icon-vision  { background: #EDF4FB; }
+  .section-title { font-size: 16px; font-weight: 700; color: #0D1B2A; }
+  .section-contrib { font-size: 12px; color: #718096; margin-left: auto; background: #F7F9FC; padding: 4px 10px; border-radius: 20px; border: 1px solid #E2E8F0; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+  .plan-card { background: #fff; border: 2px solid #E2E8F0; border-radius: 10px; padding: 14px; cursor: pointer; transition: all 0.15s; position: relative; user-select: none; }
+  .plan-card:hover { border-color: #4CAF7D; box-shadow: 0 2px 8px rgba(76,175,125,0.12); }
+  .plan-card.selected { border-color: #4CAF7D; background: #EAF7F1; }
+  .check { position: absolute; top: 10px; right: 10px; width: 20px; height: 20px; background: #4CAF7D; border-radius: 50%; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.15s; }
+  .plan-card.selected .check { opacity: 1; }
+  .check svg { width: 11px; height: 11px; stroke: #fff; stroke-width: 2.5; fill: none; }
+  .card-carrier { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #718096; margin-bottom: 4px; }
+  .card-name { font-size: 13px; font-weight: 600; color: #1A202C; margin-bottom: 8px; line-height: 1.35; }
+  .card-premium { font-size: 18px; font-weight: 800; color: #4CAF7D; margin-bottom: 2px; }
+  .card-premium-label { font-size: 10px; color: #A0AEC0; margin-bottom: 8px; }
+  .card-badges { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
+  .badge { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 10px; }
+  .badge-blue { background: #EBF4FF; color: #2B6CB0; }
+  .badge-green { background: #EAF7F1; color: #276749; }
+  .badge-gold { background: #FFFFF0; color: #975A16; }
+  .card-details { border-top: 1px solid #E2E8F0; padding-top: 8px; }
+  .card-detail-row { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 3px; }
+  .card-detail-row span:first-child { color: #718096; }
+  .card-detail-row span:last-child { color: #2D3748; font-weight: 500; }
+  .carrier-group { margin-bottom: 16px; }
+  .carrier-label { font-size: 11px; font-weight: 700; color: #4A5568; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 8px; padding: 4px 0; }
+  .submit-bar { position: sticky; bottom: 0; background: #0D1B2A; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 -4px 20px rgba(0,0,0,0.15); }
+  .submit-count { color: #A0AEC0; font-size: 13px; }
+  .submit-count strong { color: #4CAF7D; font-size: 16px; }
+  .submit-btn { background: #4CAF7D; color: #fff; border: none; padding: 12px 32px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; transition: background 0.15s; }
+  .submit-btn:hover { background: #3A8C61; }
+  .submit-btn:disabled { background: #A0AEC0; cursor: not-allowed; }
+  .success-overlay { display: none; position: fixed; inset: 0; background: rgba(13,27,42,0.92); z-index: 100; align-items: center; justify-content: center; }
+  .success-overlay.show { display: flex; }
+  .success-box { background: #fff; border-radius: 16px; padding: 40px; max-width: 440px; text-align: center; }
+  .success-icon { width: 64px; height: 64px; background: #EAF7F1; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+  .success-icon svg { width: 32px; height: 32px; stroke: #4CAF7D; stroke-width: 2.5; fill: none; }
+  .success-title { font-size: 20px; font-weight: 700; color: #0D1B2A; margin-bottom: 8px; }
+  .success-msg { font-size: 14px; color: #718096; line-height: 1.6; }
+  .success-client { color: #4CAF7D; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-inner">
+    <div class="header-logo">
+      <img src="https://solutionpointmail-rgb.github.io/proposal/tbg-logo.png" alt="The Benefits Group" style="height:42px;width:auto;display:block">
+      <div>
+        <div class="header-logo-text">The Benefits Group</div>
+      </div>
+    </div>
+    <div style="color:#A0AEC0;font-size:12px;text-align:right">
+      Proposal Plan Selector<br>
+      <span style="color:#4CAF7D">January 1, 2027</span>
+    </div>
+  </div>
+  <div class="header-bar"></div>
+</div>
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-label">Proposal plan selection</div>
+    <div class="hero-title">Anderson Design Studio</div>
+    <div class="hero-meta">
+      <span>&#128197; <strong>Effective:</strong> August 1, 2026</span>
+      <span>&#128101; <strong>Employees:</strong> 7 enrolling</span>
+    </div>
+  </div>
+</div>
+<div class="main">
+  <div class="instructions">
+    <strong>Instructions:</strong> Click each plan to toggle include/exclude. Green = included in proposal. When ready, hit <strong>Submit selections</strong> at the bottom — the proposal will generate automatically.
+  </div>
+  <div class="section" style="margin-top:20px">
+    <div class="section-header">
+      <div class="section-icon icon-medical">&#10010;</div>
+      <div class="section-title">Medical Coverage</div>
+      <div class="section-contrib">EE TBD / Dep TBD</div>
+    </div>
+    <div id="medical-plans"></div>
+  </div>
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon icon-dental">&#9673;</div>
+      <div class="section-title">Dental Coverage</div>
+      <div class="section-contrib">EE 0% / Dep 0%</div>
+    </div>
+    <div id="dental-plans"></div>
+  </div>
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon icon-vision">&#128065;</div>
+      <div class="section-title">Vision Coverage</div>
+      <div class="section-contrib">EE 0% / Dep 0%</div>
+    </div>
+    <div id="vision-plans"></div>
+  </div>
+  <div style="height:80px"></div>
+</div>
+<div class="submit-bar">
+  <div class="submit-count"><strong id="selected-count">0</strong> plans selected</div>
+  <button class="submit-btn" id="submit-btn" onclick="submitSelections()" disabled>Submit selections</button>
+</div>
+<div class="success-overlay" id="success-overlay">
+  <div class="success-box">
+    <div class="success-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <div class="success-title">Selections submitted!</div>
+    <div class="success-msg">The proposal for <span class="success-client">Anderson Design Studio</span> is now generating automatically.<br><br>You'll find the PDF and Excel files in Dropbox and the Asana task will be marked complete once ready. You can close this tab.</div>
+  </div>
+</div>
+<script>
+const ZAPIER_WEBHOOK = 'https://hooks.zapier.com/hooks/catch/5928257/4ueg7t8/';
+const CLIENT_DATA = {"name": "Anderson Design Studio", "effective_date": "January 1, 2027", "enrolling_employees": 7, "county": "Davidson", "contributions": {"medical_ee": "TBD", "medical_dep": "TBD", "dental_ee": "0%", "dental_dep": "0%", "vision_ee": "0%", "vision_dep": "0%"}};
+const PLAN_DATA = {
+  medical: [{"carrier": "Great American", "plan_name": "LFP 3500/70%/9000 PPO-INO Copay", "monthly_premium": 4773.61, "plan_type": "Level Funded PPO (INO)", "funding": "Level Funded", "deductible_in_ind": "$3,500", "deductible_in_fam": "$7,000", "oop_in_ind": "$9,000", "oop_in_fam": "$18,000", "coinsurance_in": "30% member", "doctor_visit": "$35", "specialist": "$75", "rate_ee": 358.7, "rate_es": 852.67, "rate_ec": 661.46, "rate_ef": 1091.69, "employer_cost": 0, "employee_cost": 4773.61, "include": true}, {"carrier": "Great American", "plan_name": "LFP 2000/80%/6000 PPO-INO Copay", "monthly_premium": 5909.69, "plan_type": "Level Funded PPO (INO)", "funding": "Level Funded", "deductible_in_ind": "$2,000", "deductible_in_fam": "$4,000", "oop_in_ind": "$6,000", "oop_in_fam": "$12,000", "coinsurance_in": "20% member", "doctor_visit": "$35", "specialist": "$75", "rate_ee": 439.27, "rate_es": 1058.13, "rate_ec": 818.57, "rate_ef": 1357.59, "employer_cost": 0, "employee_cost": 5909.69, "include": true}, {"carrier": "Angle Health", "plan_name": "ANG HDHP 8000 8000", "monthly_premium": 4764.52, "plan_type": "Level Funded HDHP/HSA", "funding": "Level Funded", "deductible_in_ind": "$8,000", "deductible_in_fam": "$16,000", "oop_in_ind": "$8,000", "oop_in_fam": "$16,000", "coinsurance_in": "0% member", "doctor_visit": "Ded, then 0%", "specialist": "Ded, then 0%", "rate_ee": 360.95, "rate_es": 757.99, "rate_ec": 685.8, "rate_ef": 1118.94, "employer_cost": 0, "employee_cost": 4764.52, "include": true}, {"carrier": "Angle Health", "plan_name": "ANG HDHP 7000 7000", "monthly_premium": 4987.38, "plan_type": "Level Funded HDHP/HSA", "funding": "Level Funded", "deductible_in_ind": "$7,000", "deductible_in_fam": "$14,000", "oop_in_ind": "$7,000", "oop_in_fam": "$14,000", "coinsurance_in": "0% member", "doctor_visit": "Ded, then 0%", "specialist": "Ded, then 0%", "rate_ee": 377.83, "rate_es": 793.45, "rate_ec": 717.88, "rate_ef": 1171.28, "employer_cost": 0, "employee_cost": 4987.38, "include": true}, {"carrier": "Angle Health", "plan_name": "ANG HDHP 4000 7000", "monthly_premium": 5277.23, "plan_type": "Level Funded HDHP/HSA", "funding": "Level Funded", "deductible_in_ind": "$4,000", "deductible_in_fam": "$8,000", "oop_in_ind": "$7,000", "oop_in_fam": "$14,000", "coinsurance_in": "20% member", "doctor_visit": "Ded, then 20%", "specialist": "Ded, then 20%", "rate_ee": 399.79, "rate_es": 839.56, "rate_ec": 759.6, "rate_ef": 1239.35, "employer_cost": 0, "employee_cost": 5277.23, "include": true}, {"carrier": "Angle Health", "plan_name": "ANG VALUE 9200", "monthly_premium": 5355.47, "plan_type": "Level Funded PPO", "funding": "Level Funded", "deductible_in_ind": "$9,200", "deductible_in_fam": "$18,400", "oop_in_ind": "$9,200", "oop_in_fam": "$18,400", "coinsurance_in": "0% member", "doctor_visit": "$25", "specialist": "$50", "rate_ee": 405.72, "rate_es": 852.01, "rate_ec": 770.86, "rate_ef": 1257.72, "employer_cost": 0, "employee_cost": 5355.47, "include": true}, {"carrier": "Angle Health", "plan_name": "ANG TRAD 9200 9200", "monthly_premium": 5396.38, "plan_type": "Level Funded PPO", "funding": "Level Funded", "deductible_in_ind": "$9,200", "deductible_in_fam": "$18,400", "oop_in_ind": "$9,200", "oop_in_fam": "$18,400", "coinsurance_in": "0% member", "doctor_visit": "$25", "specialist": "$75", "rate_ee": 408.82, "rate_es": 858.51, "rate_ec": 776.75, "rate_ef": 1267.33, "employer_cost": 0, "employee_cost": 5396.38, "include": true}, {"carrier": "Angle Health", "plan_name": "ANG TRAD 8000 9200", "monthly_premium": 5403.31, "plan_type": "Level Funded PPO", "funding": "Level Funded", "deductible_in_ind": "$8,000", "deductible_in_fam": "$16,000", "oop_in_ind": "$9,200", "oop_in_fam": "$18,400", "coinsurance_in": "20% member", "doctor_visit": "$25", "specialist": "$75", "rate_ee": 409.34, "rate_es": 859.62, "rate_ec": 777.75, "rate_ef": 1268.96, "employer_cost": 0, "employee_cost": 5403.31, "include": true}, {"carrier": "Angle Health", "plan_name": "ANG TRAD 7000 9200", "monthly_premium": 5442.23, "plan_type": "Level Funded PPO", "funding": "Level Funded", "deductible_in_ind": "$7,000", "deductible_in_fam": "$14,000", "oop_in_ind": "$9,200", "oop_in_fam": "$18,400", "coinsurance_in": "30% member", "doctor_visit": "$25", "specialist": "$75", "rate_ee": 412.29, "rate_es": 865.81, "rate_ec": 783.35, "rate_ef": 1278.1, "employer_cost": 0, "employee_cost": 5442.23, "include": true}, {"carrier": "Angle Health", "plan_name": "ANG HDHP 5000 5000", "monthly_premium": 5475.91, "plan_type": "Level Funded HDHP/HSA", "funding": "Level Funded", "deductible_in_ind": "$5,000", "deductible_in_fam": "$10,000", "oop_in_ind": "$5,000", "oop_in_fam": "$10,000", "coinsurance_in": "0% member", "doctor_visit": "Ded, then 0%", "specialist": "Ded, then 0%", "rate_ee": 414.84, "rate_es": 871.17, "rate_ec": 788.2, "rate_ef": 1286.01, "employer_cost": 0, "employee_cost": 5475.91, "include": true}, {"carrier": "Angle Health", "plan_name": "ANG HDHP 3500 5000", "monthly_premium": 5593.74, "plan_type": "Level Funded HDHP/HSA", "funding": "Level Funded", "deductible_in_ind": "$3,500", "deductible_in_fam": "$7,000", "oop_in_ind": "$5,000", "oop_in_fam": "$10,000", "coinsurance_in": "20% member", "doctor_visit": "Ded, then 20%", "specialist": "Ded, then 20%", "rate_ee": 423.77, "rate_es": 889.91, "rate_ec": 805.16, "rate_ef": 1313.68, "employer_cost": 0, "employee_cost": 5593.74, "include": true}, {"carrier": "Angle Health", "plan_name": "ANG VALUE 7500", "monthly_premium": 5622.3, "plan_type": "Level Funded PPO", "funding": "Level Funded", "deductible_in_ind": "$7,500", "deductible_in_fam": "$15,000", "oop_in_ind": "$7,500", "oop_in_fam": "$15,000", "coinsurance_in": "0% member", "doctor_visit": "$25", "specialist": "$50", "rate_ee": 425.93, "rate_es": 894.46, "rate_ec": 809.27, "rate_ef": 1320.39, "employer_cost": 0, "employee_cost": 5622.3, "include": true}, {"carrier": "Angle Health", "plan_name": "ANG TRAD 5000 7000", "monthly_premium": 5813.67, "plan_type": "Level Funded PPO", "funding": "Level Funded", "deductible_in_ind": "$5,000", "deductible_in_fam": "$10,000", "oop_in_ind": "$7,000", "oop_in_fam": "$14,000", "coinsurance_in": "20% member", "doctor_visit": "$25", "specialist": "$75", "rate_ee": 440.43, "rate_es": 924.9, "rate_ec": 836.82, "rate_ef": 1365.33, "employer_cost": 0, "employee_cost": 5813.67, "include": true}, {"carrier": "Angle Health", "plan_name": "ANG HDHP 3500 3500", "monthly_premium": 5962.6, "plan_type": "Level Funded HDHP/HSA", "funding": "Level Funded", "deductible_in_ind": "$3,500", "deductible_in_fam": "$7,000", "oop_in_ind": "$3,500", "oop_in_fam": "$7,000", "coinsurance_in": "0% member", "doctor_visit": "Ded, then 0%", "specialist": "Ded, then 0%", "rate_ee": 451.71, "rate_es": 948.6, "rate_ec": 858.25, "rate_ef": 1400.31, "employer_cost": 0, "employee_cost": 5962.6, "include": true}, {"carrier": "Angle Health", "plan_name": "ANG TRAD 4000 6000", "monthly_premium": 6010.51, "plan_type": "Level Funded PPO", "funding": "Level Funded", "deductible_in_ind": "$4,000", "deductible_in_fam": "$8,000", "oop_in_ind": "$6,000", "oop_in_fam": "$12,000", "coinsurance_in": "20% member", "doctor_visit": "$25", "specialist": "$75", "rate_ee": 455.34, "rate_es": 956.22, "rate_ec": 865.15, "rate_ef": 1411.56, "employer_cost": 0, "employee_cost": 6010.51, "include": true}, {"carrier": "Angle Health", "plan_name": "ANG VALUE 5000", "monthly_premium": 6108.09, "plan_type": "Level Funded PPO", "funding": "Level Funded", "deductible_in_ind": "$5,000", "deductible_in_fam": "$10,000", "oop_in_ind": "$5,000", "oop_in_fam": "$10,000", "coinsurance_in": "0% member", "doctor_visit": "$25", "specialist": "$50", "rate_ee": 462.73, "rate_es": 971.74, "rate_ec": 879.2, "rate_ef": 1434.48, "employer_cost": 0, "employee_cost": 6108.09, "include": true}, {"carrier": "Angle Health", "plan_name": "ANG TRAD 3000 5000", "monthly_premium": 6300.59, "plan_type": "Level Funded PPO", "funding": "Level Funded", "deductible_in_ind": "$3,000", "deductible_in_fam": "$6,000", "oop_in_ind": "$5,000", "oop_in_fam": "$10,000", "coinsurance_in": "20% member", "doctor_visit": "$20", "specialist": "$50", "rate_ee": 477.32, "rate_es": 1002.37, "rate_ec": 906.9, "rate_ef": 1479.68, "employer_cost": 0, "employee_cost": 6300.59, "include": true}, {"carrier": "Angle Health", "plan_name": "ANG TRAD 2000 4000", "monthly_premium": 6581.17, "plan_type": "Level Funded PPO", "funding": "Level Funded", "deductible_in_ind": "$2,000", "deductible_in_fam": "$4,000", "oop_in_ind": "$4,000", "oop_in_fam": "$8,000", "coinsurance_in": "20% member", "doctor_visit": "$20", "specialist": "$50", "rate_ee": 498.57, "rate_es": 1047.01, "rate_ec": 947.29, "rate_ef": 1545.58, "employer_cost": 0, "employee_cost": 6581.17, "include": true}, {"carrier": "Angle Health", "plan_name": "ANG HDHP 1750 1750", "monthly_premium": 6818.8, "plan_type": "Level Funded HDHP/HSA", "funding": "Level Funded", "deductible_in_ind": "$1,750", "deductible_in_fam": "$3,500", "oop_in_ind": "$1,750", "oop_in_fam": "$3,500", "coinsurance_in": "0% member", "doctor_visit": "Ded, then 0%", "specialist": "Ded, then 0%", "rate_ee": 516.58, "rate_es": 1084.81, "rate_ec": 981.49, "rate_ef": 1601.38, "employer_cost": 0, "employee_cost": 6818.8, "include": true}, {"carrier": "Angle Health", "plan_name": "ANG TRAD 1000 2000", "monthly_premium": 7211.45, "plan_type": "Level Funded PPO", "funding": "Level Funded", "deductible_in_ind": "$1,000", "deductible_in_fam": "$2,000", "oop_in_ind": "$2,000", "oop_in_fam": "$4,000", "coinsurance_in": "20% member", "doctor_visit": "$10", "specialist": "$30", "rate_ee": 546.32, "rate_es": 1147.28, "rate_ec": 1038.01, "rate_ef": 1693.6, "employer_cost": 0, "employee_cost": 7211.45, "include": true}, {"carrier": "Angle Health", "plan_name": "ANG TRAD 500 1500", "monthly_premium": 7427.86, "plan_type": "Level Funded PPO", "funding": "Level Funded", "deductible_in_ind": "$500", "deductible_in_fam": "$1,000", "oop_in_ind": "$1,500", "oop_in_fam": "$3,000", "coinsurance_in": "20% member", "doctor_visit": "$10", "specialist": "$30", "rate_ee": 562.72, "rate_es": 1181.7, "rate_ec": 1069.16, "rate_ef": 1744.42, "employer_cost": 0, "employee_cost": 7427.86, "include": true}, {"carrier": "Arlo", "plan_name": "Bronze 7500/10000 (405.1)", "monthly_premium": 8153.42, "plan_type": "Level Funded PPO", "funding": "Level Funded", "deductible_in_ind": "$7,500", "deductible_in_fam": "$15,000", "oop_in_ind": "$10,000", "oop_in_fam": "$20,000", "coinsurance_in": "30% member", "doctor_visit": "$0", "specialist": "$120", "rate_ee": 670.54, "rate_es": 1409.46, "rate_ec": 1075.84, "rate_ef": 1828.25, "employer_cost": 0, "employee_cost": 8153.42, "include": true}, {"carrier": "Arlo", "plan_name": "Bronze 5000/9700 (403.1)", "monthly_premium": 8422.0, "plan_type": "Level Funded PPO", "funding": "Level Funded", "deductible_in_ind": "$5,000", "deductible_in_fam": "$10,000", "oop_in_ind": "$9,700", "oop_in_fam": "$19,400", "coinsurance_in": "30% member", "doctor_visit": "$0", "specialist": "$100", "rate_ee": 691.1, "rate_es": 1456.85, "rate_ec": 1111.11, "rate_ef": 1890.37, "employer_cost": 0, "employee_cost": 8422.0, "include": true}, {"carrier": "Arlo", "plan_name": "Bronze 8500/8500 HSA (407.1)", "monthly_premium": 8499.34, "plan_type": "Level Funded HDHP/HSA", "funding": "Level Funded", "deductible_in_ind": "$8,500", "deductible_in_fam": "$17,000", "oop_in_ind": "$8,500", "oop_in_fam": "$17,000", "coinsurance_in": "0% after ded", "doctor_visit": "Ded, then 0%", "specialist": "Ded, then 0%", "rate_ee": 697.02, "rate_es": 1470.51, "rate_ec": 1121.27, "rate_ef": 1908.25, "employer_cost": 0, "employee_cost": 8499.34, "include": true}, {"carrier": "Arlo", "plan_name": "Bronze 6000/8500 HSA (406.1)", "monthly_premium": 8622.33, "plan_type": "Level Funded HDHP/HSA", "funding": "Level Funded", "deductible_in_ind": "$6,000", "deductible_in_fam": "$12,000", "oop_in_ind": "$8,500", "oop_in_fam": "$17,000", "coinsurance_in": "30% member", "doctor_visit": "Ded, then 30%", "specialist": "Ded, then 30%", "rate_ee": 706.44, "rate_es": 1492.21, "rate_ec": 1137.42, "rate_ef": 1936.69, "employer_cost": 0, "employee_cost": 8622.33, "include": true}, {"carrier": "Arlo", "plan_name": "Silver 5000/9000 (307.1)", "monthly_premium": 8630.68, "plan_type": "Level Funded PPO", "funding": "Level Funded", "deductible_in_ind": "$5,000", "deductible_in_fam": "$10,000", "oop_in_ind": "$9,000", "oop_in_fam": "$18,000", "coinsurance_in": "20% member", "doctor_visit": "$0", "specialist": "$65", "rate_ee": 707.08, "rate_es": 1493.69, "rate_ec": 1138.51, "rate_ef": 1938.62, "employer_cost": 0, "employee_cost": 8630.68, "include": true}, {"carrier": "Arlo", "plan_name": "Bronze 6000/8000 (404.1)", "monthly_premium": 8746.63, "plan_type": "Level Funded PPO", "funding": "Level Funded", "deductible_in_ind": "$6,000", "deductible_in_fam": "$12,000", "oop_in_ind": "$8,000", "oop_in_fam": "$16,000", "coinsurance_in": "30% member", "doctor_visit": "$0", "specialist": "$120", "rate_ee": 715.96, "rate_es": 1514.14, "rate_ec": 1153.75, "rate_ef": 1965.43, "employer_cost": 0, "employee_cost": 8746.63, "include": true}, {"carrier": "Arlo", "plan_name": "Silver 3500/7500 HSA (309.1)", "monthly_premium": 8926.77, "plan_type": "Level Funded HDHP/HSA", "funding": "Level Funded", "deductible_in_ind": "$3,500", "deductible_in_fam": "$7,000", "oop_in_ind": "$7,500", "oop_in_fam": "$15,000", "coinsurance_in": "20% member", "doctor_visit": "Ded, then 20%", "specialist": "Ded, then 20%", "rate_ee": 729.75, "rate_es": 1545.94, "rate_ec": 1177.4, "rate_ef": 2007.09, "employer_cost": 0, "employee_cost": 8926.77, "include": true}, {"carrier": "Arlo", "plan_name": "Silver 4000/8000 (306.1)", "monthly_premium": 9034.11, "plan_type": "Level Funded PPO", "funding": "Level Funded", "deductible_in_ind": "$4,000", "deductible_in_fam": "$8,000", "oop_in_ind": "$8,000", "oop_in_fam": "$16,000", "coinsurance_in": "20% member", "doctor_visit": "$0", "specialist": "$65", "rate_ee": 737.97, "rate_es": 1564.88, "rate_ec": 1191.5, "rate_ef": 2031.91, "employer_cost": 0, "employee_cost": 9034.11, "include": true}, {"carrier": "Arlo", "plan_name": "Silver 3500/7500 (305.1)", "monthly_premium": 9248.71, "plan_type": "Level Funded PPO", "funding": "Level Funded", "deductible_in_ind": "$3,500", "deductible_in_fam": "$7,000", "oop_in_ind": "$7,500", "oop_in_fam": "$15,000", "coinsurance_in": "20% member", "doctor_visit": "$0", "specialist": "$65", "rate_ee": 754.39, "rate_es": 1602.76, "rate_ec": 1219.68, "rate_ef": 2081.55, "employer_cost": 0, "employee_cost": 9248.71, "include": true}, {"carrier": "Arlo", "plan_name": "Bronze 1500/9000 (402.1)", "monthly_premium": 9328.11, "plan_type": "Level Funded PPO", "funding": "Level Funded", "deductible_in_ind": "$1,500", "deductible_in_fam": "$3,000", "oop_in_ind": "$9,000", "oop_in_fam": "$18,000", "coinsurance_in": "30% member", "doctor_visit": "$0", "specialist": "$100", "rate_ee": 760.48, "rate_es": 1616.77, "rate_ec": 1230.1, "rate_ef": 2099.9, "employer_cost": 0, "employee_cost": 9328.11, "include": true}, {"carrier": "Arlo", "plan_name": "Silver 3000/6500 (304.1)", "monthly_premium": 9619.45, "plan_type": "Level Funded PPO", "funding": "Level Funded", "deductible_in_ind": "$3,000", "deductible_in_fam": "$6,000", "oop_in_ind": "$6,500", "oop_in_fam": "$13,000", "coinsurance_in": "20% member", "doctor_visit": "$0", "specialist": "$65", "rate_ee": 782.78, "rate_es": 1668.19, "rate_ec": 1268.36, "rate_ef": 2167.28, "employer_cost": 0, "employee_cost": 9619.45, "include": true}, {"carrier": "Arlo", "plan_name": "Silver 3400/6000 HSA (308.1)", "monthly_premium": 9644.45, "plan_type": "Level Funded HDHP/HSA", "funding": "Level Funded", "deductible_in_ind": "$3,400", "deductible_in_fam": "$6,800", "oop_in_ind": "$6,000", "oop_in_fam": "$12,000", "coinsurance_in": "20% member", "doctor_visit": "Ded, then 20%", "specialist": "Ded, then 20%", "rate_ee": 784.69, "rate_es": 1672.61, "rate_ec": 1271.65, "rate_ef": 2173.06, "employer_cost": 0, "employee_cost": 9644.45, "include": true}, {"carrier": "Arlo", "plan_name": "Silver 5000/5000 HSA (310.1)", "monthly_premium": 9694.4, "plan_type": "Level Funded HDHP/HSA", "funding": "Level Funded", "deductible_in_ind": "$5,000", "deductible_in_fam": "$10,000", "oop_in_ind": "$5,000", "oop_in_fam": "$10,000", "coinsurance_in": "0% after ded", "doctor_visit": "Ded, then 0%", "specialist": "Ded, then 0%", "rate_ee": 788.52, "rate_es": 1681.42, "rate_ec": 1278.2, "rate_ef": 2184.61, "employer_cost": 0, "employee_cost": 9694.4, "include": true}, {"carrier": "Arlo", "plan_name": "Bronze 1500/7000 (401.1)", "monthly_premium": 9825.27, "plan_type": "Level Funded PPO", "funding": "Level Funded", "deductible_in_ind": "$1,500", "deductible_in_fam": "$3,000", "oop_in_ind": "$7,000", "oop_in_fam": "$14,000", "coinsurance_in": "30% member", "doctor_visit": "$0", "specialist": "$100", "rate_ee": 798.53, "rate_es": 1704.52, "rate_ec": 1295.4, "rate_ef": 2214.88, "employer_cost": 0, "employee_cost": 9825.27, "include": true}, {"carrier": "Arlo", "plan_name": "Silver 2500/6000 (303.1)", "monthly_premium": 9867.85, "plan_type": "Level Funded PPO", "funding": "Level Funded", "deductible_in_ind": "$2,500", "deductible_in_fam": "$5,000", "oop_in_ind": "$6,000", "oop_in_fam": "$12,000", "coinsurance_in": "20% member", "doctor_visit": "$0", "specialist": "$65", "rate_ee": 801.8, "rate_es": 1712.03, "rate_ec": 1300.98, "rate_ef": 2224.72, "employer_cost": 0, "employee_cost": 9867.85, "include": true}, {"carrier": "Arlo", "plan_name": "Gold 3500/5000 HSA (204.1)", "monthly_premium": 9870.23, "plan_type": "Level Funded HDHP/HSA", "funding": "Level Funded", "deductible_in_ind": "$3,500", "deductible_in_fam": "$7,000", "oop_in_ind": "$5,000", "oop_in_fam": "$10,000", "coinsurance_in": "50% member", "doctor_visit": "Ded, then 20%", "specialist": "Ded, then 20%", "rate_ee": 801.98, "rate_es": 1712.45, "rate_ec": 1301.3, "rate_ef": 2225.27, "employer_cost": 0, "employee_cost": 9870.23, "include": true}, {"carrier": "Arlo", "plan_name": "Silver 1000/7500 (301.1)", "monthly_premium": 10095.04, "plan_type": "Level Funded PPO", "funding": "Level Funded", "deductible_in_ind": "$1,000", "deductible_in_fam": "$2,000", "oop_in_ind": "$7,500", "oop_in_fam": "$15,000", "coinsurance_in": "20% member", "doctor_visit": "$0", "specialist": "$65", "rate_ee": 819.19, "rate_es": 1752.13, "rate_ec": 1330.82, "rate_ef": 2277.26, "employer_cost": 0, "employee_cost": 10095.04, "include": true}, {"carrier": "Arlo", "plan_name": "Silver 2000/5500 (302.1)", "monthly_premium": 10162.75, "plan_type": "Level Funded PPO", "funding": "Level Funded", "deductible_in_ind": "$2,000", "deductible_in_fam": "$4,000", "oop_in_ind": "$5,500", "oop_in_fam": "$11,000", "coinsurance_in": "20% member", "doctor_visit": "$0", "specialist": "$65", "rate_ee": 824.37, "rate_es": 1764.08, "rate_ec": 1339.72, "rate_ef": 2292.92, "employer_cost": 0, "employee_cost": 10162.75, "include": true}, {"carrier": "Arlo", "plan_name": "Arlo Clear 5 (505.1)", "monthly_premium": 10287.07, "plan_type": "Level Funded PPO", "funding": "Level Funded", "deductible_in_ind": "$0", "deductible_in_fam": "$0", "oop_in_ind": "$9,200", "oop_in_fam": "$18,400", "coinsurance_in": "0% (copay plan)", "doctor_visit": "$0", "specialist": "$75", "rate_ee": 833.89, "rate_es": 1786.02, "rate_ec": 1356.04, "rate_ef": 2321.67, "employer_cost": 0, "employee_cost": 10287.07, "include": true}, {"carrier": "Arlo", "plan_name": "Gold 3400/3400 HSA (203.1)", "monthly_premium": 10427.12, "plan_type": "Level Funded HDHP/HSA", "funding": "Level Funded", "deductible_in_ind": "$3,400", "deductible_in_fam": "$6,800", "oop_in_ind": "$3,400", "oop_in_fam": "$6,800", "coinsurance_in": "0% after ded", "doctor_visit": "Ded, then 0%", "specialist": "Ded, then 0%", "rate_ee": 844.61, "rate_es": 1810.74, "rate_ec": 1374.43, "rate_ef": 2354.06, "employer_cost": 0, "employee_cost": 10427.12, "include": true}, {"carrier": "Arlo", "plan_name": "Gold 1500/5000 (202.1)", "monthly_premium": 10461.73, "plan_type": "Level Funded PPO", "funding": "Level Funded", "deductible_in_ind": "$1,500", "deductible_in_fam": "$3,000", "oop_in_ind": "$5,000", "oop_in_fam": "$10,000", "coinsurance_in": "20% member", "doctor_visit": "$0", "specialist": "$50", "rate_ee": 847.26, "rate_es": 1816.85, "rate_ec": 1378.98, "rate_ef": 2362.06, "employer_cost": 0, "employee_cost": 10461.73, "include": true}, {"carrier": "Arlo", "plan_name": "Arlo Clear 4 (504.1)", "monthly_premium": 10710.34, "plan_type": "Level Funded PPO", "funding": "Level Funded", "deductible_in_ind": "$0", "deductible_in_fam": "$0", "oop_in_ind": "$8,000", "oop_in_fam": "$16,000", "coinsurance_in": "0% (copay plan)", "doctor_visit": "$0", "specialist": "$75", "rate_ee": 866.3, "rate_es": 1860.72, "rate_ec": 1411.62, "rate_ef": 2419.55, "employer_cost": 0, "employee_cost": 10710.34, "include": true}, {"carrier": "Arlo", "plan_name": "Gold 1000/4000 (201.1)", "monthly_premium": 10965.14, "plan_type": "Level Funded PPO", "funding": "Level Funded", "deductible_in_ind": "$1,000", "deductible_in_fam": "$2,000", "oop_in_ind": "$4,000", "oop_in_fam": "$8,000", "coinsurance_in": "20% member", "doctor_visit": "$0", "specialist": "$50", "rate_ee": 885.81, "rate_es": 1905.69, "rate_ec": 1445.08, "rate_ef": 2478.47, "employer_cost": 0, "employee_cost": 10965.14, "include": true}, {"carrier": "Arlo", "plan_name": "Arlo Clear 3 (503.1)", "monthly_premium": 11213.71, "plan_type": "Level Funded PPO", "funding": "Level Funded", "deductible_in_ind": "$0", "deductible_in_fam": "$0", "oop_in_ind": "$6,000", "oop_in_fam": "$12,000", "coinsurance_in": "0% (copay plan)", "doctor_visit": "$0", "specialist": "$75", "rate_ee": 904.83, "rate_es": 1949.57, "rate_ec": 1477.73, "rate_ef": 2535.96, "employer_cost": 0, "employee_cost": 11213.71, "include": true}, {"carrier": "Arlo", "plan_name": "Platinum 1000/3000 (103.1)", "monthly_premium": 11384.8, "plan_type": "Level Funded PPO", "funding": "Level Funded", "deductible_in_ind": "$1,000", "deductible_in_fam": "$2,000", "oop_in_ind": "$3,000", "oop_in_fam": "$6,000", "coinsurance_in": "10% member", "doctor_visit": "$0", "specialist": "$35", "rate_ee": 917.93, "rate_es": 1979.76, "rate_ec": 1500.19, "rate_ef": 2575.53, "employer_cost": 0, "employee_cost": 11384.8, "include": true}, {"carrier": "Arlo", "plan_name": "Arlo Clear 2 (502.1)", "monthly_premium": 11616.67, "plan_type": "Level Funded PPO", "funding": "Level Funded", "deductible_in_ind": "$0", "deductible_in_fam": "$0", "oop_in_ind": "$4,000", "oop_in_fam": "$8,000", "coinsurance_in": "0% (copay plan)", "doctor_visit": "$0", "specialist": "$50", "rate_ee": 935.69, "rate_es": 2020.68, "rate_ec": 1530.64, "rate_ef": 2629.14, "employer_cost": 0, "employee_cost": 11616.67, "include": true}, {"carrier": "Arlo", "plan_name": "Platinum 500/2500 (102.1)", "monthly_premium": 11807.41, "plan_type": "Level Funded PPO", "funding": "Level Funded", "deductible_in_ind": "$500", "deductible_in_fam": "$1,000", "oop_in_ind": "$2,500", "oop_in_fam": "$5,000", "coinsurance_in": "10% member", "doctor_visit": "$0", "specialist": "$35", "rate_ee": 950.29, "rate_es": 2054.35, "rate_ec": 1555.69, "rate_ef": 2673.25, "employer_cost": 0, "employee_cost": 11807.41, "include": true}, {"carrier": "Arlo", "plan_name": "Arlo Clear 1 (501.1)", "monthly_premium": 12256.71, "plan_type": "Level Funded PPO", "funding": "Level Funded", "deductible_in_ind": "$0", "deductible_in_fam": "$0", "oop_in_ind": "$2,000", "oop_in_fam": "$4,000", "coinsurance_in": "0% (copay plan)", "doctor_visit": "$0", "specialist": "$35", "rate_ee": 984.69, "rate_es": 2133.64, "rate_ec": 1614.7, "rate_ef": 2777.15, "employer_cost": 0, "employee_cost": 12256.71, "include": true}, {"carrier": "Arlo", "plan_name": "Platinum 0/2500 (101.1)", "monthly_premium": 12316.87, "plan_type": "Level Funded PPO", "funding": "Level Funded", "deductible_in_ind": "$0", "deductible_in_fam": "$0", "oop_in_ind": "$2,500", "oop_in_fam": "$5,000", "coinsurance_in": "10% member", "doctor_visit": "$0", "specialist": "$35", "rate_ee": 989.29, "rate_es": 2144.26, "rate_ec": 1622.6, "rate_ef": 2791.07, "employer_cost": 0, "employee_cost": 12316.87, "include": true}, {"carrier": "Aetna", "plan_name": "AFA TN AWH CPOSII 6750 100/80/50 IntRX CY 26", "monthly_premium": 7306.95, "plan_type": "Level Funded (AFA) POS", "funding": "Level Funded", "deductible_in_ind": "$6,750", "deductible_in_fam": "$13,500", "oop_in_ind": "See SBC", "oop_in_fam": "See SBC", "coinsurance_in": "0% member", "doctor_visit": "$35", "specialist": "$75", "rate_ee": 541.33, "rate_es": 1132.31, "rate_ec": 1047.85, "rate_ef": 1751.4, "employer_cost": 0, "employee_cost": 7306.95, "include": true}, {"carrier": "Aetna", "plan_name": "AFA TN AWH CPOSII 5000 80/60/50 CY 26", "monthly_premium": 8254.72, "plan_type": "Level Funded (AFA) POS", "funding": "Level Funded", "deductible_in_ind": "$5,000", "deductible_in_fam": "$10,000", "oop_in_ind": "See SBC", "oop_in_fam": "See SBC", "coinsurance_in": "20% member", "doctor_visit": "$40", "specialist": "$80", "rate_ee": 609.35, "rate_es": 1279.56, "rate_ec": 1183.77, "rate_ef": 1981.67, "employer_cost": 0, "employee_cost": 8254.72, "include": true}, {"carrier": "Aetna", "plan_name": "AFA TN CPOSII 5000 HSA 80/50 E CY V26", "monthly_premium": 8558.7, "plan_type": "Level Funded (AFA) HDHP/HSA", "funding": "Level Funded", "deductible_in_ind": "$5,000", "deductible_in_fam": "$10,000", "oop_in_ind": "See SBC", "oop_in_fam": "See SBC", "coinsurance_in": "20% member", "doctor_visit": "$35", "specialist": "$75", "rate_ee": 630.1, "rate_es": 1326.99, "rate_ec": 1227.37, "rate_ef": 2057.02, "employer_cost": 0, "employee_cost": 8558.7, "include": true}, {"carrier": "Aetna", "plan_name": "AFA TN CPOSII 7500 80/50 CY V26", "monthly_premium": 8610.96, "plan_type": "Level Funded (AFA) POS", "funding": "Level Funded", "deductible_in_ind": "$7,500", "deductible_in_fam": "$15,000", "oop_in_ind": "See SBC", "oop_in_fam": "See SBC", "coinsurance_in": "20% member", "doctor_visit": "$45", "specialist": "$90", "rate_ee": 632.78, "rate_es": 1335.29, "rate_ec": 1234.89, "rate_ef": 2071.22, "employer_cost": 0, "employee_cost": 8610.96, "include": true}, {"carrier": "Aetna", "plan_name": "AFA TN AWH CPOSII 3500 80/60/50 CY 26", "monthly_premium": 8683.66, "plan_type": "Level Funded (AFA) POS", "funding": "Level Funded", "deductible_in_ind": "$3,500", "deductible_in_fam": "$7,000", "oop_in_ind": "See SBC", "oop_in_fam": "See SBC", "coinsurance_in": "20% member", "doctor_visit": "$35", "specialist": "$75", "rate_ee": 636.34, "rate_es": 1346.87, "rate_ec": 1245.31, "rate_ef": 2091.23, "employer_cost": 0, "employee_cost": 8683.66, "include": true}, {"carrier": "Aetna", "plan_name": "AFA TN AWH CPOSII 2500 80/60/50 CY 26", "monthly_premium": 9065.5, "plan_type": "Level Funded (AFA) POS", "funding": "Level Funded", "deductible_in_ind": "$2,500", "deductible_in_fam": "$5,000", "oop_in_ind": "See SBC", "oop_in_fam": "See SBC", "coinsurance_in": "20% member", "doctor_visit": "$35", "specialist": "$75", "rate_ee": 660.24, "rate_es": 1406.83, "rate_ec": 1300.11, "rate_ef": 2188.92, "employer_cost": 0, "employee_cost": 9065.5, "include": true}, {"carrier": "Aetna", "plan_name": "AFA TN CPOSII 5000 80/50 CY V26", "monthly_premium": 9213.86, "plan_type": "Level Funded (AFA) POS", "funding": "Level Funded", "deductible_in_ind": "$5,000", "deductible_in_fam": "$10,000", "oop_in_ind": "See SBC", "oop_in_fam": "See SBC", "coinsurance_in": "20% member", "doctor_visit": "$40", "specialist": "$80", "rate_ee": 670.93, "rate_es": 1429.86, "rate_ec": 1321.39, "rate_ef": 2224.91, "employer_cost": 0, "employee_cost": 9213.86, "include": true}, {"carrier": "Aetna", "plan_name": "AFA TN CPOSII 3000 HSA 80/50 T CY V26", "monthly_premium": 9401.2, "plan_type": "Level Funded (AFA) HDHP/HSA", "funding": "Level Funded", "deductible_in_ind": "$3,000", "deductible_in_fam": "$6,000", "oop_in_ind": "See SBC", "oop_in_fam": "See SBC", "coinsurance_in": "20% member", "doctor_visit": "$35", "specialist": "$75", "rate_ee": 684.18, "rate_es": 1459.0, "rate_ec": 1348.26, "rate_ef": 2270.7, "employer_cost": 0, "employee_cost": 9401.2, "include": true}, {"carrier": "Aetna", "plan_name": "AFA TN CPOSII 3500 80/50 CY V26", "monthly_premium": 9880.08, "plan_type": "Level Funded (AFA) POS", "funding": "Level Funded", "deductible_in_ind": "$3,500", "deductible_in_fam": "$7,000", "oop_in_ind": "See SBC", "oop_in_fam": "See SBC", "coinsurance_in": "20% member", "doctor_visit": "$35", "specialist": "$75", "rate_ee": 713.12, "rate_es": 1534.36, "rate_ec": 1416.98, "rate_ef": 2394.69, "employer_cost": 0, "employee_cost": 9880.08, "include": true}, {"carrier": "Aetna", "plan_name": "AFA TN AWH CPOSII 2000 100/80/50 CY 26", "monthly_premium": 10129.77, "plan_type": "Level Funded (AFA) POS", "funding": "Level Funded", "deductible_in_ind": "$2,000", "deductible_in_fam": "$4,000", "oop_in_ind": "See SBC", "oop_in_fam": "See SBC", "coinsurance_in": "0% member", "doctor_visit": "$25", "specialist": "$75", "rate_ee": 727.86, "rate_es": 1573.73, "rate_ec": 1452.82, "rate_ef": 2459.82, "employer_cost": 0, "employee_cost": 10129.77, "include": true}, {"carrier": "Aetna", "plan_name": "AFA TN AWH CPOSII 1500 100/80/50 CY 26", "monthly_premium": 10843.8, "plan_type": "Level Funded (AFA) POS", "funding": "Level Funded", "deductible_in_ind": "$1,500", "deductible_in_fam": "$3,000", "oop_in_ind": "See SBC", "oop_in_fam": "See SBC", "coinsurance_in": "0% member", "doctor_visit": "$25", "specialist": "$75", "rate_ee": 779.17, "rate_es": 1684.64, "rate_ec": 1555.23, "rate_ef": 2633.21, "employer_cost": 0, "employee_cost": 10843.8, "include": true}, {"carrier": "Aetna", "plan_name": "AFA TN CPOSII 2000 80/50 CY V26", "monthly_premium": 11000.47, "plan_type": "Level Funded (AFA) POS", "funding": "Level Funded", "deductible_in_ind": "$2,000", "deductible_in_fam": "$4,000", "oop_in_ind": "See SBC", "oop_in_fam": "See SBC", "coinsurance_in": "20% member", "doctor_visit": "$25", "specialist": "$75", "rate_ee": 790.43, "rate_es": 1708.99, "rate_ec": 1577.69, "rate_ef": 2671.25, "employer_cost": 0, "employee_cost": 11000.47, "include": true}, {"carrier": "Aetna", "plan_name": "AFA TN CPOSII 1000 80/50 CY V26", "monthly_premium": 12356.82, "plan_type": "Level Funded (AFA) POS", "funding": "Level Funded", "deductible_in_ind": "$1,000", "deductible_in_fam": "$2,000", "oop_in_ind": "See SBC", "oop_in_fam": "See SBC", "coinsurance_in": "20% member", "doctor_visit": "$25", "specialist": "$75", "rate_ee": 887.88, "rate_es": 1919.7, "rate_ec": 1772.24, "rate_ef": 3000.62, "employer_cost": 0, "employee_cost": 12356.82, "include": true}, {"carrier": "Aetna", "plan_name": "AFA TN CPOSII 1000 100/50 CY V26", "monthly_premium": 13704.28, "plan_type": "Level Funded (AFA) POS", "funding": "Level Funded", "deductible_in_ind": "$1,000", "deductible_in_fam": "$2,000", "oop_in_ind": "See SBC", "oop_in_fam": "See SBC", "coinsurance_in": "0% member", "doctor_visit": "$25", "specialist": "$75", "rate_ee": 984.71, "rate_es": 2129.03, "rate_ec": 1965.48, "rate_ef": 3327.82, "employer_cost": 0, "employee_cost": 13704.28, "include": true}],
+  dental:  [{"carrier": "Beam", "plan_name": "SmartPremium Plus 100/80/50/50-1000-1500", "monthly_premium": 540.53, "plan_type": "Dental PPO", "funding": "Fully Insured", "deductible_in_ind": "$50", "deductible_in_fam": "$150", "annual_max_in": "$1,000", "preventive": "100%", "basic": "80%", "major": "50%", "rate_ee": 37.68, "rate_es": 75.35, "rate_ec": 92.26, "rate_ef": 129.94, "employer_cost": 0, "employee_cost": 540.53, "include": true}, {"carrier": "Beam", "plan_name": "SmartPremium Select 100/90/60/50-2000-2500", "monthly_premium": 681.5, "plan_type": "Dental PPO", "funding": "Fully Insured", "deductible_in_ind": "$50", "deductible_in_fam": "$150", "annual_max_in": "$2,000", "preventive": "100%", "basic": "90%", "major": "60%", "rate_ee": 47.86, "rate_es": 95.73, "rate_ec": 115.49, "rate_ef": 163.35, "employer_cost": 0, "employee_cost": 681.5, "include": true}, {"carrier": "Beam", "plan_name": "SmartPremium Ultra 100/100/60/50-5000-3500", "monthly_premium": 788.91, "plan_type": "Dental PPO", "funding": "Fully Insured", "deductible_in_ind": "$25", "deductible_in_fam": "$75", "annual_max_in": "$5,000", "preventive": "100%", "basic": "100%", "major": "60%", "rate_ee": 55.14, "rate_es": 110.28, "rate_ec": 134.31, "rate_ef": 189.45, "employer_cost": 0, "employee_cost": 788.91, "include": true}],
+  vision:  [{"carrier": "Beam (VSP)", "plan_name": "VSP Choice Plan #2", "monthly_premium": 125.36, "plan_type": "Vision (VSP Choice)", "funding": "Fully Insured", "exam_frequency": "Every 12 months", "lenses_frequency": "Every 12 months", "frames_frequency": "Every 12 months", "rate_ee": 9.28, "rate_es": 18.59, "rate_ec": 19.01, "rate_ef": 29.96, "employer_cost": 0, "employee_cost": 125.36, "include": true}, {"carrier": "Beam (VSP)", "plan_name": "VSP Choice Plan #3", "monthly_premium": 146.16, "plan_type": "Vision (VSP Choice)", "funding": "Fully Insured", "exam_frequency": "Every 12 months", "lenses_frequency": "Every 12 months", "frames_frequency": "Every 12 months", "rate_ee": 10.84, "rate_es": 21.79, "rate_ec": 22.09, "rate_ef": 34.88, "employer_cost": 0, "employee_cost": 146.16, "include": true}, {"carrier": "Beam (VSP)", "plan_name": "VSP Choice Plan #4", "monthly_premium": 172.29, "plan_type": "Vision (VSP Choice)", "funding": "Fully Insured", "exam_frequency": "Every 12 months", "lenses_frequency": "Every 12 months", "frames_frequency": "Every 12 months", "rate_ee": 12.67, "rate_es": 25.46, "rate_ec": 26.26, "rate_ef": 41.28, "employer_cost": 0, "employee_cost": 172.29, "include": true}]
+};
+const selections = {medical:{},dental:{},vision:{}};
+
+function formatMoney(n){return '$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+
+function renderMedicalCard(plan,idx){
+  const id='med-'+idx; selections.medical[id]=plan.include!==false;
+  const sel=selections.medical[id];
+  const badges=[plan.plan_type?`<span class="badge badge-blue">${plan.plan_type}</span>`:'',plan.funding?`<span class="badge badge-green">${plan.funding}</span>`:'',plan.hsa_eligible?`<span class="badge badge-gold">HSA eligible</span>`:''].join('');
+  return `<div class="plan-card ${sel?'selected':''}" id="${id}" onclick="toggle('medical','${id}')"><div class="check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div class="card-carrier">${plan.carrier}</div><div class="card-name">${plan.plan_name}</div><div class="card-premium">${formatMoney(plan.monthly_premium)}</div><div class="card-premium-label">total monthly cost</div><div class="card-badges">${badges}</div><div class="card-details"><div class="card-detail-row"><span>Deductible (Ind)</span><span>${plan.deductible_in_ind}</span></div><div class="card-detail-row"><span>OOP Max (Ind)</span><span>${plan.oop_in_ind}</span></div><div class="card-detail-row"><span>Coinsurance</span><span>${plan.coinsurance_in}</span></div><div class="card-detail-row"><span>Doctor visit</span><span>${plan.doctor_visit}</span></div><div class="card-detail-row"><span>EE only rate</span><span>${formatMoney(plan.rate_ee)}/mo</span></div></div></div>`;
+}
+
+function renderDentalCard(plan,idx){
+  const id='den-'+idx; selections.dental[id]=plan.include!==false;
+  const sel=selections.dental[id];
+  return `<div class="plan-card ${sel?'selected':''}" id="${id}" onclick="toggle('dental','${id}')"><div class="check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div class="card-carrier">${plan.carrier}</div><div class="card-name">${plan.plan_name}</div><div class="card-premium">${formatMoney(plan.monthly_premium)}</div><div class="card-premium-label">total monthly cost</div><div class="card-badges"><span class="badge badge-blue">${plan.plan_type}</span></div><div class="card-details"><div class="card-detail-row"><span>Ded Ind/Fam</span><span>${plan.deductible_in_ind}/${plan.deductible_in_fam}</span></div><div class="card-detail-row"><span>Annual max</span><span>${plan.annual_max_in}</span></div><div class="card-detail-row"><span>Preventive</span><span>${plan.preventive}</span></div><div class="card-detail-row"><span>Basic / Major</span><span>${plan.basic} / ${plan.major}</span></div></div></div>`;
+}
+
+function renderVisionCard(plan,idx){
+  const id='vis-'+idx; selections.vision[id]=plan.include!==false;
+  const sel=selections.vision[id];
+  return `<div class="plan-card ${sel?'selected':''}" id="${id}" onclick="toggle('vision','${id}')"><div class="check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div class="card-carrier">${plan.carrier}</div><div class="card-name">${plan.plan_name}</div><div class="card-premium">${formatMoney(plan.monthly_premium)}</div><div class="card-premium-label">total monthly cost</div><div class="card-badges"><span class="badge badge-blue">${plan.plan_type}</span></div><div class="card-details"><div class="card-detail-row"><span>Exam</span><span>${plan.exam_frequency}</span></div><div class="card-detail-row"><span>Lenses</span><span>${plan.lenses_frequency}</span></div><div class="card-detail-row"><span>Frames</span><span>${plan.frames_frequency}</span></div></div></div>`;
+}
+
+function groupByCarrier(plans){const g={};plans.forEach((p,i)=>{if(!g[p.carrier])g[p.carrier]=[];g[p.carrier].push({plan:p,idx:i});});return g;}
+
+function renderSection(containerId,plans,renderFn){
+  const container=document.getElementById(containerId);
+  if(!plans||plans.length===0){container.innerHTML='<p style="color:#A0AEC0;font-size:13px;padding:12px 0">No plans in this category</p>';return;}
+  const groups=groupByCarrier(plans);
+  let html='';
+  for(const[carrier,items]of Object.entries(groups)){html+=`<div class="carrier-group"><div class="carrier-label">${carrier}</div><div class="cards">`;items.forEach(({plan,idx})=>{html+=renderFn(plan,idx);});html+='</div></div>';}
+  container.innerHTML=html;
+}
+
+function toggle(line,id){selections[line][id]=!selections[line][id];document.getElementById(id).classList.toggle('selected',selections[line][id]);updateCount();}
+
+function updateCount(){let total=0;['medical','dental','vision'].forEach(line=>{Object.values(selections[line]).forEach(v=>{if(v)total++;});});document.getElementById('selected-count').textContent=total;document.getElementById('submit-btn').disabled=total===0;}
+
+function getSelectedPlans(){
+  const r={medical:[],dental:[],vision:[]};
+  PLAN_DATA.medical.forEach((p,i)=>{if(selections.medical['med-'+i])r.medical.push(p.plan_name);});
+  PLAN_DATA.dental.forEach((p,i)=>{if(selections.dental['den-'+i])r.dental.push(p.plan_name);});
+  PLAN_DATA.vision.forEach((p,i)=>{if(selections.vision['vis-'+i])r.vision.push(p.plan_name);});
+  return r;
+}
+
+async function submitSelections(){
+  const btn=document.getElementById('submit-btn');
+  btn.disabled=true;btn.textContent='Submitting…';
+  const selected=getSelectedPlans();
+  const payload={
+    client:CLIENT_DATA,
+    selected_plans:selected,
+    medical_plans:selected.medical.join(','),
+    dental_plans:selected.dental.join(','),
+    vision_plans:selected.vision.join(','),
+    all_medical_json:btoa(unescape(encodeURIComponent(JSON.stringify(PLAN_DATA.medical)))),
+    all_dental_json:btoa(unescape(encodeURIComponent(JSON.stringify(PLAN_DATA.dental)))),
+    all_vision_json:btoa(unescape(encodeURIComponent(JSON.stringify(PLAN_DATA.vision)))),
+    enrolling_employees:CLIENT_DATA.enrolling_employees,
+    contributions_medical_ee:(CLIENT_DATA.contributions||{}).medical_ee||'50%',
+    contributions_medical_dep:(CLIENT_DATA.contributions||{}).medical_dep||'0%',
+    contributions_dental_ee:(CLIENT_DATA.contributions||{}).dental_ee||'0%',
+    contributions_dental_dep:(CLIENT_DATA.contributions||{}).dental_dep||'0%',
+    contributions_vision_ee:(CLIENT_DATA.contributions||{}).vision_ee||'0%',
+    contributions_vision_dep:(CLIENT_DATA.contributions||{}).vision_dep||'0%',
+    selector_url:window.location.href,
+    submitted_at:new Date().toISOString(),
+    source:'proposal-selector'
+  };
+  try{await fetch(ZAPIER_WEBHOOK,{method:'POST',headers:{'Content-Type':'application/json'},mode:'no-cors',body:JSON.stringify(payload)});}catch(e){}
+  document.getElementById('success-overlay').classList.add('show');
+}
+
+renderSection('medical-plans',PLAN_DATA.medical,renderMedicalCard);
+renderSection('dental-plans',PLAN_DATA.dental,renderDentalCard);
+renderSection('vision-plans',PLAN_DATA.vision,renderVisionCard);
+updateCount();
+</script>
+<!-- BULK SELECT CONTROLS — added 2026-10-12 -->
+<style>
+.bulk-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0 14px}
+.bulk-btn{font:600 12px/1 inherit;padding:7px 12px;border-radius:6px;border:1px solid #2F72AD;background:#2F72AD;color:#fff;cursor:pointer}
+.bulk-btn.ghost{background:transparent;color:#2F72AD}
+.bulk-btn:hover{filter:brightness(1.07)}
+.bulk-count{font-size:12px;color:#718096;margin-left:4px}
+</style>
+<script>
+(function(){
+  var LINES = [['medical','medical-plans','med-'],['dental','dental-plans','den-'],['vision','vision-plans','vis-']];
+
+  window.setAll = function(line, on){
+    var prefix = {medical:'med-',dental:'den-',vision:'vis-'}[line];
+    (PLAN_DATA[line]||[]).forEach(function(p,i){
+      var id = prefix + i;
+      selections[line][id] = on;
+      var el = document.getElementById(id);
+      if (el) el.classList.toggle('selected', on);
+    });
+    updateCount();
+  };
+
+  function lineCount(line){
+    return Object.keys(selections[line]||{}).filter(function(k){return selections[line][k];}).length;
+  }
+
+  function refreshCounts(){
+    LINES.forEach(function(entry){
+      var line = entry[0];
+      var el = document.getElementById('count-' + line);
+      if (el) el.textContent = lineCount(line) + ' of ' + ((PLAN_DATA[line]||[]).length) + ' selected';
+    });
+  }
+
+  // Keep the existing count behaviour, add the per-section counts on top of it.
+  var originalUpdateCount = updateCount;
+  updateCount = function(){ originalUpdateCount(); refreshCounts(); };
+
+  LINES.forEach(function(entry){
+    var line = entry[0], containerId = entry[1];
+    var container = document.getElementById(containerId);
+    if (!container) return;
+    var total = (PLAN_DATA[line]||[]).length;
+    if (!total) return;
+    var bar = document.createElement('div');
+    bar.className = 'bulk-bar';
+    bar.innerHTML =
+      '<button type="button" class="bulk-btn" onclick="setAll(\'' + line + '\',true)">Select all</button>' +
+      '<button type="button" class="bulk-btn ghost" onclick="setAll(\'' + line + '\',false)">Clear</button>' +
+      '<span class="bulk-count" id="count-' + line + '">0 of ' + total + ' selected</span>';
+    container.parentNode.insertBefore(bar, container);
+  });
+
+  refreshCounts();
+})();
+</script>
+
+</body>
+</html>

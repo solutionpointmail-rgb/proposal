@@ -55,6 +55,10 @@ draft. Resolve them like this, and mention what you chose in the internal notes 
   (Typeform, Info Sheet, renewal paperwork, carrier application, census — whichever is newest).
 - HEADCOUNT: when the census and the renewal/Info Sheet disagree, use whichever document is MOST
   RECENT. Use that same count for every carrier minimum in Step 4.
+- WHAT "ENROLLED" MEANS (Will, Oct 13): every carrier minimum ("25+ enrolled", "10+ enrolled",
+  "15+ employees") counts ENROLLING EMPLOYEES (subscribers), never covered lives or members
+  (employees + dependents). A group with 17 employees and 46 covered lives is a 17. Do not raise
+  covered lives as an open question.
 - SIC: use the SIC from the best available source, even an older document or a related entity's sheet.
   If no SIC can be found anywhere, leave the SIC line out of the email; a missing SIC never holds a draft.
 - INFO SHEET: look in Dropbox "Quoting/3. Proposal/" AND in Asana — the project's "Save Info Sheet"

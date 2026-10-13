@@ -71,17 +71,23 @@ exactly lindsey@benefits.place, alex@benefits.place, will@benefits.place. If any
 list (or any CC differs), do NOT send; skip and flag it for Will (Will may add carriers to this list by
 editing these instructions).
 
-STEP 3 — CENSUS ATTACHMENT. Get the census from Asana, not Dropbox. Look with get_attachments
+STEP 3 — ATTACHMENTS. Get every file from Asana, not Dropbox. Look with get_attachments
 (opt_fields name,size,download_url,host) on, in order: the subtask's parent "Send for Quotes" task, then
-the same project's top-level "Save Census" task, then its "Save Info Sheet" task. Pick files with a
-spreadsheet/CSV/PDF extension (.xlsx, .xls, .csv, .pdf) whose name contains "census"; if none is named
-census but exactly one spreadsheet exists, use that one; ignore screenshots/images. If the group's
-census can't be identified unambiguously, do NOT send: skip and report "no census attachment in Asana"
+the same project's top-level task whose name contains "Census" (e.g. "Save Census", "Save Renewal CENSUS
+DB + Asana"), then its "Save Info Sheet" task.
+ - The draft's ATTACH: line lists the files to send, separated by ";". Attach EVERY file it names,
+   matched by exact filename on those tasks. If any named file is missing from Asana, do NOT send: skip
+   and report "ATTACH lists <filename> but it is not in Asana" (the email body promises it).
+ - The census is mandatory: at least one attached file must have a spreadsheet/CSV/PDF extension
+   (.xlsx, .xls, .csv, .pdf) and "census" in its name. If the ATTACH line is missing or names no census,
+   fall back to the census rule: pick the file whose name contains "census"; if none is named census
+   but exactly one spreadsheet exists, use that one; ignore screenshots/images.
+ - If the group's census can't be identified unambiguously, do NOT send: skip and report "no census attachment in Asana"
 (add ONE comment on the parent Send for Quotes task, only if it doesn't already contain a comment
 starting with "AUTO-SEND WAITING", saying "AUTO-SEND WAITING: no census attachment found in Asana for
 [Group]. Attach the census to this task and the next run will send." with an @-mention of Will via
-html_text `<a data-asana-gid="1197850067860922"/>`). For ABA only: also attach any file on those tasks
-whose name contains "claims" or "renewal". Asana download_urls expire quickly, so fetch the attachment
+html_text `<a data-asana-gid="1197850067860922"/>`). For ABA only: if the ATTACH line is missing, also
+attach any file on those tasks whose name contains "claims" or "renewal". Asana download_urls expire quickly, so fetch the attachment
 list (fresh URLs) immediately before each send, never earlier in the run, and pass the download_url(s)
 as the `file` list (array of URLs) in send_email. After a send, confirm the tool result lists the
 attachment (name/size). If the result shows an empty attachments list, treat it as a failed attachment:
@@ -154,7 +160,7 @@ anything that lacks the "AUTO-SEND READY" marker or still carries an open questi
 subtask with a SENT, HOLD, or SEND FAILED comment, or already complete, is untouchable, and the Step 1B
 duplicate guard applies across projects. Never edit the drafted subtask description. Never email
 addresses outside the allowlist. Never attach files from anywhere other than the group's own Asana
-census/claims attachments. Never fabricate or substitute a census. Do not email Kamryn Testa or send a
+attachments named on the ATTACH line (census, current plan info, claims). Never fabricate or substitute a census. Do not email Kamryn Testa or send a
 separate Cigna Direct email (Cigna goes through Cason Group). Never send test or summary emails to
 carriers. If something conflicts with what you find live in Asana, skip it and flag it rather than
 deciding silently.

@@ -857,6 +857,74 @@ def tool_file(name):
                                mimetype='text/plain')
 
 
+# ============================================================
+# ATTACH A GROUP'S CENSUS FROM DROPBOX TO ITS ASANA TASK
+# Used by the Send for Quotes routine. The file goes Dropbox -> this server -> Asana,
+# so the census never passes through a temporary public link, Zapier, or a chat tool.
+#
+#   curl -sS -X POST https://proposal-fgqm.onrender.com/attach-census \
+#     -H "X-TBG-Secret: $TBG_API_SECRET" -H "Content-Type: application/json" \
+#     -d '{"dropbox_path": "/Solutionpoint Groups/.../Quoting/1. Census/Acme Census.xlsx",
+#          "asana_task": "1219370086624997"}'
+# ============================================================
+_CENSUS_EXTS = ('.xlsx', '.xls', '.csv', '.pdf')
+
+
+@app.route('/attach-census', methods=['POST'])
+def attach_census():
+    import requests as _rq
+    if not _tbg_authorized():
+        return jsonify({'error': 'unauthorized'}), 401
+
+    data = request.get_json(silent=True) or {}
+    path = (data.get('dropbox_path') or '').strip()
+    task = str(data.get('asana_task') or '').strip()
+
+    # The Dropbox connector shows paths under "/William Brown/..."; this app's token is
+    # rooted one level lower. Accept either form.
+    if path.startswith('/William Brown/'):
+        path = path[len('/William Brown'):]
+    name = path.rsplit('/', 1)[-1]
+
+    if not path.startswith('/') or not task.isdigit():
+        return jsonify({'error': 'dropbox_path (starting with /) and numeric asana_task are required'}), 400
+    if '/quoting/' not in path.lower() or not name.lower().endswith(_CENSUS_EXTS):
+        return jsonify({'error': 'only spreadsheet/CSV/PDF files inside a client Quoting folder can be attached'}), 400
+
+    try:
+        _, dbx = _dropbox_client()
+        meta, resp = dbx.files_download(path)
+        content = resp.content
+    except Exception as e:
+        print(f"❌ attach-census Dropbox error: {e}", flush=True)
+        return jsonify({'error': f'Dropbox download failed: {e}'}), 502
+
+    headers = {'Authorization': f"Bearer {os.environ['ASANA_TOKEN']}"}
+    try:
+        # Skip if a file with the same name is already on the task.
+        existing = _rq.get(f'https://app.asana.com/api/1.0/attachments',
+                           headers=headers, params={'parent': task, 'opt_fields': 'name'},
+                           timeout=25)
+        existing.raise_for_status()
+        for att in existing.json().get('data', []):
+            if att.get('name') == meta.name:
+                return jsonify({'status': 'success', 'already_attached': True,
+                                'name': meta.name, 'attachment_gid': att.get('gid')}), 200
+
+        r = _rq.post('https://app.asana.com/api/1.0/attachments', headers=headers,
+                     data={'parent': task},
+                     files={'file': (meta.name, content)}, timeout=60)
+        r.raise_for_status()
+        att = r.json().get('data', {})
+    except Exception as e:
+        print(f"❌ attach-census Asana error: {e}", flush=True)
+        return jsonify({'error': f'Asana upload failed: {e}'}), 502
+
+    print(f"✅ attach-census: {meta.name} ({len(content)} bytes) → task {task}", flush=True)
+    return jsonify({'status': 'success', 'name': meta.name, 'bytes': len(content),
+                    'attachment_gid': att.get('gid'), 'task': task}), 200
+
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)

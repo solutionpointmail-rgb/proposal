@@ -72,15 +72,19 @@ def build_intro(wb):
     # Title block
     ws.row_dimensions[1].height = 6
     _set(ws, 2, 2, CLIENT["name"], bold=True, size=16, color=TEAL[2:])
-    _set(ws, 3, 2, f"{CLIENT['address']}, {CLIENT['city_state_zip']}, County: {CLIENT['county']}", size=10)
+    _addr = ", ".join(x for x in (CLIENT.get('address'), CLIENT.get('city_state_zip'),
+                                   f"County: {CLIENT['county']}" if CLIENT.get('county') else "") if x)
+    if _addr:
+        _set(ws, 3, 2, _addr, size=10)
 
     ws.row_dimensions[4].height = 6
-    _set(ws, 5, 2, f"Prepared by: {PRODUCER['agency']} • {PRODUCER['sub_agency']}", bold=True, size=10)
+    _set(ws, 5, 2, "Prepared by: " + " • ".join(x for x in (PRODUCER['agency'], PRODUCER.get('sub_agency')) if x), bold=True, size=10)
     _set(ws, 5, 4, f"Total # of employees: {CLIENT['total_employees']}", bold=True)
 
-    _set(ws, 6, 2, f"Effective date: {CLIENT['effective_date_mmddyyyy']}")
+    _set(ws, 6, 2, f"Effective date: {CLIENT['effective_date_mmddyyyy'] or CLIENT.get('effective_date', '')}")
     _set(ws, 6, 4, f"Eligible Employees: {CLIENT['eligible_employees']}")
-    _set(ws, 6, 6, f"SIC Code: {CLIENT['sic_code']}")
+    if CLIENT.get('sic_code'):
+        _set(ws, 6, 6, f"SIC Code: {CLIENT['sic_code']}")
 
     _set(ws, 7, 4, f"Enrolling Employees: {CLIENT['enrolling_employees']}")
     _set(ws, 7, 6, f"Quote ID: {CLIENT['quote_id']}")

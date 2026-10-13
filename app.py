@@ -117,6 +117,18 @@ def parse_plan_names(plans_text):
     return plans
 
 
+def _mmddyyyy(value):
+    """'December 1, 2026', '12/1/2026' or '2026-12-01' -> '12/01/2026'. Blank if unparseable."""
+    if not value:
+        return ''
+    for fmt in ('%B %d, %Y', '%b %d, %Y', '%m/%d/%Y', '%Y-%m-%d', '%m-%d-%Y'):
+        try:
+            return datetime.strptime(value.strip(), fmt).strftime('%m/%d/%Y')
+        except ValueError:
+            continue
+    return ''
+
+
 def build_client_and_plans(client_name, effective_date, quote_id, enrolling_employees,
                             contributions, medical_plans_str, dental_plans_str, vision_plans_str,
                             all_medical_json, all_dental_json, all_vision_json):
@@ -126,18 +138,21 @@ def build_client_and_plans(client_name, effective_date, quote_id, enrolling_empl
     """
     clean_name = scrub_name(client_name.replace(' — Review for Proposal', ''))
 
+    # Address, county and SIC are not in the selector payload. They used to be hard-coded
+    # (a Nashville address, Davidson County, SIC 9512) and printed on every client's proposal.
+    # Leave them blank; the PDF and Excel skip blank lines.
     CLIENT = {
         'name': clean_name,
-        'effective_date': effective_date or 'August 1, 2026',
-        'effective_date_mmddyyyy': '08/01/2026',
+        'effective_date': effective_date or 'TBD',
+        'effective_date_mmddyyyy': _mmddyyyy(effective_date),
         'quote_id': quote_id or 'TBD',
-        'state': 'TN',
-        'zip': '37212',
-        'county': 'Davidson',
-        'sic': '9512',
-        'sic_code': '9512',
-        'address': '1213 16th Ave South',
-        'city_state_zip': 'Nashville, TN 37212',
+        'state': '',
+        'zip': '',
+        'county': '',
+        'sic': '',
+        'sic_code': '',
+        'address': '',
+        'city_state_zip': '',
         'tier_ee': 'Employee Only',
         'tier_es': 'Employee + Spouse',
         'tier_ec': 'Employee + Children',
@@ -149,7 +164,7 @@ def build_client_and_plans(client_name, effective_date, quote_id, enrolling_empl
         'presenter_name': 'The Benefits Group',
         'presenter_phone': '(615) 560-3667',
         'presenter_email': 'happy@benefits.place',
-        'agency': 'Solutionpoint Consulting',
+        'agency': 'The Benefits Group',
     }
 
     CONTRIBUTIONS = {
@@ -241,7 +256,7 @@ def run_pipeline(client_name, effective_date, quote_id, task_id, notes,
         pd_module.PRODUCER = {
             'name':      'William Brown',
             'agency':    'The Benefits Group',
-            'sub_agency': 'Solutionpoint Consulting',
+            'sub_agency': '',
             'phone':     '(615) 560-3667',
             'email':     'happy@benefits.place',
         }
@@ -249,7 +264,7 @@ def run_pipeline(client_name, effective_date, quote_id, task_id, notes,
             pd_module.DISCLAIMER_TEXT = (
                 'This proposal is for informational purposes only and is subject to carrier approval. '
                 'Rates and benefits are not guaranteed until formally issued by the carrier. '
-                'Prepared by The Benefits Group / Solutionpoint Consulting.'
+                'Prepared by The Benefits Group.'
             )
 
         inc_med = [p['plan_name'] for p in MEDICAL_PLANS if p.get('include')]

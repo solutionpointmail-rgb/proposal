@@ -143,7 +143,7 @@ def build_cover(story):
         [logo_img],
         [p(PRODUCER["agency"], size=9, color=WHITE,
            font="Helvetica-Bold", after=0)],
-        [p(PRODUCER["sub_agency"], size=7.5,
+        [p(PRODUCER.get("sub_agency", ""), size=7.5,
            color=colors.HexColor("#A0AEC0"), after=0)],
     ], [1.4*inch], [
         ("TOPPADDING",    (0,0),(-1,-1), 0),
@@ -192,6 +192,8 @@ def build_cover(story):
     def info_col(hdr, lines):
         rows = [[p(hdr, size=6.5, color=GREEN, font="Helvetica-Bold", after=5)]]
         for ln in lines:
+            if not ln or not str(ln).strip():
+                continue          # unknown details are left out, never invented
             rows.append([p(ln, size=8.5, color=SLATE, after=2)])
         return tbl(rows, [2.15*inch], [
             ("TOPPADDING",    (0,0),(-1,-1), 0),
@@ -200,19 +202,22 @@ def build_cover(story):
 
     info = tbl([[
         info_col("PRESENTED BY", [
-            PRODUCER["agency"], PRODUCER["sub_agency"],
+            PRODUCER["agency"], PRODUCER.get("sub_agency", ""),
             PRODUCER["phone"],  PRODUCER["email"],
         ]),
         info_col("PREPARED FOR", [
-            CLIENT["name"], CLIENT["address"],
-            CLIENT["city_state_zip"],
-            f"SIC: {CLIENT['sic_code']}  ·  Quote ID: {CLIENT['quote_id']}",
+            CLIENT["name"], CLIENT.get("address", ""),
+            CLIENT.get("city_state_zip", ""),
+            "  ·  ".join(x for x in (
+                f"SIC: {CLIENT['sic_code']}" if CLIENT.get("sic_code") else "",
+                f"Quote ID: {CLIENT['quote_id']}" if CLIENT.get("quote_id") not in (None, "", "TBD") else "",
+            ) if x),
         ]),
         info_col("EMPLOYEE SUMMARY", [
             f"{CLIENT['total_employees']} total employees",
             f"{CLIENT['eligible_employees']} eligible",
             f"{CLIENT['enrolling_employees']} enrolling",
-            f"County: {CLIENT['county']}",
+            f"County: {CLIENT['county']}" if CLIENT.get("county") else "",
         ]),
     ]], [2.3*inch, 2.5*inch, 2.3*inch], [
         ("VALIGN",        (0,0),(-1,-1), "TOP"),
@@ -282,10 +287,19 @@ def build_cover(story):
         ])
         return inner
 
+    def carriers(plans):
+        # The carriers actually in this proposal (these were hard-coded before 2026-10-13).
+        seen = []
+        for x in plans:
+            c = (x.get("carrier") or "").strip()
+            if x.get("include") and c and c not in seen:
+                seen.append(c)
+        return " · ".join(seen[:3]) + (" +" if len(seen) > 3 else "") if seen else "—"
+
     tiles = tbl([[
-        tile(med_n, "MEDICAL PLANS",  "Cigna · PHCS/RBP", GREEN),
-        tile(den_n, "DENTAL PLANS",   "Beam · MetLife",   GOLD),
-        tile(vis_n, "VISION PLANS",   "Beam VSP · Guardian", BLUE_ACC),
+        tile(med_n, "MEDICAL PLANS",  carriers(MEDICAL_PLANS), GREEN),
+        tile(den_n, "DENTAL PLANS",   carriers(DENTAL_PLANS),  GOLD),
+        tile(vis_n, "VISION PLANS",   carriers(VISION_PLANS),  BLUE_ACC),
     ]], [2.3*inch, 2.3*inch, 2.3*inch], [
         ("LEFTPADDING",   (0,0),(-1,-1), 0),
         ("RIGHTPADDING",  (0,0),(-1,-1), 10),
@@ -448,14 +462,26 @@ def plan_card(plan, rank, accent, ctype):
     rows.append([rates_hdr])
 
     ee = CLIENT["tier_ee"]
-    for i, (lbl, val) in enumerate([
+    rate_rows = [
         (f"EE Only ({ee})",  money(plan.get("rate_ee", "See SBC"))),
         ("EE + Spouse",      money(plan.get("rate_es", "See SBC"))),
         ("EE + Children",    money(plan.get("rate_ec", "See SBC"))),
         ("EE + Family",      money(plan.get("rate_ef", "See SBC"))),
-        ("Employer Cost",    money(plan.get("employer_cost", "See SBC"))),
-        ("Employee Cost",    money(plan.get("employee_cost", "See SBC"))),
-    ]):
+    ]
+    # Only show the employer/employee split when it agrees with the stated contribution.
+    # The selector sends employer_cost 0 even when the employer pays 50%, which printed
+    # "Employer Cost $0.00" on proposals; leave the split out rather than print it wrong.
+    contrib_pct = str(CONTRIBUTIONS.get(f"{ctype}_ee", "0%")).strip() if ctype in ("medical", "dental", "vision") else "0%"
+    try:
+        er_cost = float(plan.get("employer_cost") or 0)
+    except (TypeError, ValueError):
+        er_cost = 0.0
+    if not (er_cost == 0 and contrib_pct not in ("0%", "0", "")):
+        rate_rows += [
+            ("Employer Cost",    money(plan.get("employer_cost", "See SBC"))),
+            ("Employee Cost",    money(plan.get("employee_cost", "See SBC"))),
+        ]
+    for i, (lbl, val) in enumerate(rate_rows):
         rows.append([brow(lbl, val, i)])
 
     # Total premium footer

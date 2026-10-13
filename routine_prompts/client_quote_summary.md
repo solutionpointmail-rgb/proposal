@@ -120,8 +120,13 @@ C. CLAIMS EXPERIENCE (renewals, if present). Look in "<Quoting>/4. Current Plan 
 
 D. THE GENERATED PROPOSAL, if one exists: the newest "Proposal_<Client>_*.pdf" in "<Quoting>/3.
    Proposal". It lists the plans the broker selected on the selector page. When it is newer than the
-   comparison, those selected plans are the shortlist: feature them in the Plan Design table and do not
-   recommend a plan the broker left out unless the economics are overwhelming (then say why).
+   comparison, those selected plans are a strong signal of what the broker is considering: include them
+   in the Plan Design table. But if a selected plan conflicts with a hard constraint in the comparison
+   (it cannot be bound without health questionnaires the group will not complete, it is illustrative
+   only, it is not competitive), recommend what the comparison supports, show the selected plan
+   honestly with its condition, and put "Needs attention: broker selected <plan>, but <constraint> —
+   analysis recommends <plan> instead" in the receipt and the Asana comment. (Seen on GunnCo, Oct
+   2026: the proposal selected only the Great American plans, which require questionnaires.)
 
 E. renewal_analysis_example.json — the worked example and schema.
 
@@ -173,10 +178,18 @@ CLIENT-FACING RULES — this document goes to the employer:
 - No carrier contact or rep names (write "Aetna", not "Aetna - Cason"; "Cigna", not "Cigna Direct
   (Kamryn)"). No internal quote IDs or plan codes unless they help the employer identify a plan.
 - No broker compensation figures (e.g. PEPM broker fees), even when a quote states them.
-- PRIVACY: population-level only. Risk tiers, aggregate costs and condition/drug CATEGORIES are fine
-  (as in the example). Never anything about an identifiable individual: no "one member with…", no
-  ages, genders, dates, claim amounts or conditions tied to a person, no names. If a scorecard lists
-  individual claimants, summarize them only as counts and categories.
+- PRIVACY: population-level only. Never anything about an identifiable individual: no "one member
+  with…", no ages, genders, dates, claim amounts or conditions tied to a person, no names. Ignore any
+  de-identified census appendix in a scorecard entirely.
+  - Risk tiers (counts), expected annual cost, and the share of cost above a threshold are always fine.
+  - SMALL GROUPS (fewer than 50 covered members): name NO conditions and NO medications at all. In a
+    group of ten, "a bipolar disorder signal" effectively identifies a person to the employer. Describe
+    risk only as tiers, variance, cost concentration and "several complex-condition signals", and say
+    the carrier recommends plan-level support such as care navigation and case management.
+  - LARGER GROUPS (50+): condition and drug CATEGORIES are fine, as in the example (cardiovascular,
+    kidney, musculoskeletal, GLP-1 therapies). Even then, never name behavioral health, substance use,
+    reproductive or contraceptive, HIV or PrEP, or genetic conditions or medications — describe those
+    only as "other specialty conditions" or "other specialty medications".
 - Brand is "The Benefits Group". Never "Solutionpoint Consulting". Spell "Benefits" correctly.
 - Do not add a DRAFT or "auto-generated" label to the document. It is a finished document; Will
   reviews it before it goes out, and that review is noted in the receipt and Asana instead.
@@ -188,8 +201,9 @@ STEP 5 — Build, check, file
 2. CHECK IT BEFORE FILING. Render the PDF pages to images (pdftoppm -r 60 -png) and look at every
    page. Confirm: nothing overflows, the badge text fits, tables are complete, page count is 2–4, and
    no section heading sits alone at the bottom of a page. Run pdftotext on the PDF and confirm every
-   number you intended appears, and that "DTQ", "NOT COMP", "Solutionpoint", "draft" and any rep names
-   do NOT appear. Fix the JSON and rebuild if anything is wrong.
+   number you intended appears, and that "DTQ", "NOT COMP" (upper-case; "not competitive" is fine),
+   "IMQ", "PEPM", "Solutionpoint", "draft" and any rep names do NOT appear. For a small group, also
+   confirm no condition or drug names appear. Fix the JSON and rebuild if anything is wrong.
 3. File BOTH files with /save-file into "<Quoting>/3. Proposal/". Verify each response.
 4. SendUserFile both files to Will as well.
 

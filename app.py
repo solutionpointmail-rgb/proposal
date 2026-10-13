@@ -825,6 +825,23 @@ def clients():
         return resp, 500
 
 
+# ============================================================
+# TOOL DOWNLOADS — added 2026-10-13
+# The Client Quote Summary routine downloads the document generator from here
+# when its own repo checkout is missing. Only the files named below are served.
+# ============================================================
+_TOOL_FILES = {'renewal_analysis.py', 'renewal_analysis_example.json'}
+
+
+@app.route('/tools/<name>', methods=['GET'])
+def tool_file(name):
+    from flask import send_from_directory
+    if name not in _TOOL_FILES:
+        return jsonify({'error': 'not found'}), 404
+    return send_from_directory(os.path.dirname(os.path.abspath(__file__)), name,
+                               mimetype='text/plain')
+
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)

@@ -1,0 +1,110 @@
+{
+  "title": "Medical Renewal Analysis",
+  "client": "Tennessee Men's Health (MMM, LLC)",
+  "effective_date": "November 1, 2026",
+  "badge": {"label": "RECOMMENDED", "lines": ["UHC BUY-DOWN", "$5,000"]},
+  "sections": [
+    {
+      "heading": "Recommendation",
+      "blocks": [
+        {"type": "lead", "text": "We recommend staying with UnitedHealthcare Level Funded, but moving to the UHC $5,000 buy-down alternate rather than accepting the exact current-plan renewal."},
+        {"type": "paragraph", "text": "The exact renewal increases to $43,088.13 per month, roughly 65% above today's cost. UHC's internal alternate reduces the monthly premium to $34,710.08 while preserving the $5,000 individual deductible, lowering the in-network out-of-pocket maximum, and avoiding a carrier change."},
+        {"type": "kpis", "items": [
+          {"value": "$26,095.65", "label": "Current monthly cost", "tone": "blue"},
+          {"value": "$43,088.13", "label": "Exact UHC renewal", "tone": "red"},
+          {"value": "$34,710.08", "label": "Recommended UHC alternate", "tone": "green"},
+          {"value": "$100,537", "label": "Approx. annual savings vs. exact renewal", "tone": "gold"}
+        ]},
+        {"type": "paragraph", "text": "**The important story is not the 65% headline by itself.** We tested the market broadly. Multiple underwritten carriers declined to quote, and the live outside options that did quote generally landed between roughly $39,000 and $43,000 per month at comparable benefit levels. The UHC alternate sits materially below that market range."}
+      ]
+    },
+    {
+      "heading": "Plan Design - What Changes",
+      "blocks": [
+        {"type": "table",
+         "columns": ["Option", "Monthly", "Deductible", "OOP Max", "Coinsurance", "PCP / Specialist"],
+         "widths": [1.6, 1.1, 1.2, 1.2, 1, 1.1],
+         "rows": [
+           {"cells": ["Current UHC", "$26,095.65", "$5,000 / $10,000", "$8,150 / $16,300", "20%", "$25 / $75"], "tone": "white"},
+           {"cells": ["Exact UHC Renewal", "$43,088.13", "$5,000 / $10,000", "$8,150 / $16,300", "20%", "$25 / $75"], "tone": "red"},
+           {"cells": ["UHC Alternate", "$34,710.08", "$5,000 / $10,000", "$7,000 / $14,000", "30%", "$25 / $75"], "tone": "green"},
+           {"cells": ["Angle $5,000", "$39,140.67", "$5,000 / $10,000", "$7,000 / $14,000", "20%", "$25 / $75"], "tone": "blue"}
+         ]},
+        {"type": "paragraph", "text": "**What the UHC alternate gives up:** in-network coinsurance moves from 20% to 30%, and the alternate uses UHC Core rather than the broader Choice Plus network."},
+        {"type": "paragraph", "text": "**What it improves:** the in-network out-of-pocket maximum drops from $8,150 to $7,000 individual, the office-visit copays remain $25 / $75, virtual care is $0, and several prescription tiers improve."}
+      ]
+    },
+    {
+      "heading": "What the Market Is Telling Us",
+      "blocks": [
+        {"type": "paragraph", "text": "**The market response strongly validates the UHC buy-down.** Nine required carrier requests were completed. Four carriers ultimately declined to quote: Cigna Direct, Aetna AFA/Cason, Great American, and Arlo."},
+        {"type": "table",
+         "columns": ["Carrier / Option", "Monthly Cost", "Approx. vs. Current", "Read"],
+         "widths": [1.7, 1.1, 1.1, 1.9],
+         "last_column_left": true,
+         "rows": [
+           {"cells": ["UHC Alternate", "$34,710.08", "+33%", "Recommended / lowest strong match"], "tone": "green"},
+           {"cells": ["Angle $5,000", "$39,140.67", "+50%", "Best outside-carrier option"], "tone": "blue"},
+           {"cells": ["One Health Plus $5,000", "$41,941.48", "+61%", "Higher cost"], "tone": "white"},
+           {"cells": ["Gravie Comfort Fit $5,000", "$42,985.88", "+65%", "Near exact renewal cost"], "tone": "white"},
+           {"cells": ["UHC Exact Renewal", "$43,088.13", "+65%", "Not recommended"], "tone": "red"},
+           {"cells": ["NHP", "$43,285.20", "+66%", "Higher cost"], "tone": "white"}
+         ]}
+      ]
+    },
+    {
+      "heading": "Risk & Underwriting Context",
+      "blocks": [
+        {"type": "kpis", "items": [
+          {"value": "60", "label": "Low-risk members", "tone": "green"},
+          {"value": "33", "label": "Moderate-risk members", "tone": "blue"},
+          {"value": "6", "label": "High-risk members", "tone": "gold"},
+          {"value": "$758,926", "label": "Expected annual cost", "tone": "red"}
+        ]},
+        {"type": "paragraph", "text": "**Angle describes the group as favorable overall, but not uniformly low risk.** Its scorecard shows a highest composite signal around the 73rd percentile with medium variance. The primary issue is concentrated complex risk rather than broad-based poor health across the population."},
+        {"type": "bullets", "items": [
+          "54% of projected annual claims cost is concentrated among members expected to exceed $10,000 in annual claims.",
+          "Clinical signals include heart failure, hypertensive heart and kidney disease, immune-related conditions, hemoglobin disorders, and chronic musculoskeletal disease.",
+          "Pharmacy signals include several branded GLP-1 therapies and other potentially high-cost medications, including Ozempic, Zepbound, Mounjaro, Wegovy, Vyepti, and Descovy.",
+          "The scorecard specifically identifies cardiorenal care management and GLP-1 pharmacy review as high-potential cost-management opportunities."
+        ]}
+      ]
+    },
+    {
+      "heading": "Claims Experience - Why the Renewal Pressure Is Real",
+      "blocks": [
+        {"type": "paragraph", "text": "**The current UHC claims report confirms that the underwriting concerns are not purely theoretical.** The plan is level funded with a $15,000 specific stop-loss deductible and a 125% aggregate corridor. The report shows meaningful large-claim activity and specific stop-loss reimbursements during the current plan year."},
+        {"type": "paragraph", "text": "**In other words,** UHC has experienced real high-cost activity, while the population scorecard also shows several ongoing clinical and pharmacy risk signals. That combination helps explain both the 65% exact-plan renewal and the number of outside carriers that declined to quote."}
+      ]
+    },
+    {
+      "heading": "Why We Would Not Take the Exact Renewal",
+      "blocks": [
+        {"type": "paragraph", "text": "**The exact current-plan renewal costs $8,378 more per month than the UHC alternate.** That is approximately $100,537 more over a full year."},
+        {"type": "bullets", "items": [
+          "Same $5,000 individual deductible on both plans.",
+          "The alternate actually lowers the in-network OOP maximum from $8,150 to $7,000 individual.",
+          "PCP and specialist copays remain $25 / $75.",
+          "The alternate improves several prescription copays.",
+          "The primary sacrifices are 30% instead of 20% in-network coinsurance and moving from Choice Plus to UHC Core."
+        ]},
+        {"type": "closing", "text": "We do not believe those differences justify paying another $100,000+ annually."}
+      ]
+    },
+    {
+      "heading": "Network Check Before Finalizing",
+      "blocks": [
+        {"type": "paragraph", "text": "**The one item we would verify carefully is UHC Core provider access.** The group is spread across seven states, with 53% of members in Tennessee and 82% concentrated in Tennessee, Alabama, and Florida. Before binding, we recommend checking major hospitals and any important cardiology, nephrology, hematology, rheumatology, infusion, or specialty-care providers."},
+        {"type": "paragraph", "text": "**If those providers check out,** the economics strongly favor the UHC alternate."}
+      ]
+    }
+  ],
+  "next_steps": [
+    {"title": "Confirm UHC Alternate", "text": "Use the $34,710.08 UHC buy-down as the working renewal recommendation."},
+    {"title": "Run Core Network Checks", "text": "Verify key hospitals, specialists, and high-utilization providers before finalizing."},
+    {"title": "Review Pharmacy", "text": "Confirm important ongoing medications under the renewal formulary and look for cost-management opportunities."},
+    {"title": "Move to Enrollment", "text": "If network review is clean, finalize renewal paperwork and proceed into open enrollment."}
+  ],
+  "bottom_line": "The 65% exact-plan renewal is not the option we recommend. After a broad market review, UHC's own $5,000 buy-down is materially below the outside market, preserves the same deductible, improves the OOP maximum, and avoids the disruption of a carrier change. Given the group's concentrated high-cost risk, this is a strong renewal outcome.",
+  "footer": "The Benefits Group  |  Benefits that feel like care."
+}

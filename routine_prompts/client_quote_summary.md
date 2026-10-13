@@ -31,7 +31,7 @@ Naming:
 - Renewal (client lives under "1. CURRENT CLIENTS"):  "<Company Name> Renewal Analysis", title
   "Medical Renewal Analysis".
 - New business (client lives under "2.  HOT LEADS"):  "<Company Name> Benefits Analysis", title
-  "Medical Benefits Analysis". Same layout; there is no "exact renewal" to compare, so the baseline
+  "Medical Benefits Analysis" (confirmed by Will, Oct 13). Same layout; there is no "exact renewal" to compare, so the baseline
   is the group's current plan if one is on file, otherwise the market itself.
 - <Company Name> is the client's proper business name as it appears in the comparison (e.g.
   "Tennessee Men's Health"), not the Dropbox folder shorthand, and contains no characters Dropbox
@@ -121,18 +121,26 @@ C. CLAIMS EXPERIENCE (renewals, if present). Look in "<Quoting>/4. Current Plan 
 D. THE GENERATED PROPOSAL, if one exists: the newest "Proposal_<Client>_*.pdf" in "<Quoting>/3.
    Proposal". It lists the plans the broker selected on the selector page. When it is newer than the
    comparison, those selected plans are a strong signal of what the broker is considering: include them
-   in the Plan Design table. But if a selected plan conflicts with a hard constraint in the comparison
-   (it cannot be bound without health questionnaires the group will not complete, it is illustrative
-   only, it is not competitive), recommend what the comparison supports, show the selected plan
-   honestly with its condition, and put "Needs attention: broker selected <plan>, but <constraint> —
-   analysis recommends <plan> instead" in the receipt and the Asana comment. (Seen on GunnCo, Oct
-   2026: the proposal selected only the Great American plans, which require questionnaires.)
+   in the Plan Design table. If a selected plan is illustrative or depends on health questionnaires,
+   leave it out of the document altogether (see ILLUSTRATIVE QUOTES ARE OUT in Step 4). If it is not
+   competitive, show it honestly as such. Either way recommend what the comparison supports, and put
+   "Needs attention: broker selected <plan>, but <reason> — analysis recommends <plan> instead" in the
+   receipt and the Asana comment. (Seen on GunnCo, Oct 2026: the proposal selected only the Great
+   American plans, which require questionnaires.)
 
 E. renewal_analysis_example.json — the worked example and schema.
 
 ======================================================================
 STEP 4 — Decide and write
 ======================================================================
+ILLUSTRATIVE QUOTES ARE OUT (Will, Oct 13). A quote that depends on individual health
+questionnaires (IMQs, medical disclosure forms) before it can be offered, or that the carrier labels
+illustrative / indicative / not sellable, is not a real option. Leave it out entirely: not in the
+recommendation, not in the KPI tiles, not in the Plan Design or market tables, and never as the
+"lowest price" comparison. At most, one clause in the market paragraph may count it among carriers
+that "required individual health questionnaires before offering firm rates". If the broker selected
+such a plan on the selector page, still leave it out of the document and flag it in the receipt.
+
 Work out the recommendation like a senior broker would: lowest total cost is not automatically the
 answer. Weigh monthly cost, plan design changes the employees will feel (deductible, OOP max,
 coinsurance, copays, network breadth), disruption of a carrier change, contract terms, and risk.
@@ -154,9 +162,9 @@ SECTIONS — in this order, dropping any whose source is missing:
  2. Plan Design - What Changes — table of current / exact renewal / recommended / best outside
     option (and any broker-selected plans), with Monthly, Deductible, OOP Max, Coinsurance,
     PCP / Specialist. Row tones: current white, exact renewal red, recommended green, outside options
-    blue. Then "What it gives up" and "What it improves" paragraphs.
+    blue. No illustrative or questionnaire-dependent plans. Then "What it gives up" and "What it improves" paragraphs.
  3. What the Market Is Telling Us — how many carriers were asked, who declined to quote (named),
-    then a table of the live options sorted by monthly cost: Carrier / Option, Monthly Cost, Approx. vs.
+    then a table of the firm, placeable options sorted by monthly cost: Carrier / Option, Monthly Cost, Approx. vs.
     Current, Read (a 2–5 word verdict). Set "last_column_left": true.
  4. Risk & Underwriting Context — KPI row (Low-risk green, Moderate blue, High-risk gold, Expected
     annual cost red), one paragraph, 3–5 bullets. Only if a scorecard was found.

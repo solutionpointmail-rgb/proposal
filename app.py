@@ -287,9 +287,13 @@ def run_pipeline(client_name, effective_date, quote_id, task_id, notes,
         )
 
         existing_folder = find_client_dropbox_folder(clean_name, dbx)
-        folder = existing_folder or f"/Benefits Group/Proposals/2026/{safe_name}"
+        # No match never creates a per-client folder (that is how the stray
+        # /Benefits Group/Proposals/2026/GunnCo folder appeared). Unmatched
+        # proposals all land in ONE holding folder and the Asana comment says so.
+        UNFILED_FOLDER = "/Benefits Group/Proposals/_NEEDS FILING"
+        folder = existing_folder or UNFILED_FOLDER
         if not existing_folder:
-            print(f"Using new folder: {folder}", flush=True)
+            print(f"⚠️ No client folder for '{clean_name}' — filing in {folder}", flush=True)
 
         links = {}
         for local_path, file_name in [(pdf_path, pdf_name), (excel_path, excel_name)]:
@@ -325,7 +329,14 @@ def run_pipeline(client_name, effective_date, quote_id, task_id, notes,
         # Always link Asana to the live page, never to a local Dropbox copy
         selector_url = canonical_selector_url(selector_url, clean_name)
 
+        unfiled_warning = "" if existing_folder else (
+            f"⚠️ NEEDS FILING: no Dropbox folder matched \"{clean_name}\" under HOT LEADS, "
+            f"WARM LEADS, RENEWALS or CURRENT CLIENTS, so the files went to {folder}. "
+            f"Move them into the client's Quoting/3. Proposal folder, and check the folder "
+            f"name matches the Asana name.\n\n"
+        )
         comment = (
+            unfiled_warning +
             f"✅ Proposal generated!\n\n"
             f"📄 PDF: {pdf_link}\n"
             f"📊 Excel: {excel_link}\n\n"

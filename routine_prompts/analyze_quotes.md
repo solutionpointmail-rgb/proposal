@@ -242,6 +242,7 @@ Otherwise (no draft yet in either Drive or Dropbox, or newer files have landed s
 
 STEP A6 — Build the analysis (for each ready, out-of-date client)
 Read the actual quote documents (PDFs/xlsx, including the carrier's benefit summaries and SBCs that sit in the same folder) inside each matched response subfolder in "2. Quotes" (including any "asking for apps" carrier that happens to have responded) and extract EVERY field in the SELECTOR SCHEMA v2 field list in Step A7B — medical, dental and vision alike — not just deductible, OOP, coinsurance and copays. The comparison tables still show the benchmark columns below, but the full extraction is what the client proposal is built from: anything not extracted here prints as "See SBC" on the proposal (Will, 2026-10-15: "ALL of the information is already in the quotes"). Also record whether each quote is ILLUSTRATIVE (see Step A7B). Monthly premium by tier for all four tiers. Multiply by the actual census tier counts for that client (found in "1. Census" or within the quotes themselves) to get fully-loaded group monthly cost. Apply these rules, established and confirmed by Will:
+- CBC Triad quotes every plan design on two networks (CIGNA and PHCS/RBP). Treat each network as its own plan, labeled "(CIGNA)" / "(PHCS/RBP)", in the benchmark tables, the selector and the proposal — see the CBC TRIAD rule in Step A7B.
 - Any response folder with "DTQ" in its name means that carrier declined to quote — EXCLUDE it entirely from benchmarking tables (it had no quote to compare).
 - Any response folder with "NOT COMP" in its name means the broker flagged it as NOT COMPETITIVE (not "not comparable") — include it in the doc but clearly labeled as not competitive / reference-only, excluded from the primary recommendation.
 - If a current/incumbent renewal quote was found in Step A4B, extract the same benchmark fields from it (deductible, OOP max, coinsurance, copays, premium by tier) and include it as a distinct "Current Plan / Renewal" entry, labeled with the incumbent carrier's actual name (e.g., "Beam Benefits — Current Plan Renewal") — do not fold it into the shopped-carrier benchmarking table as if it were a competing RFP response; give it its own clearly-labeled row/column so it's obviously the baseline, not one of the quotes Will requested. This entry always appears in the Executive Summary and benchmark table(s) when found — most importantly on a client where every shopped carrier is DTQ, where it may be the only real numbers in the whole document.
@@ -320,6 +321,24 @@ ASC" -> outpatient_surgery; "Type A / Class I / Diagnostic & preventive" -> prev
 Class II" -> basic; "Type C / Class III" -> major; "Calendar-year max / Annual benefit max" ->
 annual_max_in; "Frame allowance / retail frames" -> frame_allowance; "Elective contacts" ->
 contacts_allowance.
+
+CBC TRIAD — ONE PLAN DESIGN, TWO NETWORKS (Will, 2026-10-15). CBC Triad (Triad Benefits; quotes
+arrive "Presented by Navigation Health LLC", usually in the Navigation Health / Chad / CBC Triad
+response folder) prices every plan design twice, side by side: once on the CIGNA network and once
+on PHCS / RBP. Each design ($1,000 Classic, $1,500 Classic, $2,500 Classic, $3,500 Classic, $5,000
+Classic, $7,350 Value, $3,500 HSA, $5,000 HSA, ...) therefore becomes TWO plan objects, never one:
+  - "carrier": "CBC Triad", "plan_name": "$1,500 Classic (CIGNA)",    "network": "Cigna",
+    with the CIGNA column's four tier rates and total;
+  - "carrier": "CBC Triad", "plan_name": "$1,500 Classic (PHCS/RBP)", "network": "PHCS / RBP",
+    with the PHCS / RBP column's four tier rates and total.
+Benefits (deductible, OOP, copays, Rx) are the same design for both, so copy them to both objects.
+Always label the plan_name with the network in parentheses exactly as "(CIGNA)" or "(PHCS/RBP)" so
+the two can be selected separately on the selector page and print as separate cards on the proposal.
+In the comparison .docx, list both rows in the benchmark tables (same labels), and in the CBC Triad
+carrier note say every design is quoted on both networks. Read the rates column by column — the
+CIGNA column is always the left one of each pair, PHCS / RBP the right — and check each object's
+monthly_premium against that column's "Total" line. The quote's validity ("valid for up to 60 days
+past the Quote Date") goes in rate_guarantee.
 
 ILLUSTRATIVE — Will, 2026-10-15: illustrative quotes must be CLEARLY labeled on the proposal.
 Set "illustrative": true when ANY of these is true for that carrier's quote:

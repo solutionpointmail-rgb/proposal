@@ -760,12 +760,16 @@ def build_pdf(data, out_path):
         parts += [sep, Spacer(1, 10)]
         return parts
 
+    def hw(text):
+        from reportlab.pdfbase.pdfmetrics import stringWidth
+        return min(W * 0.6, stringWidth(clean(text), F["display"], 15) + 34)
+
     for key, _chip, heading, desc in TIERS:
         groups = [g for g in data.get("groups", []) if g.get("sev") == key]
         if not groups and key == "ok":
             continue
         sh = Table([[Paragraph(f'<font color="{COLORS[key]}">■</font>&nbsp; {P(heading)}', st["h2"]),
-                     Paragraph(P(desc), st["muted"])]], colWidths=[2.9 * inch, W - 2.9 * inch])
+                     Paragraph(P(desc), st["muted"])]], colWidths=[hw(heading), W - hw(heading)])
         sh.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "BOTTOM"), ("LINEBELOW", (0, 0), (-1, -1), 1.4, C["ink"]),
                                 ("LEFTPADDING", (0, 0), (-1, -1), 0), ("RIGHTPADDING", (0, 0), (-1, -1), 0),
                                 ("BOTTOMPADDING", (0, 0), (-1, -1), 6), ("TOPPADDING", (0, 0), (-1, -1), 0)]))

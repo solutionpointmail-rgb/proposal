@@ -79,8 +79,14 @@ Carriers verify details along the way, so minor conflicts between documents are 
 draft. Resolve them like this, and mention what you chose in the internal notes after "---END---":
 - ADDRESS: when sources disagree (suite, floor, ZIP), use the address from the MOST RECENT document
   (Typeform, Info Sheet, renewal paperwork, carrier application, census — whichever is newest).
-- HEADCOUNT: when the census and the renewal/Info Sheet disagree, use whichever document is MOST
-  RECENT. Use that same count for every carrier minimum in Step 4.
+- HEADCOUNT — ALWAYS GO BY THE CENSUS (per Will, 2026-10-15): the group size for every carrier minimum
+  in Step 4 is the number of ENROLLING EMPLOYEES on the census. Count employee rows only. Leave out
+  spouse and dependent rows, and any employee the census marks as waiving, part-time, ineligible, COBRA or
+  terminated. Employers often say "we have 16 employees" when only 14 are enrolling, and enrolling is what
+  carriers underwrite. The Typeform, Info Sheet or renewal headcount never overrides the census. Note it in
+  the internal notes only if it differs ("Info Sheet says 16; census shows 14 enrolling"), and never treat
+  that difference as an open question or a reason to hold a draft. Only when no census exists yet, use
+  the most recent stated count of enrolling employees.
 - WHAT "ENROLLED" MEANS (Will, Oct 13): every carrier minimum ("25+ enrolled", "10+ enrolled",
   "15+ employees") counts ENROLLING EMPLOYEES (subscribers), never covered lives or members
   (employees + dependents). A group with 17 employees and 46 covered lives is a 17. Do not raise

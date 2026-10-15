@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beyond Expectations Inc — Proposal Plan Selector</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #F0F4F8; min-height: 100vh; }
+  .header { background: #0D1B2A; padding: 0; }
+  .header-inner { max-width: 1100px; margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; }
+  .header-logo { display: flex; align-items: center; gap: 12px; }
+  .header-logo img { height: 42px; width: auto; display: block; }
+  .header-logo-text { color: #fff; font-size: 15px; font-weight: 600; }
+  .header-bar { height: 3px; background: #4CAF7D; }
+  .hero { background: #1B2E45; padding: 28px 24px; }
+  .hero-inner { max-width: 1100px; margin: 0 auto; }
+  .hero-label { color: #4CAF7D; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; }
+  .hero-title { color: #fff; font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .hero-meta { color: #A0AEC0; font-size: 13px; display: flex; flex-wrap: wrap; gap: 16px; margin-top: 10px; }
+  .hero-meta strong { color: #CBD5E0; }
+  .instructions { background: #EAF7F1; border-left: 3px solid #4CAF7D; max-width: 1100px; margin: 20px auto 0; padding: 12px 16px; border-radius: 0 6px 6px 0; font-size: 13px; color: #2D6A4F; }
+  .main { max-width: 1100px; margin: 20px auto; padding: 0 24px 40px; }
+  .section { margin-bottom: 28px; }
+  .section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 2px solid #E2E8F0; }
+  .section-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .icon-medical { background: #EAF7F1; }
+  .icon-dental  { background: #FFF8E8; }
+  .icon-vision  { background: #EDF4FB; }
+  .section-title { font-size: 16px; font-weight: 700; color: #0D1B2A; }
+  .section-contrib { font-size: 12px; color: #718096; margin-left: auto; background: #F7F9FC; padding: 4px 10px; border-radius: 20px; border: 1px solid #E2E8F0; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+  .plan-card { background: #fff; border: 2px solid #E2E8F0; border-radius: 10px; padding: 14px; cursor: pointer; transition: all 0.15s; position: relative; user-select: none; }
+  .plan-card:hover { border-color: #4CAF7D; box-shadow: 0 2px 8px rgba(76,175,125,0.12); }
+  .plan-card.selected { border-color: #4CAF7D; background: #EAF7F1; }
+  .check { position: absolute; top: 10px; right: 10px; width: 20px; height: 20px; background: #4CAF7D; border-radius: 50%; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.15s; }
+  .plan-card.selected .check { opacity: 1; }
+  .check svg { width: 11px; height: 11px; stroke: #fff; stroke-width: 2.5; fill: none; }
+  .card-carrier { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #718096; margin-bottom: 4px; }
+  .card-name { font-size: 13px; font-weight: 600; color: #1A202C; margin-bottom: 8px; line-height: 1.35; }
+  .card-premium { font-size: 18px; font-weight: 800; color: #4CAF7D; margin-bottom: 2px; }
+  .card-premium-label { font-size: 10px; color: #A0AEC0; margin-bottom: 8px; }
+  .card-badges { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
+  .badge { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 10px; }
+  .badge-blue { background: #EBF4FF; color: #2B6CB0; }
+  .badge-green { background: #EAF7F1; color: #276749; }
+  .badge-gold { background: #FFFFF0; color: #975A16; }
+  .card-details { border-top: 1px solid #E2E8F0; padding-top: 8px; }
+  .card-detail-row { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 3px; }
+  .card-detail-row span:first-child { color: #718096; }
+  .card-detail-row span:last-child { color: #2D3748; font-weight: 500; }
+  .carrier-group { margin-bottom: 16px; }
+  .carrier-label { font-size: 11px; font-weight: 700; color: #4A5568; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 8px; padding: 4px 0; }
+  .submit-bar { position: sticky; bottom: 0; background: #0D1B2A; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 -4px 20px rgba(0,0,0,0.15); }
+  .submit-count { color: #A0AEC0; font-size: 13px; }
+  .submit-count strong { color: #4CAF7D; font-size: 16px; }
+  .submit-btn { background: #4CAF7D; color: #fff; border: none; padding: 12px 32px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; transition: background 0.15s; }
+  .submit-btn:hover { background: #3A8C61; }
+  .submit-btn:disabled { background: #A0AEC0; cursor: not-allowed; }
+  .success-overlay { display: none; position: fixed; inset: 0; background: rgba(13,27,42,0.92); z-index: 100; align-items: center; justify-content: center; }
+  .success-overlay.show { display: flex; }
+  .success-box { background: #fff; border-radius: 16px; padding: 40px; max-width: 440px; text-align: center; }
+  .success-icon { width: 64px; height: 64px; background: #EAF7F1; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+  .success-icon svg { width: 32px; height: 32px; stroke: #4CAF7D; stroke-width: 2.5; fill: none; }
+  .success-title { font-size: 20px; font-weight: 700; color: #0D1B2A; margin-bottom: 8px; }
+  .success-msg { font-size: 14px; color: #718096; line-height: 1.6; }
+  .success-client { color: #4CAF7D; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-inner">
+    <div class="header-logo">
+      <img src="https://solutionpointmail-rgb.github.io/proposal/tbg-logo.png" alt="The Benefits Group" style="height:42px;width:auto;display:block">
+      <div>
+        <div class="header-logo-text">The Benefits Group</div>
+      </div>
+    </div>
+    <div style="color:#A0AEC0;font-size:12px;text-align:right">
+      Proposal Plan Selector<br>
+      <span style="color:#4CAF7D">November 1, 2026</span>
+    </div>
+  </div>
+  <div class="header-bar"></div>
+</div>
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-label">Proposal plan selection</div>
+    <div class="hero-title">Beyond Expectations Inc</div>
+    <div class="hero-meta">
+      <span>&#128197; <strong>Effective:</strong> August 1, 2026</span>
+      <span>&#128101; <strong>Employees:</strong> 32 enrolling</span>
+    </div>
+  </div>
+</div>
+<div class="main">
+  <div class="instructions">
+    <strong>Instructions:</strong> Click each plan to toggle include/exclude. Green = included in proposal. When ready, hit <strong>Submit selections</strong> at the bottom — the proposal will generate automatically.
+  </div>
+  <div class="section" style="margin-top:20px">
+    <div class="section-header">
+      <div class="section-icon icon-medical">&#10010;</div>
+      <div class="section-title">Medical Coverage</div>
+      <div class="section-contrib">EE TBD / Dep TBD</div>
+    </div>
+    <div id="medical-plans"></div>
+  </div>
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon icon-dental">&#9673;</div>
+      <div class="section-title">Dental Coverage</div>
+      <div class="section-contrib">EE 0% / Dep 0%</div>
+    </div>
+    <div id="dental-plans"></div>
+  </div>
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon icon-vision">&#128065;</div>
+      <div class="section-title">Vision Coverage</div>
+      <div class="section-contrib">EE 0% / Dep 0%</div>
+    </div>
+    <div id="vision-plans"></div>
+  </div>
+  <div style="height:80px"></div>
+</div>
+<div class="submit-bar">
+  <div class="submit-count"><strong id="selected-count">0</strong> plans selected</div>
+  <button class="submit-btn" id="submit-btn" onclick="submitSelections()" disabled>Submit selections</button>
+</div>
+<div class="success-overlay" id="success-overlay">
+  <div class="success-box">
+    <div class="success-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <div class="success-title">Selections submitted!</div>
+    <div class="success-msg">The proposal for <span class="success-client">Beyond Expectations Inc</span> is now generating automatically.<br><br>You'll find the PDF and Excel files in Dropbox and the Asana task will be marked complete once ready. You can close this tab.</div>
+  </div>
+</div>
+<script>
+const ZAPIER_WEBHOOK = 'https://hooks.zapier.com/hooks/catch/5928257/4ueg7t8/';
+const CLIENT_DATA = {"name":"Beyond Expectations Inc","effective_date":"November 1, 2026","enrolling_employees":32,"county":"Okaloosa County, FL","contributions":{"medical_ee":"80%","medical_dep":"TBD","dental_ee":"0%","dental_dep":"0%","vision_ee":"0%","vision_dep":"0%"}};
+const PLAN_DATA = {
+  medical: [{"carrier":"NHP (Cigna network)","plan_name":"NAV 0","monthly_premium":26067.16,"plan_type":"PPO","funding":"Self-Funded (Benefit RE stop-loss)","deductible_in_ind":"$0","deductible_in_fam":"$0","oop_in_ind":"$9,000","oop_in_fam":"$18,000","coinsurance_in":"30% after ded.","doctor_visit":"$30","specialist":"$60","rate_ee":750.62,"rate_es":1482.73,"rate_ec":1408.22,"rate_ef":2140.34,"employer_cost":0,"employee_cost":26067.16,"include":true},{"carrier":"NHP (Cigna network)","plan_name":"NAV 0 Simple","monthly_premium":33499.74,"plan_type":"PPO","funding":"Self-Funded (Benefit RE stop-loss)","deductible_in_ind":"$0","deductible_in_fam":"$0","oop_in_ind":"$4,250","oop_in_fam":"$8,500","coinsurance_in":"Copays ($500/day IP, $400 OP)","doctor_visit":"$30","specialist":"$60","rate_ee":958.63,"rate_es":1968.34,"rate_ec":1865.57,"rate_ef":2875.27,"employer_cost":0,"employee_cost":33499.74,"include":true},{"carrier":"NHP (Cigna network)","plan_name":"NAV 500","monthly_premium":34181.4,"plan_type":"PPO","funding":"Self-Funded (Benefit RE stop-loss)","deductible_in_ind":"$500","deductible_in_fam":"$1,000","oop_in_ind":"$3,500","oop_in_fam":"$7,000","coinsurance_in":"90%","doctor_visit":"$30","specialist":"$60","rate_ee":977.71,"rate_es":2012.85,"rate_ec":1907.48,"rate_ef":2942.62,"employer_cost":0,"employee_cost":34181.4,"include":true},{"carrier":"NHP (Cigna network)","plan_name":"NAV 1000","monthly_premium":32256.24,"plan_type":"PPO","funding":"Self-Funded (Benefit RE stop-loss)","deductible_in_ind":"$1,000","deductible_in_fam":"$2,000","oop_in_ind":"$4,500","oop_in_fam":"$9,000","coinsurance_in":"90%","doctor_visit":"$30","specialist":"$60","rate_ee":923.83,"rate_es":1887.09,"rate_ec":1789.05,"rate_ef":2752.29,"employer_cost":0,"employee_cost":32256.24,"include":true},{"carrier":"NHP (Cigna network)","plan_name":"NAV 2000","monthly_premium":30064.81,"plan_type":"PPO","funding":"Self-Funded (Benefit RE stop-loss)","deductible_in_ind":"$2,000","deductible_in_fam":"$4,000","oop_in_ind":"$5,500","oop_in_fam":"$11,000","coinsurance_in":"80%","doctor_visit":"$30","specialist":"$60","rate_ee":862.5,"rate_es":1743.92,"rate_ec":1654.19,"rate_ef":2535.62,"employer_cost":0,"employee_cost":30064.81,"include":true},{"carrier":"NHP (Cigna network)","plan_name":"NAV 3000","monthly_premium":28139.95,"plan_type":"PPO","funding":"Self-Funded (Benefit RE stop-loss)","deductible_in_ind":"$3,000","deductible_in_fam":"$6,000","oop_in_ind":"$6,500","oop_in_fam":"$13,000","coinsurance_in":"80%","doctor_visit":"$30","specialist":"$60","rate_ee":808.63,"rate_es":1618.17,"rate_ec":1535.76,"rate_ef":2345.29,"employer_cost":0,"employee_cost":28139.95,"include":true},{"carrier":"NHP (Cigna network)","plan_name":"NAV 3400 HSA","monthly_premium":32196.93,"plan_type":"HSA","funding":"Self-Funded (Benefit RE stop-loss)","deductible_in_ind":"$3,400","deductible_in_fam":"$6,800","oop_in_ind":"$3,400","oop_in_fam":"$6,800","coinsurance_in":"0% after ded.","doctor_visit":"0% after ded.","specialist":"0% after ded.","rate_ee":922.17,"rate_es":1883.21,"rate_ec":1785.39,"rate_ef":2746.44,"employer_cost":0,"employee_cost":32196.93,"include":true},{"carrier":"NHP (Cigna network)","plan_name":"NAV 4000","monthly_premium":26274.1,"plan_type":"PPO","funding":"Self-Funded (Benefit RE stop-loss)","deductible_in_ind":"$4,000","deductible_in_fam":"$8,000","oop_in_ind":"$7,500","oop_in_fam":"$15,000","coinsurance_in":"70%","doctor_visit":"$30","specialist":"$60","rate_ee":756.41,"rate_es":1496.27,"rate_ec":1420.97,"rate_ef":2160.83,"employer_cost":0,"employee_cost":26274.1,"include":true},{"carrier":"NHP (Cigna network)","plan_name":"NAV 5000","monthly_premium":24408.54,"plan_type":"PPO","funding":"Self-Funded (Benefit RE stop-loss)","deductible_in_ind":"$5,000","deductible_in_fam":"$10,000","oop_in_ind":"$8,500","oop_in_fam":"$17,000","coinsurance_in":"70%","doctor_visit":"$30","specialist":"$60","rate_ee":704.2,"rate_es":1374.39,"rate_ec":1306.18,"rate_ef":1976.36,"employer_cost":0,"employee_cost":24408.54,"include":true},{"carrier":"NHP (Cigna network)","plan_name":"NAV 5000 HSA","monthly_premium":27281.3,"plan_type":"HSA","funding":"Self-Funded (Benefit RE stop-loss)","deductible_in_ind":"$5,000","deductible_in_fam":"$10,000","oop_in_ind":"$5,000","oop_in_fam":"$10,000","coinsurance_in":"0% after ded.","doctor_visit":"0% after ded.","specialist":"0% after ded.","rate_ee":784.6,"rate_es":1562.06,"rate_ec":1482.92,"rate_ef":2260.38,"employer_cost":0,"employee_cost":27281.3,"include":true},{"carrier":"NHP (Cigna network)","plan_name":"NAV 6500","monthly_premium":23253.69,"plan_type":"PPO","funding":"Self-Funded (Benefit RE stop-loss)","deductible_in_ind":"$6,500","deductible_in_fam":"$13,000","oop_in_ind":"$9,500","oop_in_fam":"$19,000","coinsurance_in":"70%","doctor_visit":"$30","specialist":"$60","rate_ee":671.88,"rate_es":1298.94,"rate_ec":1235.12,"rate_ef":1862.17,"employer_cost":0,"employee_cost":23253.69,"include":true},{"carrier":"NHP (Cigna network)","plan_name":"NAV 7000 HSA","monthly_premium":22720.57,"plan_type":"HSA","funding":"Self-Funded (Benefit RE stop-loss)","deductible_in_ind":"$7,000","deductible_in_fam":"$14,000","oop_in_ind":"$7,000","oop_in_fam":"$14,000","coinsurance_in":"0% after ded.","doctor_visit":"0% after ded.","specialist":"0% after ded.","rate_ee":656.96,"rate_es":1264.11,"rate_ec":1202.31,"rate_ef":1809.46,"employer_cost":0,"employee_cost":22720.57,"include":true},{"carrier":"One Health","plan_name":"$1,000 Classic","monthly_premium":41517.79,"plan_type":"PPO","funding":"Level Funded","deductible_in_ind":"$1,000","deductible_in_fam":"$2,000","oop_in_ind":"$5,000","oop_in_fam":"$10,000","coinsurance_in":"80%","doctor_visit":"$20","specialist":"$40","rate_ee":1201.34,"rate_es":2290.95,"rate_ec":2077.02,"rate_ef":3400.57,"employer_cost":0,"employee_cost":41517.79,"include":true},{"carrier":"One Health","plan_name":"$1,500 Classic","monthly_premium":39029.07,"plan_type":"PPO","funding":"Level Funded","deductible_in_ind":"$1,500","deductible_in_fam":"$3,000","oop_in_ind":"$7,350","oop_in_fam":"$14,700","coinsurance_in":"80%","doctor_visit":"$30","specialist":"$60","rate_ee":1129.69,"rate_es":2149.32,"rate_ec":1949.4,"rate_ef":3188.97,"employer_cost":0,"employee_cost":39029.07,"include":true},{"carrier":"One Health","plan_name":"$2,500 Classic","monthly_premium":36703.24,"plan_type":"PPO","funding":"Level Funded","deductible_in_ind":"$2,500","deductible_in_fam":"$5,000","oop_in_ind":"$7,350","oop_in_fam":"$14,700","coinsurance_in":"80%","doctor_visit":"$30","specialist":"$60","rate_ee":1062.73,"rate_es":2016.97,"rate_ec":1830.12,"rate_ef":2991.22,"employer_cost":0,"employee_cost":36703.24,"include":true},{"carrier":"One Health","plan_name":"$3,500 Classic","monthly_premium":34529.54,"plan_type":"PPO","funding":"Level Funded","deductible_in_ind":"$3,500","deductible_in_fam":"$7,000","oop_in_ind":"$7,350","oop_in_fam":"$14,700","coinsurance_in":"80%","doctor_visit":"$45","specialist":"$90","rate_ee":1000.15,"rate_es":1893.27,"rate_ec":1718.64,"rate_ef":2806.4,"employer_cost":0,"employee_cost":34529.54,"include":true},{"carrier":"One Health","plan_name":"$3,500 HSA","monthly_premium":31116.16,"plan_type":"HSA","funding":"Level Funded","deductible_in_ind":"$3,500","deductible_in_fam":"$7,000","oop_in_ind":"$6,650","oop_in_fam":"$13,100","coinsurance_in":"80%","doctor_visit":"20% after ded.","specialist":"20% after ded.","rate_ee":901.88,"rate_es":1699.02,"rate_ec":1543.59,"rate_ef":2516.17,"employer_cost":0,"employee_cost":31116.16,"include":true},{"carrier":"One Health","plan_name":"$5,000 Classic","monthly_premium":32498.23,"plan_type":"PPO","funding":"Level Funded","deductible_in_ind":"$5,000","deductible_in_fam":"$10,000","oop_in_ind":"$7,350","oop_in_fam":"$14,700","coinsurance_in":"80%","doctor_visit":"$45","specialist":"$90","rate_ee":941.67,"rate_es":1777.66,"rate_ec":1614.46,"rate_ef":2633.67,"employer_cost":0,"employee_cost":32498.23,"include":true},{"carrier":"One Health","plan_name":"$5,000 HSA","monthly_premium":29800.05,"plan_type":"HSA","funding":"Level Funded","deductible_in_ind":"$5,000","deductible_in_fam":"$10,000","oop_in_ind":"$6,650","oop_in_fam":"$13,100","coinsurance_in":"80%","doctor_visit":"20% after ded.","specialist":"20% after ded.","rate_ee":863.99,"rate_es":1624.12,"rate_ec":1476.09,"rate_ef":2404.26,"employer_cost":0,"employee_cost":29800.05,"include":true},{"carrier":"One Health","plan_name":"$7,350 Value","monthly_premium":28546.5,"plan_type":"PPO","funding":"Level Funded","deductible_in_ind":"$7,350","deductible_in_fam":"$14,700","oop_in_ind":"$7,350","oop_in_fam":"$14,700","coinsurance_in":"0% after ded.","doctor_visit":"$50","specialist":"$100","rate_ee":827.9,"rate_es":1552.79,"rate_ec":1411.81,"rate_ef":2297.69,"employer_cost":0,"employee_cost":28546.5,"include":true},{"carrier":"Florida Blue (Current Plan Renewal)","plan_name":"BlueCare HSA 134/135 (HMO)","monthly_premium":29840.53,"plan_type":"HMO / HSA","funding":"Fully Insured","deductible_in_ind":"$3,500","deductible_in_fam":"$7,000","oop_in_ind":"$7,000","oop_in_fam":"See SBC","coinsurance_in":"80%","doctor_visit":"Ded + $30","specialist":"Ded + $75","rate_ee":845.82,"rate_es":1928.47,"rate_ec":1691.64,"rate_ef":2774.29,"employer_cost":0,"employee_cost":29840.53,"include":true},{"carrier":"Florida Blue (Current Plan Renewal)","plan_name":"BlueOptions HSA 05196/05197 (PPO)","monthly_premium":46453.85,"plan_type":"PPO / HSA","funding":"Fully Insured","deductible_in_ind":"$3,500","deductible_in_fam":"$7,000","oop_in_ind":"$7,000","oop_in_fam":"See SBC","coinsurance_in":"80%","doctor_visit":"Ded + $30","specialist":"Ded + $75","rate_ee":1316.72,"rate_es":3002.11,"rate_ec":2633.43,"rate_ef":4318.82,"employer_cost":0,"employee_cost":46453.85,"include":true}],
+  dental:  [],
+  vision:  []
+};
+const selections = {medical:{},dental:{},vision:{}};
+
+function formatMoney(n){return '$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+
+function renderMedicalCard(plan,idx){
+  const id='med-'+idx; selections.medical[id]=plan.include!==false;
+  const sel=selections.medical[id];
+  const badges=[plan.plan_type?`<span class="badge badge-blue">${plan.plan_type}</span>`:'',plan.funding?`<span class="badge badge-green">${plan.funding}</span>`:'',plan.hsa_eligible?`<span class="badge badge-gold">HSA eligible</span>`:''].join('');
+  return `<div class="plan-card ${sel?'selected':''}" id="${id}" onclick="toggle('medical','${id}')"><div class="check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div class="card-carrier">${plan.carrier}</div><div class="card-name">${plan.plan_name}</div><div class="card-premium">${formatMoney(plan.monthly_premium)}</div><div class="card-premium-label">total monthly cost</div><div class="card-badges">${badges}</div><div class="card-details"><div class="card-detail-row"><span>Deductible (Ind)</span><span>${plan.deductible_in_ind}</span></div><div class="card-detail-row"><span>OOP Max (Ind)</span><span>${plan.oop_in_ind}</span></div><div class="card-detail-row"><span>Coinsurance</span><span>${plan.coinsurance_in}</span></div><div class="card-detail-row"><span>Doctor visit</span><span>${plan.doctor_visit}</span></div><div class="card-detail-row"><span>EE only rate</span><span>${formatMoney(plan.rate_ee)}/mo</span></div></div></div>`;
+}
+
+function renderDentalCard(plan,idx){
+  const id='den-'+idx; selections.dental[id]=plan.include!==false;
+  const sel=selections.dental[id];
+  return `<div class="plan-card ${sel?'selected':''}" id="${id}" onclick="toggle('dental','${id}')"><div class="check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div class="card-carrier">${plan.carrier}</div><div class="card-name">${plan.plan_name}</div><div class="card-premium">${formatMoney(plan.monthly_premium)}</div><div class="card-premium-label">total monthly cost</div><div class="card-badges"><span class="badge badge-blue">${plan.plan_type}</span></div><div class="card-details"><div class="card-detail-row"><span>Ded Ind/Fam</span><span>${plan.deductible_in_ind}/${plan.deductible_in_fam}</span></div><div class="card-detail-row"><span>Annual max</span><span>${plan.annual_max_in}</span></div><div class="card-detail-row"><span>Preventive</span><span>${plan.preventive}</span></div><div class="card-detail-row"><span>Basic / Major</span><span>${plan.basic} / ${plan.major}</span></div></div></div>`;
+}
+
+function renderVisionCard(plan,idx){
+  const id='vis-'+idx; selections.vision[id]=plan.include!==false;
+  const sel=selections.vision[id];
+  return `<div class="plan-card ${sel?'selected':''}" id="${id}" onclick="toggle('vision','${id}')"><div class="check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div class="card-carrier">${plan.carrier}</div><div class="card-name">${plan.plan_name}</div><div class="card-premium">${formatMoney(plan.monthly_premium)}</div><div class="card-premium-label">total monthly cost</div><div class="card-badges"><span class="badge badge-blue">${plan.plan_type}</span></div><div class="card-details"><div class="card-detail-row"><span>Exam</span><span>${plan.exam_frequency}</span></div><div class="card-detail-row"><span>Lenses</span><span>${plan.lenses_frequency}</span></div><div class="card-detail-row"><span>Frames</span><span>${plan.frames_frequency}</span></div></div></div>`;
+}
+
+function groupByCarrier(plans){const g={};plans.forEach((p,i)=>{if(!g[p.carrier])g[p.carrier]=[];g[p.carrier].push({plan:p,idx:i});});return g;}
+
+function renderSection(containerId,plans,renderFn){
+  const container=document.getElementById(containerId);
+  if(!plans||plans.length===0){container.innerHTML='<p style="color:#A0AEC0;font-size:13px;padding:12px 0">No plans in this category</p>';return;}
+  const groups=groupByCarrier(plans);
+  let html='';
+  for(const[carrier,items]of Object.entries(groups)){html+=`<div class="carrier-group"><div class="carrier-label">${carrier}</div><div class="cards">`;items.forEach(({plan,idx})=>{html+=renderFn(plan,idx);});html+='</div></div>';}
+  container.innerHTML=html;
+}
+
+function toggle(line,id){selections[line][id]=!selections[line][id];document.getElementById(id).classList.toggle('selected',selections[line][id]);updateCount();}
+
+function updateCount(){let total=0;['medical','dental','vision'].forEach(line=>{Object.values(selections[line]).forEach(v=>{if(v)total++;});});document.getElementById('selected-count').textContent=total;document.getElementById('submit-btn').disabled=total===0;}
+
+function getSelectedPlans(){
+  const r={medical:[],dental:[],vision:[]};
+  PLAN_DATA.medical.forEach((p,i)=>{if(selections.medical['med-'+i])r.medical.push(p.plan_name);});
+  PLAN_DATA.dental.forEach((p,i)=>{if(selections.dental['den-'+i])r.dental.push(p.plan_name);});
+  PLAN_DATA.vision.forEach((p,i)=>{if(selections.vision['vis-'+i])r.vision.push(p.plan_name);});
+  return r;
+}
+
+async function submitSelections(){
+  const btn=document.getElementById('submit-btn');
+  btn.disabled=true;btn.textContent='Submitting…';
+  const selected=getSelectedPlans();
+  const payload={
+    client:CLIENT_DATA,
+    selected_plans:selected,
+    medical_plans:selected.medical.join(','),
+    dental_plans:selected.dental.join(','),
+    vision_plans:selected.vision.join(','),
+    all_medical_json:btoa(unescape(encodeURIComponent(JSON.stringify(PLAN_DATA.medical)))),
+    all_dental_json:btoa(unescape(encodeURIComponent(JSON.stringify(PLAN_DATA.dental)))),
+    all_vision_json:btoa(unescape(encodeURIComponent(JSON.stringify(PLAN_DATA.vision)))),
+    enrolling_employees:CLIENT_DATA.enrolling_employees,
+    contributions_medical_ee:(CLIENT_DATA.contributions||{}).medical_ee||'50%',
+    contributions_medical_dep:(CLIENT_DATA.contributions||{}).medical_dep||'0%',
+    contributions_dental_ee:(CLIENT_DATA.contributions||{}).dental_ee||'0%',
+    contributions_dental_dep:(CLIENT_DATA.contributions||{}).dental_dep||'0%',
+    contributions_vision_ee:(CLIENT_DATA.contributions||{}).vision_ee||'0%',
+    contributions_vision_dep:(CLIENT_DATA.contributions||{}).vision_dep||'0%',
+    selector_url:window.location.href,
+    submitted_at:new Date().toISOString(),
+    source:'proposal-selector'
+  };
+  try{await fetch(ZAPIER_WEBHOOK,{method:'POST',headers:{'Content-Type':'application/json'},mode:'no-cors',body:JSON.stringify(payload)});}catch(e){}
+  document.getElementById('success-overlay').classList.add('show');
+}
+
+renderSection('medical-plans',PLAN_DATA.medical,renderMedicalCard);
+renderSection('dental-plans',PLAN_DATA.dental,renderDentalCard);
+renderSection('vision-plans',PLAN_DATA.vision,renderVisionCard);
+updateCount();
+</script>
+<!-- BULK SELECT CONTROLS — added 2026-10-12 -->
+<style>
+.bulk-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0 14px}
+.bulk-btn{font:600 12px/1 inherit;padding:7px 12px;border-radius:6px;border:1px solid #2F72AD;background:#2F72AD;color:#fff;cursor:pointer}
+.bulk-btn.ghost{background:transparent;color:#2F72AD}
+.bulk-btn:hover{filter:brightness(1.07)}
+.bulk-count{font-size:12px;color:#718096;margin-left:4px}
+</style>
+<script>
+(function(){
+  var LINES = [['medical','medical-plans','med-'],['dental','dental-plans','den-'],['vision','vision-plans','vis-']];
+
+  window.setAll = function(line, on){
+    var prefix = {medical:'med-',dental:'den-',vision:'vis-'}[line];
+    (PLAN_DATA[line]||[]).forEach(function(p,i){
+      var id = prefix + i;
+      selections[line][id] = on;
+      var el = document.getElementById(id);
+      if (el) el.classList.toggle('selected', on);
+    });
+    updateCount();
+  };
+
+  function lineCount(line){
+    return Object.keys(selections[line]||{}).filter(function(k){return selections[line][k];}).length;
+  }
+
+  function refreshCounts(){
+    LINES.forEach(function(entry){
+      var line = entry[0];
+      var el = document.getElementById('count-' + line);
+      if (el) el.textContent = lineCount(line) + ' of ' + ((PLAN_DATA[line]||[]).length) + ' selected';
+    });
+  }
+
+  // Keep the existing count behaviour, add the per-section counts on top of it.
+  var originalUpdateCount = updateCount;
+  updateCount = function(){ originalUpdateCount(); refreshCounts(); };
+
+  LINES.forEach(function(entry){
+    var line = entry[0], containerId = entry[1];
+    var container = document.getElementById(containerId);
+    if (!container) return;
+    var total = (PLAN_DATA[line]||[]).length;
+    if (!total) return;
+    var bar = document.createElement('div');
+    bar.className = 'bulk-bar';
+    bar.innerHTML =
+      '<button type="button" class="bulk-btn" onclick="setAll(\'' + line + '\',true)">Select all</button>' +
+      '<button type="button" class="bulk-btn ghost" onclick="setAll(\'' + line + '\',false)">Clear</button>' +
+      '<span class="bulk-count" id="count-' + line + '">0 of ' + total + ' selected</span>';
+    container.parentNode.insertBefore(bar, container);
+  });
+
+  refreshCounts();
+})();
+</script>
+
+</body>
+</html>

@@ -265,7 +265,7 @@ def costs(plan, line, client, contributions):
                     f"at this census the monthly total is ${calc:,.2f}.")
             premium = calc
         else:
-            premium = calc
+            premium = carrier_total   # within rounding: print the carrier's own total
 
     er = ee = None
     mode_ee, val_ee = contribution(contributions.get(f"{line}_ee"))

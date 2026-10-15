@@ -60,7 +60,23 @@ If a payload names a group, still run the whole check.
 ### 1b. Safety net: catch groups the Odoo feed missed
 - List the direct child folders of Hot Leads (Step 2).
 - List the **active (non-archived)** Asana projects whose name contains `Quoting` (Step 4).
-- Any group in either list but missing from the in-scope Odoo set goes in the report section **"Active work not in Odoo pipeline."** Show the stage Odoo has for it, or "not found in feed."
+- Compare both lists with the Odoo feed (match by normalized name and email domain, as in Step 2):
+  - **Not in the feed at all → treat it as an in-scope group.** The feed only holds the 100 most recently
+    created records, so an older opportunity sitting in QUOTING or QUOTED/PRESENTED is simply too old to
+    appear (seen 10/15: GunnCo, Momentum Works, Middle Tennessee Traffic, Boys & Girls Club, Ideal Millwork,
+    Blue Peak, Porterfield, Ocean Health — all in Odoo's Quoting or Quoted/Presented columns). Run every
+    check in Steps 2–5 on it, give it a severity tier, include it in the exceptions and the grid, and show
+    its stage as `Odoo stage unknown (older than the feed)`. Use the Asana project date as the effective
+    date. Count it in `groups_in_scope`.
+  - **In the feed only as NEW, but with an active Asana quoting project or Hot Leads folder →** usually a
+    newer duplicate record while the real opportunity is older and off the feed (seen 10/15: Aevolve,
+    Air Temp). Treat it like the case above (stage `Odoo stage unknown (older than the feed)`) and add a
+    Data flag: "Odoo has a newer NEW record for this group; merge the duplicate."
+  - **In the feed as WON, OPPORTUNITY LOST, or a RENEWAL stage, while quoting work is still active →** this
+    is a real mismatch. Only these go in **"Odoo stage doesn't match the work"**, with the stage Odoo shows.
+  - Archived Asana projects with no Hot Leads folder are history; leave them out entirely.
+- Say in the run notes how many groups were added this way ("8 groups were older than the Odoo feed and
+  were checked from Asana and Dropbox").
 - Skip these Asana projects: `The Benefits Group (Internal Benefits)` and any project with `Renewal` in the name.
 
 ---
@@ -214,7 +230,7 @@ rules below decide what goes in it.
    its `grid` row. The script prints the required "Last communication was FROM/SENT TO … on MM/DD/YY ·
    subject" line from `last`.
 6. **Full status grid**: built from each group's `grid` (Section B).
-7. **Active work not in the Odoo pipeline** (`outside`, Section C).
+7. **Odoo stage doesn't match the work** (`outside`, Section C).
 8. **Run notes** (`notes`, Section D).
 
 Map the severity tiers in the list below onto `sev` like this:
@@ -258,8 +274,8 @@ One row per in-scope group, with these columns:
 - Dropbox folder ✓/✗
 - Asana project ✓/✗
 
-#### Section C — Active work not in Odoo pipeline
-List each group found in Hot Leads or active Asana quoting projects that is not in the in-scope Odoo set. Give its Odoo stage, or "not in feed."
+#### Section C — Odoo stage doesn't match the work
+List only the real mismatches from Step 1b: groups with active quoting work that the Odoo feed shows as WON, OPPORTUNITY LOST, or a RENEWAL stage. Give the stage Odoo shows. Groups that are simply missing from the feed are NOT listed here; they are in the exceptions and grid with stage "Odoo stage unknown (older than the feed)". If there are none, leave `outside` empty.
 
 #### Section D — Run notes
 - Run timestamp in Central time

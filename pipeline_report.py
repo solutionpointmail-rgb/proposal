@@ -395,8 +395,8 @@ def build_html(data):
 
     # Outside the pipeline
     outside = data.get("outside") or []
-    a('<section><div class="sec-title"><div class="eyebrow">Outside this report\'s stages</div><h2>Active work not in the Odoo pipeline</h2>')
-    a('<p class="intro">These groups have a Hot Leads folder or an active Asana quoting project, but aren\'t in Qualified, Quoting, or Quoted/Presented in Odoo. Move them in Odoo, or archive the work.</p></div>')
+    a('<section><div class="sec-title"><div class="eyebrow">Outside this report\'s stages</div><h2>Odoo stage doesn\'t match the work</h2>')
+    a('<p class="intro">Odoo shows these groups as Won, Lost, or a renewal stage, but quoting work is still active in Asana or Hot Leads. Fix the Odoo stage, or archive the work.</p></div>')
     if outside:
         a('<div class="outside">')
         for o in outside:
@@ -841,8 +841,8 @@ def build_pdf(data, out_path):
     # ---- Outside pipeline + notes (back to portrait) ----
     story += [NextPageTemplate("portrait"), PageBreak()]
     story += [eyebrow("Outside this report’s stages" if F["unicode"] else "Outside this report's stages"), Spacer(1, 2),
-              Paragraph("Active work not in the Odoo pipeline", st["h2"]), Spacer(1, 4),
-              Paragraph("These groups have a Hot Leads folder or an active Asana quoting project, but aren't in Qualified, Quoting, or Quoted/Presented in Odoo. Move them in Odoo, or archive the work.", st["muted"]),
+              Paragraph("Odoo stage doesn't match the work", st["h2"]), Spacer(1, 4),
+              Paragraph("Odoo shows these groups as Won, Lost, or a renewal stage, but quoting work is still active in Asana or Hot Leads. Fix the Odoo stage, or archive the work.", st["muted"]),
               Spacer(1, 8)]
     outside = data.get("outside") or []
     if outside:

@@ -1,438 +1,241 @@
 """
-generate_excel.py
------------------
-Generates the Benefits Group proposal Excel workbook.
-Matches the TennGreenLandConservancyProposalVertical.xlsx format.
+generate_excel.py — The Benefits Group proposal workbook (v2, 2026-10-15)
 
-Usage:
-    python generate_excel.py
-Output:
-    Proposal_<ClientName>_<EffDate>.xlsx
+Same look as before (teal headers, banded rows, one sheet per coverage line), but every benefit
+row now comes from proposal_fields.py, the same definition the PDF uses, so the workbook carries
+the full plan detail instead of a few medical keys and "See SBC". Illustrative plans get an
+amber ILLUSTRATIVE status cell and their own disclaimer.
 """
+from datetime import datetime
 
 import openpyxl
-from openpyxl.styles import Font, PatternFill, Alignment, Border, Side, numbers
+from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
-from datetime import datetime
-from proposal_data import (
-    CLIENT, PRODUCER, CONTRIBUTIONS,
-    MEDICAL_PLANS, DENTAL_PLANS, VISION_PLANS, DISCLAIMER_TEXT
-)
 
-# ── COLOURS ───────────────────────────────────────────────────────────────────
-TEAL       = "FF2E8B8B"   # header teal
-LIGHT_TEAL = "FFE0F4F4"   # alternating row tint
-DARK_TEXT  = "FF1A1A2E"
-WHITE      = "FFFFFFFF"
-ORANGE     = "FFFF6B35"   # accent / cost rows
+import proposal_fields as F
+
+TEAL = "FF2E8B8B"
+LIGHT_TEAL = "FFE0F4F4"
+WHITE = "FFFFFFFF"
+ORANGE = "FFFF6B35"
 LIGHT_GRAY = "FFF5F5F5"
-MID_GRAY   = "FFD0D0D0"
+NAVY = "FF0D1B2A"
+AMBER = "FFB45309"
+AMBER_BG = "FFFEF3C7"
+SECTION = "FFEAF0F4"
+TAB = {"medical": "2E8B8B", "dental": "FF6B35", "vision": "5B8DB8"}
+TITLE = {"medical": "Medical Coverage", "dental": "Dental Coverage", "vision": "Vision Coverage"}
 
-def _font(bold=False, size=10, color="FF000000", name="Arial"):
-    return Font(name=name, bold=bold, size=size, color=color)
 
-def _fill(hex_color):
-    return PatternFill("solid", fgColor=hex_color)
-
-def _border(style="thin"):
-    s = Side(style=style, color="FFB0B0B0")
-    return Border(left=s, right=s, top=s, bottom=s)
-
-def _align(h="left", v="center", wrap=True):
-    return Alignment(horizontal=h, vertical=v, wrap_text=wrap)
-
-def _money(val):
-    try:
-        return f"${float(val):,.2f}"
-    except (ValueError, TypeError):
-        return str(val) if val else "See SBC"
-
-def _set(ws, row, col, value, bold=False, size=10, color="FF000000",
-         fill=None, halign="left", wrap=True, border=False):
+def _set(ws, row, col, value, bold=False, size=10, color="FF000000", fill=None, halign="left",
+         wrap=True, border=False, italic=False):
     cell = ws.cell(row=row, column=col, value=value)
-    cell.font = _font(bold=bold, size=size, color=color)
-    cell.alignment = _align(h=halign, wrap=wrap)
+    cell.font = Font(name="Arial", bold=bold, italic=italic, size=size, color=color)
+    cell.alignment = Alignment(horizontal=halign, vertical="center", wrap_text=wrap)
     if fill:
-        cell.fill = _fill(fill)
+        cell.fill = PatternFill("solid", fgColor=fill)
     if border:
-        cell.border = _border()
+        s = Side(style="thin", color="FFB0B0B0")
+        cell.border = Border(left=s, right=s, top=s, bottom=s)
     return cell
 
-# ── INTRO SHEET ───────────────────────────────────────────────────────────────
+
+def _included(plans):
+    return [p for p in plans if p.get("include", True)]
+
+
+# ── INTRO ─────────────────────────────────────────────────────────────────────
 def build_intro(wb):
     ws = wb.create_sheet("Intro")
     ws.sheet_properties.tabColor = "2E8B8B"
-    ws.column_dimensions["A"].width = 2
-    ws.column_dimensions["B"].width = 40
-    ws.column_dimensions["C"].width = 2
-    ws.column_dimensions["D"].width = 28
-    ws.column_dimensions["E"].width = 2
-    ws.column_dimensions["F"].width = 20
+    for col, w in (("A", 2), ("B", 34), ("C", 2), ("D", 30), ("E", 2), ("F", 34)):
+        ws.column_dimensions[col].width = w
+    _set(ws, 2, 2, CLIENT["name"], bold=True, size=16, color=TEAL)
+    addr = ", ".join(x for x in (CLIENT.get("address"), CLIENT.get("city_state_zip"),
+                                 f"County: {CLIENT['county']}" if CLIENT.get("county") else "") if x)
+    if addr:
+        _set(ws, 3, 2, addr)
+    _set(ws, 5, 2, "Prepared by: " + PRODUCER.get("agency", "The Benefits Group"), bold=True)
+    _set(ws, 6, 2, f"Effective date: {CLIENT.get('effective_date_mmddyyyy') or CLIENT.get('effective_date', '')}")
+    if CLIENT.get("sic_code"):
+        _set(ws, 7, 2, f"SIC code: {CLIENT['sic_code']}")
+    if CLIENT.get("quote_id") not in (None, "", "TBD"):
+        _set(ws, 8, 2, f"Quote ID: {CLIENT['quote_id']}")
 
-    # Title block
-    ws.row_dimensions[1].height = 6
-    _set(ws, 2, 2, CLIENT["name"], bold=True, size=16, color=TEAL[2:])
-    _addr = ", ".join(x for x in (CLIENT.get('address'), CLIENT.get('city_state_zip'),
-                                   f"County: {CLIENT['county']}" if CLIENT.get('county') else "") if x)
-    if _addr:
-        _set(ws, 3, 2, _addr, size=10)
-
-    ws.row_dimensions[4].height = 6
-    _set(ws, 5, 2, "Prepared by: " + " • ".join(x for x in (PRODUCER['agency'], PRODUCER.get('sub_agency')) if x), bold=True, size=10)
-    _set(ws, 5, 4, f"Total # of employees: {CLIENT['total_employees']}", bold=True)
-
-    _set(ws, 6, 2, f"Effective date: {CLIENT['effective_date_mmddyyyy'] or CLIENT.get('effective_date', '')}")
-    _set(ws, 6, 4, f"Eligible Employees: {CLIENT['eligible_employees']}")
-    if CLIENT.get('sic_code'):
-        _set(ws, 6, 6, f"SIC Code: {CLIENT['sic_code']}")
-
-    _set(ws, 7, 4, f"Enrolling Employees: {CLIENT['enrolling_employees']}")
-    _set(ws, 7, 6, f"Quote ID: {CLIENT['quote_id']}")
-
-    ws.row_dimensions[8].height = 6
-    _set(ws, 9, 2, "Employer Contribution", bold=True, size=11)
-    _set(ws, 10, 2, f"Medical - {CONTRIBUTIONS['medical_ee']} / {CONTRIBUTIONS['medical_dep']}")
-    _set(ws, 11, 2, f"Dental - {CONTRIBUTIONS['dental_ee']} / {CONTRIBUTIONS['dental_dep']}")
-    _set(ws, 12, 2, f"Vision - {CONTRIBUTIONS['vision_ee']} / {CONTRIBUTIONS['vision_dep']}")
-    _set(ws, 13, 2, f"Life - {CONTRIBUTIONS['life']}")
-
-    ws.freeze_panes = None
-    return ws
-
-# ── MEDICAL SHEET ─────────────────────────────────────────────────────────────
-def build_medical(wb):
-    ws = wb.create_sheet("Medical")
-    ws.sheet_properties.tabColor = "2E8B8B"
-
-    plans = [p for p in MEDICAL_PLANS if p.get("include", True)]
-
-    # Column layout: B=labels, then per plan: InNetwork + OutOfNetwork
-    ws.column_dimensions["A"].width = 2
-    ws.column_dimensions["B"].width = 32
-    col_start = 3  # C
-    for i, _ in enumerate(plans):
-        in_col  = col_start + i * 2
-        out_col = in_col + 1
-        ws.column_dimensions[get_column_letter(in_col)].width  = 26
-        ws.column_dimensions[get_column_letter(out_col)].width = 14
-
-    # Section header
-    _set(ws, 1, 2, "Medical Coverage", bold=True, size=14, color=TEAL[2:])
-
-    # Plan headers
-    r = 3
-    for i, p in enumerate(plans):
-        in_col = col_start + i * 2
-        _set(ws, r,   in_col, str(i + 1), bold=True, size=11, halign="center",
-             fill=TEAL, color=WHITE)
-        _set(ws, r+1, in_col, p.get("plan_name", ""), bold=True, size=9,
-             fill=LIGHT_TEAL, halign="center")
-        _set(ws, r+2, in_col, f"{p['plan_type']} - {p['funding']}", size=9,
-             fill=LIGHT_TEAL, halign="center")
-        _set(ws, r+3, in_col, p.get("quote_type", "See SBC"), size=9,
-             fill=LIGHT_TEAL, halign="center")
-
-    # Column sub-headers
-    r = 7
-    _set(ws, r, 2, "Benefit Comparison", bold=True, fill=TEAL, color=WHITE)
-    for i, _ in enumerate(plans):
-        in_col  = col_start + i * 2
-        out_col = in_col + 1
-        _set(ws, r, in_col,  "In Network",     bold=True, fill=TEAL, color=WHITE, halign="center")
-        _set(ws, r, out_col, "Out Of Network",  bold=True, fill=TEAL, color=WHITE, halign="center")
-
-    # Benefit rows
-    benefit_rows = [
-        ("Deductible Individual",    "deductible_in_ind",  "deductible_out_ind"),
-        ("Deductible Family",        "deductible_in_fam",  "deductible_out_fam"),
-        ("Out-of-Pocket Max Individual", "oop_in_ind",     "oop_out_ind"),
-        ("Out-of-Pocket Max Family", "oop_in_fam",         "oop_out_fam"),
-        ("Coinsurance",              "coinsurance_in",      "coinsurance_out"),
-        (None, None, None),  # spacer
-        ("Doctor Visit",             "doctor_visit",        None),
-        ("Speciality Visit",         "specialist",          None),
-        ("Xray/Lab",                 "xray_lab",            None),
-        ("Imaging",                  "imaging",             None),
-        ("Urgent Care",              "urgent_care",         None),
-        ("Emergency Room",           "er",                  None),
-        ("Hospital Stay",            "hospital",            None),
-        ("Prescription Drugs",       "rx",                  None),
-        ("HSA Eligible",             "hsa_eligible",        None),
-    ]
-
-    r = 8
-    for idx, (label, in_key, out_key) in enumerate(benefit_rows):
-        bg = LIGHT_GRAY if idx % 2 == 0 else WHITE
-        if label is None:
+    r = 5
+    for label, key in (("Total employees", "total_employees"), ("Eligible employees", "eligible_employees"),
+                       ("Enrolling employees", "enrolling_employees"), ("Waiving employees", "waiving_employees"),
+                       ("Total enrolling members", "total_members")):
+        if CLIENT.get(key) not in (None, ""):
+            _set(ws, r, 4, f"{label}: {CLIENT[key]}", bold=(key == "enrolling_employees"))
             r += 1
-            continue
-        _set(ws, r, 2, label, fill=bg, border=True)
-        for i, p in enumerate(plans):
-            in_col  = col_start + i * 2
-            out_col = in_col + 1
-            in_val = p.get(in_key, "")
-            if isinstance(in_val, bool):
-                in_val = "Yes" if in_val else "No"
-            _set(ws, r, in_col, in_val, fill=bg, halign="center", border=True)
-            if out_key:
-                out_val = p.get(out_key, "")
-                _set(ws, r, out_col, out_val, fill=bg, halign="center", border=True)
-        r += 1
+    tc = F.tier_counts(CLIENT, "medical")
+    if any(v is not None for v in tc.values()):
+        _set(ws, r, 4, "Enrolling by tier: " + " · ".join(f"{k.upper()} {tc[k]}" for k, _ in F.TIERS
+                                                          if tc[k] is not None))
 
-    # Cost section
-    r += 1
-    _set(ws, r, 2, "Cost Comparison", bold=True, fill=TEAL, color=WHITE)
-    for i, p in enumerate(plans):
-        in_col = col_start + i * 2
-        _set(ws, r, in_col, p.get("quote_type", "See SBC"), bold=True, fill=TEAL, color=WHITE, halign="center")
-    r += 1
+    _set(ws, 5, 6, "Employer Contribution", bold=True, size=11)
+    for i, line in enumerate(("medical", "dental", "vision")):
+        _set(ws, 6 + i, 6, f"{line.title()}: {F.contribution_text(CONTRIBUTIONS, line)}")
 
-    cost_rows = [
-        (f"Employee Only ({CLIENT['tier_ee']})",   "rate_ee"),
-        (f"Employee & Spouse ({CLIENT['tier_es']})", "rate_es"),
-        (f"Employee & Child ({CLIENT['tier_ec']})",  "rate_ec"),
-        (f"Employee & Family ({CLIENT['tier_ef']})", "rate_ef"),
-    ]
-    for idx, (label, key) in enumerate(cost_rows):
-        bg = LIGHT_TEAL if idx % 2 == 0 else WHITE
-        _set(ws, r, 2, label, fill=bg, border=True)
-        for i, p in enumerate(plans):
-            in_col = col_start + i * 2
-            _set(ws, r, in_col, _money(p.get(key, 0)), fill=bg, halign="right", border=True)
-        r += 1
-
-    r += 1
-    for label, key, bg in [
-        ("Employer Cost",    "employer_cost",  LIGHT_TEAL),
-        ("Employee Cost",    "employee_cost",  WHITE),
-        ("Monthly Premium",  "monthly_premium", ORANGE),
-    ]:
-        _set(ws, r, 2, label, bold=True, fill=bg, border=True)
-        for i, p in enumerate(plans):
-            in_col = col_start + i * 2
-            color = WHITE if bg == ORANGE else "FF000000"
-            _set(ws, r, in_col, _money(p.get(key, "See SBC")), bold=True,
-                 fill=bg, halign="right", border=True, color=color)
-        r += 1
-
+    allp = _included(MEDICAL_PLANS) + _included(DENTAL_PLANS) + _included(VISION_PLANS)
+    n_ill = sum(1 for p in allp if F.is_illustrative(p))
+    if n_ill:
+        _set(ws, 11, 2, f"ILLUSTRATIVE QUOTES: {n_ill} plan{'s' if n_ill != 1 else ''} in this proposal "
+                        "are illustrative and subject to underwriting (see the Disclaimers sheet).",
+             bold=True, color=AMBER, fill=AMBER_BG)
+        ws.merge_cells(start_row=11, start_column=2, end_row=11, end_column=6)
+        ws.row_dimensions[11].height = 30
     return ws
 
-# ── DENTAL SHEET ──────────────────────────────────────────────────────────────
-def build_dental(wb):
-    ws = wb.create_sheet("Dental")
-    ws.sheet_properties.tabColor = "FF6B35"
-    plans = [p for p in DENTAL_PLANS if p.get("include", True)]
 
+# ── COVERAGE SHEETS ───────────────────────────────────────────────────────────
+def build_line(wb, line, plans):
+    ws = wb.create_sheet(TITLE[line].split()[0])
+    ws.sheet_properties.tabColor = TAB[line]
     ws.column_dimensions["A"].width = 2
-    ws.column_dimensions["B"].width = 32
-    col_start = 3
-    for i, _ in enumerate(plans):
-        ws.column_dimensions[get_column_letter(col_start + i * 2)].width     = 18
-        ws.column_dimensions[get_column_letter(col_start + i * 2 + 1)].width = 14
+    ws.column_dimensions["B"].width = 30
+    c0 = 3
+    for i in range(len(plans)):
+        ws.column_dimensions[get_column_letter(c0 + i)].width = 30
 
-    _set(ws, 1, 2, "Dental Coverage", bold=True, size=14, color="FFFF6B35")
+    _set(ws, 1, 2, TITLE[line], bold=True, size=14, color=TEAL)
+    _set(ws, 1, c0, "Employer contribution: " + F.contribution_text(CONTRIBUTIONS, line), size=9)
 
+    # Plan header block
     r = 3
+    header_rows = [
+        ("", lambda i, p: str(i + 1), dict(bold=True, size=11, fill=TEAL, color=WHITE)),
+        ("Carrier", lambda i, p: F.clean(p.get("carrier")), dict(bold=True, fill=LIGHT_TEAL)),
+        ("Plan", lambda i, p: F.display_name(p), dict(bold=True, size=9, fill=LIGHT_TEAL)),
+        ("Plan type · funding", lambda i, p: " · ".join(x for x in (F.clean(p.get("plan_type")),
+                                                                    F.clean(p.get("funding"))) if x),
+         dict(size=9, fill=LIGHT_TEAL)),
+    ]
+    for label, fn, kw in header_rows:
+        if label:
+            _set(ws, r, 2, label, bold=True, fill=LIGHT_TEAL, border=True)
+        for i, p in enumerate(plans):
+            _set(ws, r, c0 + i, fn(i, p), halign="center", border=True, **kw)
+        r += 1
+    _set(ws, r, 2, "Quote status", bold=True, fill=LIGHT_TEAL, border=True)
     for i, p in enumerate(plans):
-        c = col_start + i * 2
-        _set(ws, r,   c, str(i + 1), bold=True, size=11, halign="center", fill=TEAL, color=WHITE)
-        _set(ws, r+1, c, p.get("plan_name", ""), bold=True, size=9, fill=LIGHT_TEAL, halign="center")
-        _set(ws, r+2, c, p.get("plan_type", ""), size=9, fill=LIGHT_TEAL, halign="center")
+        if F.is_illustrative(p):
+            _set(ws, r, c0 + i, "ILLUSTRATIVE — subject to underwriting", bold=True, color=AMBER,
+                 fill=AMBER_BG, halign="center", border=True)
+        else:
+            _set(ws, r, c0 + i, F.quote_label(p), fill=LIGHT_TEAL, halign="center", border=True, size=9)
+    r += 2
 
-    r = 6
-    _set(ws, r, 2, "Benefit Comparison", bold=True, fill=TEAL, color=WHITE)
-    for i, _ in enumerate(plans):
-        c = col_start + i * 2
-        _set(ws, r, c,   "In Network",    bold=True, fill=TEAL, color=WHITE, halign="center")
-        _set(ws, r, c+1, "Out Of Network", bold=True, fill=TEAL, color=WHITE, halign="center")
-
-    dental_benefits = [
-        ("Deductible Individual", "deductible_in_ind", "deductible_out"),
-        ("Deductible Family",     "deductible_in_fam", "deductible_out"),
-        ("Annual Maximum",        "annual_max_in",      "annual_max_out"),
-    ]
-    r = 7
-    for idx, (label, in_key, out_key) in enumerate(dental_benefits):
-        bg = LIGHT_GRAY if idx % 2 == 0 else WHITE
-        _set(ws, r, 2, label, fill=bg, border=True)
-        for i, p in enumerate(plans):
-            c = col_start + i * 2
-            _set(ws, r, c,   p.get(in_key, ""),  fill=bg, halign="center", border=True)
-            _set(ws, r, c+1, p.get(out_key, ""), fill=bg, halign="center", border=True)
+    # Benefits
+    band = 0
+    for spec in F.visible_rows(line, plans):
+        if spec[0] == "section":
+            _set(ws, r, 2, spec[1], bold=True, fill=TEAL, color=WHITE)
+            for i in range(len(plans)):
+                _set(ws, r, c0 + i, "", fill=TEAL)
+            band = 0
+        else:
+            bg = LIGHT_GRAY if band % 2 == 0 else WHITE
+            _set(ws, r, 2, spec[1], fill=bg, border=True)
+            for i, p in enumerate(plans):
+                _set(ws, r, c0 + i, F.row_value(p, spec) or F.MISSING, fill=bg, halign="center", border=True)
+            band += 1
         r += 1
 
+    # Costs
     r += 1
-    _set(ws, r, 2, "Services Comparison", bold=True, fill=TEAL, color=WHITE)
-    for i, _ in enumerate(plans):
-        c = col_start + i * 2
-        _set(ws, r, c,   "In Network",    bold=True, fill=TEAL, color=WHITE, halign="center")
-        _set(ws, r, c+1, "Out Of Network", bold=True, fill=TEAL, color=WHITE, halign="center")
+    _set(ws, r, 2, "Monthly Composite Rates", bold=True, fill=TEAL, color=WHITE)
+    for i in range(len(plans)):
+        _set(ws, r, c0 + i, "", fill=TEAL)
     r += 1
-
-    services = [
-        ("Preventive",          "preventive"),
-        ("Basic",               "basic"),
-        ("Major",               "major"),
-        ("Ortho Maximum",       "ortho_max"),
-        ("Endodontics",         "endodontics"),
-        ("Simple Extractions",  "simple_extractions"),
-        ("Implants",            "implants"),
-        ("Periodontics",        "periodontics"),
-        ("Oral Surgery",        "oral_surgery"),
-        ("Composite Filling",   "composite_filling"),
-        ("Waive Preventive Max","waive_preventive_max"),
-    ]
-    for idx, (label, key) in enumerate(services):
-        bg = LIGHT_GRAY if idx % 2 == 0 else WHITE
-        _set(ws, r, 2, label, fill=bg, border=True)
-        for i, p in enumerate(plans):
-            c = col_start + i * 2
-            _set(ws, r, c, p.get(key, ""), fill=bg, halign="center", border=True)
-            _set(ws, r, c+1, "See SBC",   fill=bg, halign="center", border=True)
+    cs = [F.costs(p, line, CLIENT, CONTRIBUTIONS) for p in plans]
+    for j, (k, lab) in enumerate(F.TIERS):
+        bg = LIGHT_TEAL if j % 2 == 0 else WHITE
+        n = cs[0]["counts"][k] if plans else None
+        _set(ws, r, 2, f"{lab} ({n})" if cs and cs[0]["have_counts"] else lab, fill=bg, border=True)
+        for i, c in enumerate(cs):
+            _set(ws, r, c0 + i, c["rates"][k], fill=bg, halign="right", border=True).number_format = '"$"#,##0.00'
         r += 1
-
     r += 1
-    _set(ws, r, 2, "Cost Comparison", bold=True, fill=TEAL, color=WHITE)
-    r += 1
-    cost_rows = [
-        (f"Employee Only ({CLIENT['tier_ee']})",    "rate_ee"),
-        (f"Employee & Spouse ({CLIENT['tier_es']})", "rate_es"),
-        (f"Employee & Child ({CLIENT['tier_ec']})",  "rate_ec"),
-        (f"Employee & Family ({CLIENT['tier_ef']})", "rate_ef"),
-    ]
-    for idx, (label, key) in enumerate(cost_rows):
-        bg = LIGHT_TEAL if idx % 2 == 0 else WHITE
-        _set(ws, r, 2, label, fill=bg, border=True)
-        for i, p in enumerate(plans):
-            c = col_start + i * 2
-            _set(ws, r, c, _money(p.get(key, "See SBC")), fill=bg, halign="right", border=True)
+    rows = [("Employer cost", "employer", LIGHT_TEAL), ("Employee cost", "employee", WHITE),
+            ("Monthly premium", "premium", ORANGE)]
+    for label, key, bg in rows:
+        _set(ws, r, 2, label, bold=True, fill=bg, border=True, color=WHITE if bg == ORANGE else "FF000000")
+        for i, c in enumerate(cs):
+            v = c[key]
+            empty = "Contribution TBD" if key == "employer" else F.MISSING
+            cell = _set(ws, r, c0 + i, v if v is not None else empty, bold=True, fill=bg,
+                        halign="right", border=True, color=WHITE if bg == ORANGE else "FF000000")
+            if v is not None:
+                cell.number_format = '"$"#,##0.00'
         r += 1
+    _set(ws, r, 2, "Annual premium", bold=True, fill=LIGHT_GRAY, border=True)
+    for i, c in enumerate(cs):
+        cell = _set(ws, r, c0 + i, round(c["premium"] * 12, 2) if c["premium"] is not None else F.MISSING,
+                    bold=True, fill=LIGHT_GRAY, halign="right", border=True)
+        cell.number_format = '"$"#,##0.00'
+    r += 2
 
-    r += 1
-    for label, key, bg in [
-        ("Employer Cost",   "employer_cost",   LIGHT_TEAL),
-        ("Employee Cost",   "employee_cost",   WHITE),
-        ("Monthly Premium", "monthly_premium", ORANGE),
-    ]:
-        _set(ws, r, 2, label, bold=True, fill=bg, border=True)
-        for i, p in enumerate(plans):
-            c = col_start + i * 2
-            color = WHITE if bg == ORANGE else "FF000000"
-            _set(ws, r, c, _money(p.get(key, "See SBC")), bold=True,
-                 fill=bg, halign="right", border=True, color=color)
-        r += 1
-
+    # Notes
+    _set(ws, r, 2, "Notes", bold=True, fill=LIGHT_TEAL, border=True)
+    longest = 0
+    for i, (p, c) in enumerate(zip(plans, cs)):
+        parts = [F.clean(p.get("quote_status_note")) if F.is_illustrative(p) else "",
+                 F.clean(p.get("notes")), c["note"]]
+        txt = " ".join(x for x in parts if x)
+        longest = max(longest, len(txt))
+        _set(ws, r, c0 + i, txt, size=9, italic=True, border=True)
+    ws.row_dimensions[r].height = max(15, min(160, 13 * (longest // 32 + 1)))
+    ws.freeze_panes = ws.cell(row=3, column=c0)
     return ws
 
-# ── VISION SHEET ──────────────────────────────────────────────────────────────
-def build_vision(wb):
-    ws = wb.create_sheet("Vision")
-    ws.sheet_properties.tabColor = "5B8DB8"
-    plans = [p for p in VISION_PLANS if p.get("include", True)]
 
-    ws.column_dimensions["A"].width = 2
-    ws.column_dimensions["B"].width = 32
-    col_start = 3
-    for i, _ in enumerate(plans):
-        ws.column_dimensions[get_column_letter(col_start + i)].width = 22
-
-    _set(ws, 1, 2, "Vision Coverage", bold=True, size=14, color="FF5B8DB8")
-
-    r = 3
-    for i, p in enumerate(plans):
-        c = col_start + i
-        _set(ws, r,   c, str(i + 1), bold=True, size=11, halign="center", fill=TEAL, color=WHITE)
-        _set(ws, r+1, c, p.get("plan_name", ""), bold=True, size=9, fill=LIGHT_TEAL, halign="center")
-        _set(ws, r+2, c, p.get("plan_type", ""), size=9, fill=LIGHT_TEAL, halign="center")
-
-    r = 6
-    _set(ws, r, 2, "Benefit Frequency Comparison", bold=True, fill=TEAL, color=WHITE)
-    r += 1
-
-    freq_rows = [
-        ("Exam",         "exam_frequency"),
-        ("Lenses",       "lenses_frequency"),
-        ("Frames",       "frames_frequency"),
-        ("Contact Lens", "contacts_frequency"),
-    ]
-    for idx, (label, key) in enumerate(freq_rows):
-        bg = LIGHT_GRAY if idx % 2 == 0 else WHITE
-        _set(ws, r, 2, label, fill=bg, border=True)
-        for i, p in enumerate(plans):
-            _set(ws, r, col_start + i, p.get(key, "See SBC"), fill=bg, halign="center", border=True)
-        r += 1
-
-    r += 1
-    _set(ws, r, 2, "Cost Comparison", bold=True, fill=TEAL, color=WHITE)
-    r += 1
-
-    cost_rows = [
-        (f"Employee Only ({CLIENT['tier_ee']})",    "rate_ee"),
-        (f"Employee & Spouse ({CLIENT['tier_es']})", "rate_es"),
-        (f"Employee & Child ({CLIENT['tier_ec']})",  "rate_ec"),
-        (f"Employee & Family ({CLIENT['tier_ef']})", "rate_ef"),
-    ]
-    for idx, (label, key) in enumerate(cost_rows):
-        bg = LIGHT_TEAL if idx % 2 == 0 else WHITE
-        _set(ws, r, 2, label, fill=bg, border=True)
-        for i, p in enumerate(plans):
-            _set(ws, r, col_start + i, _money(p.get(key, "See SBC")), fill=bg, halign="right", border=True)
-        r += 1
-
-    r += 1
-    for label, key, bg in [
-        ("Employer Cost",   "employer_cost",   LIGHT_TEAL),
-        ("Employee Cost",   "employee_cost",   WHITE),
-        ("Monthly Premium", "monthly_premium", ORANGE),
-    ]:
-        _set(ws, r, 2, label, bold=True, fill=bg, border=True)
-        for i, p in enumerate(plans):
-            color = WHITE if bg == ORANGE else "FF000000"
-            _set(ws, r, col_start + i, _money(p.get(key, "See SBC")), bold=True,
-                 fill=bg, halign="right", border=True, color=color)
-        r += 1
-
-    return ws
-
-# ── DISCLAIMERS SHEET ─────────────────────────────────────────────────────────
-def build_disclaimers(wb):
+def build_disclaimers(wb, plans):
     ws = wb.create_sheet("Disclaimers")
     ws.column_dimensions["A"].width = 2
     ws.column_dimensions["B"].width = 120
-    _set(ws, 1, 2, "Disclaimers", bold=True, size=14, color=TEAL[2:])
-    _set(ws, 3, 2, DISCLAIMER_TEXT, size=9, wrap=True)
-    ws.row_dimensions[3].height = 120
+    _set(ws, 1, 2, "Disclaimers", bold=True, size=14, color=TEAL)
+    r = 3
+    for para in F.disclaimers(plans):
+        ill = para.startswith("Plans marked ILLUSTRATIVE")
+        _set(ws, r, 2, para, size=9, bold=ill, color=AMBER if ill else "FF000000",
+             fill=AMBER_BG if ill else None)
+        ws.row_dimensions[r].height = max(30, 14 * (len(para) // 140 + 1))
+        r += 1
     return ws
+
 
 # ── MAIN ──────────────────────────────────────────────────────────────────────
 def generate_excel(output_path=None):
-    # Re-read from proposal_data at call time so app.py injections are picked up
     import proposal_data as _pd
-    global CLIENT, CONTRIBUTIONS, MEDICAL_PLANS, DENTAL_PLANS, VISION_PLANS
-    CLIENT        = _pd.CLIENT
+    global CLIENT, CONTRIBUTIONS, MEDICAL_PLANS, DENTAL_PLANS, VISION_PLANS, PRODUCER
+    CLIENT = _pd.CLIENT
     CONTRIBUTIONS = _pd.CONTRIBUTIONS
     MEDICAL_PLANS = _pd.MEDICAL_PLANS
-    DENTAL_PLANS  = _pd.DENTAL_PLANS
-    VISION_PLANS  = _pd.VISION_PLANS
-    wb = openpyxl.Workbook()
-    # Remove default sheet
-    wb.remove(wb.active)
+    DENTAL_PLANS = _pd.DENTAL_PLANS
+    VISION_PLANS = _pd.VISION_PLANS
+    PRODUCER = dict(getattr(_pd, "PRODUCER", {}) or {})
+    PRODUCER.setdefault("agency", "The Benefits Group")
 
+    wb = openpyxl.Workbook()
+    wb.remove(wb.active)
     build_intro(wb)
-    build_medical(wb)
-    build_dental(wb)
-    build_vision(wb)
-    build_disclaimers(wb)
+    allp = []
+    for line, plans in (("medical", MEDICAL_PLANS), ("dental", DENTAL_PLANS), ("vision", VISION_PLANS)):
+        inc = _included(plans)
+        if inc:
+            build_line(wb, line, inc)
+            allp += inc
+    build_disclaimers(wb, allp)
 
     if output_path is None:
-        safe_name = CLIENT["name"].replace(" ", "_").replace("/", "-")
-        eff       = CLIENT["effective_date_mmddyyyy"].replace("/", "")
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_path = f"/mnt/user-data/outputs/Proposal_{safe_name}_{eff}_v{timestamp}.xlsx"
-
+        safe = CLIENT["name"].replace(" ", "_").replace("/", "-")
+        output_path = f"Proposal_{safe}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
     wb.save(output_path)
     print(f"✅ Excel saved → {output_path}")
     return output_path
+
 
 if __name__ == "__main__":
     generate_excel()

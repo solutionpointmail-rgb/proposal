@@ -241,7 +241,7 @@ Otherwise, look in "[Client]/Quoting/3. Proposal" for an existing file matching 
 Otherwise (no draft yet in either Drive or Dropbox, or newer files have landed since the last draft AND the cooldown has expired or doesn't apply), proceed to Step A6.
 
 STEP A6 — Build the analysis (for each ready, out-of-date client)
-Read the actual quote documents (PDFs/xlsx) inside each matched response subfolder in "2. Quotes" (including any "asking for apps" carrier that happens to have responded) and extract: deductible (individual/family), out-of-pocket max (individual/family), coinsurance, PCP/specialist copay, and monthly premium by tier (at minimum Employee-Only). Multiply by the actual census count for that client (found in "1. Census" or within the quotes themselves) to get fully-loaded group monthly cost. Apply these rules, established and confirmed by Will:
+Read the actual quote documents (PDFs/xlsx, including the carrier's benefit summaries and SBCs that sit in the same folder) inside each matched response subfolder in "2. Quotes" (including any "asking for apps" carrier that happens to have responded) and extract EVERY field in the SELECTOR SCHEMA v2 field list in Step A7B — medical, dental and vision alike — not just deductible, OOP, coinsurance and copays. The comparison tables still show the benchmark columns below, but the full extraction is what the client proposal is built from: anything not extracted here prints as a dash on the proposal (Will, 2026-10-15: "ALL of the information is already in the quotes"). Also record whether each quote is ILLUSTRATIVE (see Step A7B). Monthly premium by tier for all four tiers. Multiply by the actual census tier counts for that client (found in "1. Census" or within the quotes themselves) to get fully-loaded group monthly cost. Apply these rules, established and confirmed by Will:
 - Any response folder with "DTQ" in its name means that carrier declined to quote — EXCLUDE it entirely from benchmarking tables (it had no quote to compare).
 - Any response folder with "NOT COMP" in its name means the broker flagged it as NOT COMPETITIVE (not "not comparable") — include it in the doc but clearly labeled as not competitive / reference-only, excluded from the primary recommendation.
 - If a current/incumbent renewal quote was found in Step A4B, extract the same benchmark fields from it (deductible, OOP max, coinsurance, copays, premium by tier) and include it as a distinct "Current Plan / Renewal" entry, labeled with the incumbent carrier's actual name (e.g., "Beam Benefits — Current Plan Renewal") — do not fold it into the shopped-carrier benchmarking table as if it were a competing RFP response; give it its own clearly-labeled row/column so it's obviously the baseline, not one of the quotes Will requested. This entry always appears in the Executive Summary and benchmark table(s) when found — most importantly on a client where every shopped carrier is DTQ, where it may be the only real numbers in the whole document.
@@ -263,51 +263,138 @@ Run AFTER the carrier comparison .docx has been saved to Dropbox for a client. R
 - `medical_plans` — all viable medical plans (exclude DTQ, NOT COMP, Need Apps)
 - `dental_plans` — all viable dental plans (exclude DTQ, NOT COMP, Need Apps)
 - `vision_plans` — all viable vision plans (exclude DTQ, NOT COMP, Need Apps)
+("Need Apps" here means a carrier that gave NO rates until apps are in. A carrier that DID give rates
+but needs IMQs/apps before they are final — e.g. a "Great American need IMQ" folder with a proposal
+PDF in it — is included, with "illustrative": true.)
 
 If a current/incumbent renewal quote was found in Step A4B, add it as an additional entry in the relevant array (medical_plans/dental_plans/vision_plans) with "carrier" set to the incumbent carrier's name plus " (Current Plan Renewal)" (e.g. "Beam Benefits (Current Plan Renewal)"), so it shows up in the selector page alongside any alternative quotes for direct comparison. Do this even when it ends up being the ONLY entry in that array (e.g., every shopped carrier DTQ'd) — an array with just the current/renewal entry is far more useful to Will than an empty one, and is exactly the AH Supplies / Guardian Management scenario this was added to fix.
 
-Each plan object must include these fields (use empty string or "See SBC" for any unknown field):
+SELECTOR SCHEMA v2 (2026-10-15). The plan objects ARE the client proposal: Render builds the PDF
+and Excel straight from them, field for field. Every field below that the carrier's quote, benefit
+summary or SBC states must be filled in. Before this schema, plan objects carried only ~8 medical
+keys, so dental and vision cards printed "See SBC" on every line.
+
+Value rules:
+- Write values the way a client reads them, short: "$2,000", "20%", "$35", "20% after deductible",
+  "100%, no deductible", "Not covered", "Per DMO copay schedule", "Every 12 months".
+- Use "" ONLY when no document in the carrier's folder states it. Never write "See SBC", "TBD" or
+  "N/A - see SBC" — go to the SBC / benefit summary and get the value.
+- Out-of-network on an in-network-only plan (EPO, DMO, INO): "Not covered".
+- Numbers for rates and premium (591.81, not "$591.81").
+- notes: one or two client-appropriate sentences (accrual basis, network rule, wellness perks,
+  participation requirement). NEVER commission, PEPM fees, admin/stop-loss/claims-fund splits,
+  broker of record, or anything about individual employees.
+
+Every plan (all three lines):
+  carrier, plan_name, plan_type, funding, network,
+  illustrative            true | false  (see ILLUSTRATIVE below)
+  quote_status            "Illustrative" | "Underwritten" | "Quoted"
+  quote_status_note       for illustrative quotes, the carrier's own condition in one sentence,
+                          e.g. "Great American requires health questionnaires (IMQs) before rates are final."
+  rate_ee, rate_es, rate_ec, rate_ef, monthly_premium   (monthly_premium = the carrier's group total)
+  rate_guarantee, notes, include: true
+
+Medical adds:
+  hsa_eligible (true/false),
+  deductible_in_ind, deductible_in_fam, deductible_out_ind, deductible_out_fam,
+  oop_in_ind, oop_in_fam, oop_out_ind, oop_out_fam, coinsurance_in, coinsurance_out,
+  preventive, doctor_visit, virtual_visit, specialist, xray_lab, imaging, urgent_care, er,
+  hospital, outpatient_surgery, rx (all tiers, "$10 / $35 / $75 / $250"), rx_deductible
+
+Dental adds:
+  deductible_in_ind, deductible_in_fam, deductible_out_ind, deductible_out_fam,
+  deductible_waived_preventive, annual_max_in, annual_max_out, rollover,
+  preventive, basic, major, endodontics, periodontics, oral_surgery, implants,
+  ortho ("50%" / "Not covered" / "Child only, 50%"), ortho_max, ortho_age,
+  waiting_periods, oon_reimbursement ("90th percentile UCR", "MAC")
+
+Vision adds:
+  exam_copay, materials_copay, lenses, frame_allowance, contacts_allowance, lasik,
+  exam_frequency, lenses_frequency, frames_frequency, contacts_frequency, oon_reimbursement
+
+Carrier-name nomenclature maps like this (use judgment for others): "PCP / Primary care / Office
+visit" -> doctor_visit; "Telehealth / Virtual" -> virtual_visit; "Advanced imaging / CT, MRI, PET"
+-> imaging; "Diagnostic lab & x-ray" -> xray_lab; "Inpatient" -> hospital; "Outpatient surgery /
+ASC" -> outpatient_surgery; "Type A / Class I / Diagnostic & preventive" -> preventive; "Type B /
+Class II" -> basic; "Type C / Class III" -> major; "Calendar-year max / Annual benefit max" ->
+annual_max_in; "Frame allowance / retail frames" -> frame_allowance; "Elective contacts" ->
+contacts_allowance.
+
+ILLUSTRATIVE — Will, 2026-10-15: illustrative quotes must be CLEARLY labeled on the proposal.
+Set "illustrative": true when ANY of these is true for that carrier's quote:
+  - the quote or its email says illustrative, indicative, preliminary, estimate or "not sellable";
+  - the carrier requires IMQs / health questionnaires / medical disclosure / employee apps before
+    rates are final (a "need IMQ", "Need Apps" or "asking for apps" folder or subtask counts, even
+    when the PDF itself says "Underwritten Proposal" — Great American on GunnCo was exactly this);
+  - the Asana subtask or folder note says the rates are subject to IMQs.
+Otherwise false. Never fold it into plan_name only ("(illustrative, subject to IMQs)" in the name is
+no longer how it is shown — the flag drives the amber ILLUSTRATIVE ribbon, watermark, cover count
+and disclaimer on the proposal). The selector page, the comparison doc and the Asana description
+should say ILLUSTRATIVE next to those plans too.
+
+Example (medical):
 {
-  "carrier": "Carrier Name",
-  "plan_name": "Plan Name",
-  "monthly_premium": 1234.56,
-  "plan_type": "PPO",
-  "funding": "Level Funded",
-  "deductible_in_ind": "$2,000",
-  "deductible_in_fam": "$4,000",
-  "oop_in_ind": "$6,900",
-  "oop_in_fam": "$13,800",
-  "coinsurance_in": "80%",
-  "doctor_visit": "$25",
-  "specialist": "$75",
-  "rate_ee": 466.19,
-  "rate_es": 0,
-  "rate_ec": 0,
-  "rate_ef": 1266.45,
-  "employer_cost": 0,
-  "employee_cost": 1234.56,
-  "include": true
+  "carrier": "Great American", "plan_name": "2000/80%/6000 PPO-INO Copay",
+  "plan_type": "PPO", "funding": "Level Funded", "network": "Cigna OAP (in-network only)",
+  "illustrative": true, "quote_status": "Illustrative",
+  "quote_status_note": "Great American requires health questionnaires (IMQs) before rates are final.",
+  "hsa_eligible": false,
+  "deductible_in_ind": "$2,000", "deductible_in_fam": "$4,000",
+  "deductible_out_ind": "Not covered", "deductible_out_fam": "Not covered",
+  "oop_in_ind": "$6,000", "oop_in_fam": "$12,000", "oop_out_ind": "Not covered", "oop_out_fam": "Not covered",
+  "coinsurance_in": "20%", "coinsurance_out": "Not covered",
+  "preventive": "100%, no deductible", "doctor_visit": "$35", "virtual_visit": "$0", "specialist": "$75",
+  "xray_lab": "20% after deductible", "imaging": "20% after deductible", "urgent_care": "$75",
+  "er": "20% after deductible", "hospital": "20% after deductible", "outpatient_surgery": "20% after deductible",
+  "rx": "$15 / $45 / $60 / 20% specialty", "rx_deductible": "None (specialty after deductible)",
+  "rate_ee": 591.81, "rate_es": 1447.12, "rate_ec": 1116.03, "rate_ef": 1860.96, "monthly_premium": 5258.70,
+  "rate_guarantee": "", "notes": "Calendar-year deductible. Cigna pharmacy.", "include": true
+}
+Example (dental):
+{
+  "carrier": "Beam", "plan_name": "Smart Premium Select 100/90/60-2000", "plan_type": "PPO",
+  "funding": "Fully Insured", "network": "Beam / Guardian DentalGuard Preferred",
+  "illustrative": false, "quote_status": "Quoted",
+  "deductible_in_ind": "$50", "deductible_in_fam": "$150", "deductible_out_ind": "$50", "deductible_out_fam": "$150",
+  "deductible_waived_preventive": "Yes", "annual_max_in": "$2,000", "annual_max_out": "$2,000", "rollover": "",
+  "preventive": "100%", "basic": "90%", "major": "60%", "endodontics": "90%", "periodontics": "90%",
+  "oral_surgery": "90%", "implants": "60%", "ortho": "Not covered", "ortho_max": "", "ortho_age": "",
+  "waiting_periods": "None", "oon_reimbursement": "90th percentile UCR",
+  "rate_ee": 40.27, "rate_es": 80.54, "rate_ec": 84.60, "rate_ef": 124.87, "monthly_premium": 1368.98,
+  "rate_guarantee": "24 months", "notes": "", "include": true
 }
 
-2. Build the CLIENT_DATA object:
+2. Build the CLIENT_DATA object. Render reads it straight from the live selector page to fill the
+proposal's cover and Employer Profile, so fill everything the census, intake sheet or quotes state.
+Tier counts come from the CENSUS (enrolling employees by coverage tier) — counts only, never names
+or birth dates. "schema": 2 marks a page built under SELECTOR SCHEMA v2.
 {
+  "schema": 2,
   "name": "[Client Name]",
-  "effective_date": "[Effective Date]",
-  "enrolling_employees": [N],
-  "county": "[County, State]",
+  "effective_date": "[Effective Date, e.g. December 1, 2026]",
+  "address": "[street]", "city_state_zip": "[City, ST 12345]",
+  "state": "[ST]", "zip": "[12345]", "county": "[County]",
+  "sic_code": "[SIC]",
+  "quote_id": "[carrier quote IDs, e.g. 'Great American 44131 · Aetna 17574126']",
+  "total_employees": N, "eligible_employees": N, "enrolling_employees": N, "waiving_employees": N,
+  "total_members": N,
+  "tier_counts": {"ee": N, "es": N, "ec": N, "ef": N},
+  "tier_counts_by_line": {"dental": {"ee": N, "es": N, "ec": N, "ef": N}},
+  "rate_guarantee": "[e.g. 12 months]",
   "contributions": {
-    "medical_ee": "TBD",
-    "medical_dep": "TBD",
-    "dental_ee": "0%",
-    "dental_dep": "0%",
-    "vision_ee": "0%",
-    "vision_dep": "0%"
+    "medical_ee": "TBD", "medical_dep": "TBD",
+    "dental_ee": "0%", "dental_dep": "0%",
+    "vision_ee": "0%", "vision_dep": "0%"
   }
 }
+Include tier_counts_by_line only when dental or vision enrollment differs from medical; otherwise
+leave it out. The object must be valid JSON (no comments).
+Contributions: use what the intake sheet or Asana states ("50%", or a flat "$300"); otherwise "TBD".
+The proposal computes employer and employee cost from these percentages and the tier counts.
 
 3. Fetch the template from GitHub: GET https://raw.githubusercontent.com/solutionpointmail-rgb/proposal/main/proposal-selector-template.html
 
-4. Replace ALL placeholders with real data. Replace ALL of these exact strings in the template (there are 15 total):
+4. Replace ALL placeholders with real data. Replace every one of these strings that appears in the template ({{COUNTY}} and {{QUOTE_ID}} may no longer appear; that is fine), then search for "{{" — the result must be 0:
 - {{CLIENT_NAME}} → Client name (e.g. "Redbird Real Estate")
 - {{EFFECTIVE_DATE}} → Effective date (e.g. "August 1, 2026")
 - {{EMPLOYEE_COUNT}} → Number of enrolling employees
@@ -345,8 +432,15 @@ IMPORTANT: Verify after replacement that the HTML contains actual plan data (sea
 
 9. Since the GitHub push is expected to be blocked (see KNOWN ENVIRONMENT LIMITATIONS), always do this: save the HTML to Dropbox as normal (this text-file save works fine), add this warning at the top of the Asana task description: "⚠️ Selector page generation failed — upload manually to GitHub (HTML saved to Dropbox Quoting/3. Proposal folder)", and continue — do NOT block the Asana task creation, and do NOT spend a retry attempting the push first.
 
+SELECTOR SCHEMA v2 REBUILD (2026-10-15): a selector page whose CLIENT_DATA lacks "schema": 2 was
+built under the old thin schema and makes a proposal full of dashes. On an on-demand run (mode A)
+for a client whose selector page lacks it, rebuild the selector page (Step A7B/B7B) under v2 even
+when the comparison .docx is current — re-read the quote documents for the full field list. The
+docx does not need rebuilding for this alone. On the scheduled sweep, rebuild it for any client that
+is otherwise processed today; do not sweep every old page.
+
 Validation checklist before pushing HTML:
-- ALL 15 {{PLACEHOLDER}} strings have been replaced (run a search for "{{" — result should be 0)
+- ALL {{PLACEHOLDER}} strings have been replaced (run a search for "{{" — result should be 0)
 - {{MEDICAL_JSON}} replaced with actual JSON array (not [] unless truly no medical plans)
 - {{DENTAL_JSON}} replaced (use [] if none quoted)
 - {{VISION_JSON}} replaced (use [] if none quoted)
@@ -354,6 +448,10 @@ Validation checklist before pushing HTML:
 - {{QUOTE_ID}} replaced
 - All 6 {{..._CONTRIB}} fields replaced
 - HTML contains the word "carrier" at least once (proves plan data is embedded)
+- CLIENT_DATA contains "schema": 2 and tier_counts; no plan value is "See SBC"
+- Every plan has "illustrative" set to true or false; dental plans have annual_max_in, preventive,
+  basic and major; vision plans have exam_copay, frame_allowance and exam_frequency (or "" only where
+  no document states it)
 - File size is > 10,000 bytes (empty shells are ~141 bytes — a dead giveaway)
 
 ======================================================================

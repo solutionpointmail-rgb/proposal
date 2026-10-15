@@ -129,53 +129,98 @@ def _mmddyyyy(value):
     return ''
 
 
+def selector_client_data(selector_url='', client_name=''):
+    """Read CLIENT_DATA out of the group's live selector page (added 2026-10-15).
+
+    The selector page carries the group profile the Analyze Quotes routine extracted: address,
+    county, SIC, employee counts, census tier counts, contributions. The proposal Zap only
+    forwards a few fields, so instead of widening the Zap, Render reads the page itself.
+    Returns {} when the page can't be found or read; the proposal then simply omits those lines.
+    """
+    import urllib.request as ur, urllib.parse as up
+    name = ''
+    if selector_url and 'github.io/proposal/' in selector_url:
+        name = os.path.basename(up.unquote(selector_url.split('?')[0].split('#')[0]))
+    if not name.lower().endswith('.html') and client_name:
+        try:
+            match = _match_selector(client_name, _selector_index())
+            name = os.path.basename(match) if match else ''
+        except Exception as e:
+            print(f"selector lookup failed: {e}", flush=True)
+            name = ''
+    if not name.lower().endswith('.html'):
+        return {}
+    url = 'https://raw.githubusercontent.com/solutionpointmail-rgb/proposal/main/' + up.quote(name)
+    try:
+        with ur.urlopen(url, timeout=20) as r:
+            html = r.read().decode('utf-8', 'replace')
+        m = re.search(r'const\s+CLIENT_DATA\s*=\s*(\{.*?\})\s*;\s*\n', html, re.S)
+        data = json.loads(m.group(1)) if m else {}
+        print(f"CLIENT_DATA from {name}: {sorted(data.keys())}", flush=True)
+        return data if isinstance(data, dict) else {}
+    except Exception as e:
+        print(f"Could not read CLIENT_DATA from {name}: {e}", flush=True)
+        return {}
+
+
+def _int_or_blank(v):
+    try:
+        return int(float(str(v).strip()))
+    except (TypeError, ValueError):
+        return ''
+
+
 def build_client_and_plans(client_name, effective_date, quote_id, enrolling_employees,
                             contributions, medical_plans_str, dental_plans_str, vision_plans_str,
-                            all_medical_json, all_dental_json, all_vision_json):
+                            all_medical_json, all_dental_json, all_vision_json, client_extra=None):
     """
     Build CLIENT dict and plan lists from webhook data.
     Uses full plan JSON if available, otherwise falls back to plan names only.
+    client_extra is the selector page's CLIENT_DATA (group profile and census tier counts).
     """
     clean_name = scrub_name(client_name.replace(' — Review for Proposal', ''))
+    x = client_extra or {}
 
-    # Address, county and SIC are not in the selector payload. They used to be hard-coded
-    # (a Nashville address, Davidson County, SIC 9512) and printed on every client's proposal.
-    # Leave them blank; the PDF and Excel skip blank lines.
+    # Group details come from the selector page's CLIENT_DATA. Anything it doesn't carry stays
+    # blank and the PDF/Excel leave that line out — never a placeholder or another client's data.
+    enrolling = _int_or_blank(enrolling_employees) if enrolling_employees not in (None, '') \
+        else _int_or_blank(x.get('enrolling_employees'))
     CLIENT = {
         'name': clean_name,
-        'effective_date': effective_date or 'TBD',
-        'effective_date_mmddyyyy': _mmddyyyy(effective_date),
-        'quote_id': quote_id or 'TBD',
-        'state': '',
-        'zip': '',
-        'county': '',
-        'sic': '',
-        'sic_code': '',
-        'address': '',
-        'city_state_zip': '',
-        'tier_ee': 'Employee Only',
-        'tier_es': 'Employee + Spouse',
-        'tier_ec': 'Employee + Children',
-        'tier_ef': 'Employee + Family',
-        'total_employees': int(enrolling_employees) if enrolling_employees else 15,
-        'eligible_employees': int(enrolling_employees) if enrolling_employees else 15,
-        'enrolling_employees': int(enrolling_employees) if enrolling_employees else 15,
-        'waiving_employees': 0,
+        'effective_date': effective_date or x.get('effective_date') or 'TBD',
+        'effective_date_mmddyyyy': _mmddyyyy(effective_date or x.get('effective_date', '')),
+        'quote_id': quote_id or x.get('quote_id') or '',
+        'state': x.get('state', ''),
+        'zip': x.get('zip', ''),
+        'county': x.get('county', ''),
+        'sic': x.get('sic_code', ''),
+        'sic_code': x.get('sic_code', ''),
+        'address': x.get('address', ''),
+        'city_state_zip': x.get('city_state_zip', ''),
+        'primary_contact': x.get('primary_contact', ''),
+        'rate_guarantee': x.get('rate_guarantee', ''),
+        'tier_counts': x.get('tier_counts') or {},
+        'tier_counts_by_line': x.get('tier_counts_by_line') or {},
+        'total_employees': _int_or_blank(x.get('total_employees')) or enrolling,
+        'eligible_employees': _int_or_blank(x.get('eligible_employees')) or enrolling,
+        'enrolling_employees': enrolling,
+        'waiving_employees': _int_or_blank(x.get('waiving_employees')),
+        'total_members': _int_or_blank(x.get('total_members')),
         'presenter_name': 'The Benefits Group',
         'presenter_phone': '(615) 560-3667',
         'presenter_email': 'happy@benefits.place',
         'agency': 'The Benefits Group',
     }
 
-    CONTRIBUTIONS = {
-        'medical_ee': contributions.get('medical_ee', '50%'),
-        'medical_dep': contributions.get('medical_dep', '0%'),
-        'dental_ee': contributions.get('dental_ee', '0%'),
-        'dental_dep': contributions.get('dental_dep', '0%'),
-        'vision_ee': contributions.get('vision_ee', '0%'),
-        'vision_dep': contributions.get('vision_dep', '0%'),
-        'life': '100% employee only',
-    }
+    xc = x.get('contributions') or {}
+
+    def _contrib(key):
+        v = contributions.get(key)
+        return v if v not in (None, '') else xc.get(key, 'TBD')
+
+    CONTRIBUTIONS = {k: _contrib(k) for k in
+                     ('medical_ee', 'medical_dep', 'dental_ee', 'dental_dep', 'vision_ee', 'vision_dep')}
+    CONTRIBUTIONS['life'] = xc.get('life', '')
 
     # Selected plan names
     med_sel = parse_plan_names(medical_plans_str)
@@ -202,12 +247,31 @@ def build_client_and_plans(client_name, effective_date, quote_id, enrolling_empl
                 p['include'] = bool(default_include_all)
             return all_plans
 
-        for p in all_plans:
-            p['include'] = any(
-                sel.lower().strip() in p['plan_name'].lower() or
-                p['plan_name'].lower() in sel.lower().strip()
-                for sel in selected_names
-            )
+        # The selector joins the chosen names with commas, but plan names can contain commas
+        # ("... (illustrative, subject to IMQs)"), so first match whole names against the joined
+        # string. Only selection pieces no whole name accounts for fall back to the old loose
+        # match — exact first, then substring. Substring-only matching made "GA 1.2A DMO" also
+        # pull in "GA 1.2A DMO Ortho", and "subject to IMQs)" pull in every illustrative plan.
+        def norm(t):
+            return ','.join(x.strip().lower() for x in re.split(r'[,\n]', t or ''))
+        raw = ',' + norm(','.join(selected_names)) + ','
+        names = [(p.get('plan_name') or '').strip() for p in all_plans]
+        include = [bool(n) and (',' + norm(n) + ',') in raw for n in names]
+        covered = set()
+        for n, inc in zip(names, include):
+            if inc:
+                covered.update(norm(n).split(','))
+        for sel in selected_names:
+            s_ = sel.lower().strip()
+            if s_ in covered:
+                continue
+            hits = [i for i, n in enumerate(names) if n.lower() == s_]
+            if not hits:
+                hits = [i for i, n in enumerate(names) if n and (s_ in n.lower() or n.lower() in s_)]
+            for i in hits:
+                include[i] = True
+        for p, inc in zip(all_plans, include):
+            p['include'] = inc
         return all_plans
 
     # True only when the caller sent no selection fields whatsoever (legacy payload).
@@ -228,7 +292,7 @@ def run_pipeline(client_name, effective_date, quote_id, task_id, notes,
                  medical_plans='', dental_plans='', vision_plans='',
                  enrolling_employees='', contributions=None,
                  all_medical_json='', all_dental_json='', all_vision_json='',
-                 selector_url=''):
+                 selector_url='', client_extra=None):
 
     print(f"=== PIPELINE START: {client_name} ===", flush=True)
 
@@ -238,10 +302,12 @@ def run_pipeline(client_name, effective_date, quote_id, task_id, notes,
         if contributions is None:
             contributions = {}
 
+        if not client_extra:
+            client_extra = selector_client_data(selector_url, scrub_name(client_name.replace(' — Review for Proposal', '')))
         CLIENT, CONTRIBUTIONS, MEDICAL_PLANS, DENTAL_PLANS, VISION_PLANS = build_client_and_plans(
             client_name, effective_date, quote_id, enrolling_employees, contributions,
             medical_plans, dental_plans, vision_plans,
-            all_medical_json, all_dental_json, all_vision_json
+            all_medical_json, all_dental_json, all_vision_json, client_extra
         )
 
         clean_name = CLIENT['name']
@@ -270,6 +336,9 @@ def run_pipeline(client_name, effective_date, quote_id, task_id, notes,
         inc_med = [p['plan_name'] for p in MEDICAL_PLANS if p.get('include')]
         inc_den = [p['plan_name'] for p in DENTAL_PLANS  if p.get('include')]
         inc_vis = [p['plan_name'] for p in VISION_PLANS  if p.get('include')]
+        from proposal_fields import is_illustrative
+        illus = [p['plan_name'] for p in MEDICAL_PLANS + DENTAL_PLANS + VISION_PLANS
+                 if p.get('include') and is_illustrative(p)]
         print(f"Including medical: {inc_med}", flush=True)
         print(f"Including dental:  {inc_den}", flush=True)
         print(f"Including vision:  {inc_vis}", flush=True)
@@ -360,6 +429,8 @@ def run_pipeline(client_name, effective_date, quote_id, task_id, notes,
             f"Medical ({len(inc_med)}): {', '.join(inc_med) if inc_med else 'None selected'}\n"
             f"Dental ({len(inc_den)}): {', '.join(inc_den) if inc_den else 'None selected'}\n"
             f"Vision ({len(inc_vis)}): {', '.join(inc_vis) if inc_vis else 'None selected'}\n\n"
+            + (f"⚠️ Illustrative (subject to underwriting), labeled on the proposal: {', '.join(illus)}\n\n" if illus else "")
+            + f""
             f"🔄 Revise selections: {selector_url}\n(A backup copy of this page is also in the client's Quoting/3. Proposal folder.)\n\n"
             f"Generated: {datetime.now().strftime('%B %d, %Y at %I:%M %p')}"
         )
@@ -430,6 +501,18 @@ def generate():
     all_dental_json  = decode_plan_field(all_dental_json)
     all_vision_json  = decode_plan_field(all_vision_json)
 
+    # The selector page's CLIENT_DATA (group profile, tier counts). Used when the Zap forwards
+    # it; otherwise run_pipeline reads it from the live selector page.
+    def _as_dict(v):
+        if isinstance(v, dict):
+            return v
+        try:
+            v = _j.loads(v) if v else {}
+            return v if isinstance(v, dict) else {}
+        except Exception:
+            return {}
+    client_extra = _as_dict(data.get('client'))
+
     # Also check raw_payload for enrolling_employees and selector_url
     raw_payload = data.get('raw_payload', '')
     if raw_payload:
@@ -440,6 +523,8 @@ def generate():
                     enrolling_employees = str(raw.get('enrolling_employees', ''))
                 if not selector_url:
                     selector_url = raw.get('selector_url', '')
+                if not client_extra:
+                    client_extra = _as_dict(raw.get('client'))
         except Exception:
             pass
 
@@ -447,12 +532,12 @@ def generate():
 
     # Contributions
     contributions = {
-        'medical_ee':  data.get('contributions_medical_ee', '50%'),
-        'medical_dep': data.get('contributions_medical_dep', '0%'),
-        'dental_ee':   data.get('contributions_dental_ee', '0%'),
-        'dental_dep':  data.get('contributions_dental_dep', '0%'),
-        'vision_ee':   data.get('contributions_vision_ee', '0%'),
-        'vision_dep':  data.get('contributions_vision_dep', '0%'),
+        'medical_ee':  data.get('contributions_medical_ee', ''),
+        'medical_dep': data.get('contributions_medical_dep', ''),
+        'dental_ee':   data.get('contributions_dental_ee', ''),
+        'dental_dep':  data.get('contributions_dental_dep', ''),
+        'vision_ee':   data.get('contributions_vision_ee', ''),
+        'vision_dep':  data.get('contributions_vision_dep', ''),
     }
 
     print(f"Received: {client_name} | task: {task_id}", flush=True)
@@ -468,7 +553,7 @@ def generate():
         medical_plans, dental_plans, vision_plans,
         enrolling_employees, contributions,
         all_medical_json, all_dental_json, all_vision_json,
-        selector_url
+        selector_url, client_extra
     )
 
     if success:

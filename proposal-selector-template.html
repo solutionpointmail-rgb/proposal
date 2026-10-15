@@ -45,8 +45,12 @@
   .badge-blue { background: #EBF4FF; color: #2B6CB0; }
   .badge-green { background: #EAF7F1; color: #276749; }
   .badge-gold { background: #FFFFF0; color: #975A16; }
+  .badge-illus { background: #FEF3C7; color: #B45309; border: 1px solid #F59E0B; }
+  .plan-card.illus { border-style: dashed; }
   .card-details { border-top: 1px solid #E2E8F0; padding-top: 8px; }
-  .card-detail-row { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 3px; }
+  .card-detail-row { display: flex; justify-content: space-between; gap: 10px; font-size: 11px; margin-bottom: 3px; }
+  .card-detail-row span:first-child { flex: 0 0 42%; }
+  .card-detail-row span:last-child { text-align: right; }
   .card-detail-row span:first-child { color: #718096; }
   .card-detail-row span:last-child { color: #2D3748; font-weight: 500; }
   .carrier-group { margin-bottom: 16px; }
@@ -88,7 +92,7 @@
     <div class="hero-label">Proposal plan selection</div>
     <div class="hero-title">{{CLIENT_NAME}}</div>
     <div class="hero-meta">
-      <span>&#128197; <strong>Effective:</strong> August 1, 2026</span>
+      <span>&#128197; <strong>Effective:</strong> {{EFFECTIVE_DATE}}</span>
       <span>&#128101; <strong>Employees:</strong> {{EMPLOYEE_COUNT}} enrolling</span>
     </div>
   </div>
@@ -101,7 +105,7 @@
     <div class="section-header">
       <div class="section-icon icon-medical">&#10010;</div>
       <div class="section-title">Medical Coverage</div>
-      <div class="section-contrib">EE TBD / Dep TBD</div>
+      <div class="section-contrib">EE {{MEDICAL_EE_CONTRIB}} / Dep {{MEDICAL_DEP_CONTRIB}}</div>
     </div>
     <div id="medical-plans"></div>
   </div>
@@ -109,7 +113,7 @@
     <div class="section-header">
       <div class="section-icon icon-dental">&#9673;</div>
       <div class="section-title">Dental Coverage</div>
-      <div class="section-contrib">EE 0% / Dep 0%</div>
+      <div class="section-contrib">EE {{DENTAL_EE_CONTRIB}} / Dep {{DENTAL_DEP_CONTRIB}}</div>
     </div>
     <div id="dental-plans"></div>
   </div>
@@ -117,7 +121,7 @@
     <div class="section-header">
       <div class="section-icon icon-vision">&#128065;</div>
       <div class="section-title">Vision Coverage</div>
-      <div class="section-contrib">EE 0% / Dep 0%</div>
+      <div class="section-contrib">EE {{VISION_EE_CONTRIB}} / Dep {{VISION_DEP_CONTRIB}}</div>
     </div>
     <div id="vision-plans"></div>
   </div>
@@ -144,25 +148,44 @@ const PLAN_DATA = {
 };
 const selections = {medical:{},dental:{},vision:{}};
 
-function formatMoney(n){return '$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function formatMoney(n){const x=Number(String(n).replace(/[^0-9.\-]/g,''));return isFinite(x)&&String(n)!==''?'$'+x.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';}
+function v(x){if(x===undefined||x===null)return '—';if(x===true)return 'Yes';if(x===false)return 'No';const s=String(x).trim();return (!s||/^see sbc$/i.test(s))?'—':s.replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function isIllus(p){if(p.illustrative===true)return true;if(p.illustrative===false)return false;return /illustrat|\bimqs?\b|health questionnaire|need(s)? apps|requires? apps|indicative|not sellable/i.test([p.quote_status,p.quote_type,p.quote_status_note,p.plan_name,p.carrier].join(' '));}
+function row(label,val){return `<div class="card-detail-row"><span>${label}</span><span>${v(val)}</span></div>`;}
+function pair(a,b){const x=v(a),y=v(b);return x==='—'&&y==='—'?'—':`${x} / ${y}`;}
+function cardShell(line,prefix,plan,idx,badges,rows){
+  const id=prefix+idx; selections[line][id]=plan.include!==false;
+  const sel=selections[line][id], ill=isIllus(plan);
+  const b=(ill?'<span class="badge badge-illus">ILLUSTRATIVE · subject to underwriting</span>':'')+badges;
+  return `<div class="plan-card ${sel?'selected':''} ${ill?'illus':''}" id="${id}" onclick="toggle('${line}','${id}')"><div class="check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div class="card-carrier">${v(plan.carrier)}</div><div class="card-name">${v(plan.plan_name)}</div><div class="card-premium">${formatMoney(plan.monthly_premium)}</div><div class="card-premium-label">total monthly cost</div><div class="card-badges">${b}</div><div class="card-details">${rows}</div></div>`;
+}
 
 function renderMedicalCard(plan,idx){
-  const id='med-'+idx; selections.medical[id]=plan.include!==false;
-  const sel=selections.medical[id];
-  const badges=[plan.plan_type?`<span class="badge badge-blue">${plan.plan_type}</span>`:'',plan.funding?`<span class="badge badge-green">${plan.funding}</span>`:'',plan.hsa_eligible?`<span class="badge badge-gold">HSA eligible</span>`:''].join('');
-  return `<div class="plan-card ${sel?'selected':''}" id="${id}" onclick="toggle('medical','${id}')"><div class="check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div class="card-carrier">${plan.carrier}</div><div class="card-name">${plan.plan_name}</div><div class="card-premium">${formatMoney(plan.monthly_premium)}</div><div class="card-premium-label">total monthly cost</div><div class="card-badges">${badges}</div><div class="card-details"><div class="card-detail-row"><span>Deductible (Ind)</span><span>${plan.deductible_in_ind}</span></div><div class="card-detail-row"><span>OOP Max (Ind)</span><span>${plan.oop_in_ind}</span></div><div class="card-detail-row"><span>Coinsurance</span><span>${plan.coinsurance_in}</span></div><div class="card-detail-row"><span>Doctor visit</span><span>${plan.doctor_visit}</span></div><div class="card-detail-row"><span>EE only rate</span><span>${formatMoney(plan.rate_ee)}/mo</span></div></div></div>`;
+  const badges=[plan.plan_type?`<span class="badge badge-blue">${v(plan.plan_type)}</span>`:'',plan.funding?`<span class="badge badge-green">${v(plan.funding)}</span>`:'',plan.hsa_eligible===true?`<span class="badge badge-gold">HSA eligible</span>`:''].join('');
+  return cardShell('medical','med-',plan,idx,badges,
+    row('Deductible (Ind / Fam)',pair(plan.deductible_in_ind,plan.deductible_in_fam))+
+    row('OOP max (Ind / Fam)',pair(plan.oop_in_ind,plan.oop_in_fam))+
+    row('Coinsurance',plan.coinsurance_in)+row('Doctor / specialist',pair(plan.doctor_visit,plan.specialist))+
+    row('Urgent care / ER',pair(plan.urgent_care,plan.er))+row('Rx',plan.rx)+
+    row('EE only rate',formatMoney(plan.rate_ee)+'/mo'));
 }
 
 function renderDentalCard(plan,idx){
-  const id='den-'+idx; selections.dental[id]=plan.include!==false;
-  const sel=selections.dental[id];
-  return `<div class="plan-card ${sel?'selected':''}" id="${id}" onclick="toggle('dental','${id}')"><div class="check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div class="card-carrier">${plan.carrier}</div><div class="card-name">${plan.plan_name}</div><div class="card-premium">${formatMoney(plan.monthly_premium)}</div><div class="card-premium-label">total monthly cost</div><div class="card-badges"><span class="badge badge-blue">${plan.plan_type}</span></div><div class="card-details"><div class="card-detail-row"><span>Ded Ind/Fam</span><span>${plan.deductible_in_ind}/${plan.deductible_in_fam}</span></div><div class="card-detail-row"><span>Annual max</span><span>${plan.annual_max_in}</span></div><div class="card-detail-row"><span>Preventive</span><span>${plan.preventive}</span></div><div class="card-detail-row"><span>Basic / Major</span><span>${plan.basic} / ${plan.major}</span></div></div></div>`;
+  const badges=plan.plan_type?`<span class="badge badge-blue">${v(plan.plan_type)}</span>`:'';
+  return cardShell('dental','den-',plan,idx,badges,
+    row('Deductible (Ind / Fam)',pair(plan.deductible_in_ind,plan.deductible_in_fam))+
+    row('Annual max',plan.annual_max_in)+row('Preventive / basic / major',[plan.preventive,plan.basic,plan.major].map(v).join(' / '))+
+    row('Endo / perio',pair(plan.endodontics,plan.periodontics))+row('Orthodontia',plan.ortho||plan.ortho_max)+
+    row('EE only rate',formatMoney(plan.rate_ee)+'/mo'));
 }
 
 function renderVisionCard(plan,idx){
-  const id='vis-'+idx; selections.vision[id]=plan.include!==false;
-  const sel=selections.vision[id];
-  return `<div class="plan-card ${sel?'selected':''}" id="${id}" onclick="toggle('vision','${id}')"><div class="check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div class="card-carrier">${plan.carrier}</div><div class="card-name">${plan.plan_name}</div><div class="card-premium">${formatMoney(plan.monthly_premium)}</div><div class="card-premium-label">total monthly cost</div><div class="card-badges"><span class="badge badge-blue">${plan.plan_type}</span></div><div class="card-details"><div class="card-detail-row"><span>Exam</span><span>${plan.exam_frequency}</span></div><div class="card-detail-row"><span>Lenses</span><span>${plan.lenses_frequency}</span></div><div class="card-detail-row"><span>Frames</span><span>${plan.frames_frequency}</span></div></div></div>`;
+  const badges=plan.plan_type?`<span class="badge badge-blue">${v(plan.plan_type)}</span>`:'';
+  return cardShell('vision','vis-',plan,idx,badges,
+    row('Exam / materials copay',pair(plan.exam_copay,plan.materials_copay))+
+    row('Frames / contacts',pair(plan.frame_allowance,plan.contacts_allowance))+
+    row('Frequency (exam / lens / frame)',[plan.exam_frequency,plan.lenses_frequency,plan.frames_frequency].map(v).join(' / '))+
+    row('EE only rate',formatMoney(plan.rate_ee)+'/mo'));
 }
 
 function groupByCarrier(plans){const g={};plans.forEach((p,i)=>{if(!g[p.carrier])g[p.carrier]=[];g[p.carrier].push({plan:p,idx:i});});return g;}

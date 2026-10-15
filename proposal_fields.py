@@ -11,14 +11,14 @@ can never disagree about which benefits a plan shows.
 Rules the generators follow:
   * A value that is missing, blank or the legacy placeholder "See SBC" is treated as not stated.
   * A row is shown when at least one included plan in that coverage line has a value; a plan
-    that lacks it shows an em dash, explained once in the disclaimers.
+    that lacks it shows "See SBC" (Will prefers that to a dash).
   * A plan is ILLUSTRATIVE when it says so (illustrative: true, or quote_status / name / notes
     mention illustrative, IMQs, health questionnaires, apps required, indicative, not sellable).
     Illustrative plans are labelled on the card, on the cover, in the Excel and in the disclaimers.
 """
 import re
 
-MISSING = "—"   # em dash
+MISSING = "See SBC"   # final fallback when the quote does not state a value (Will, 2026-10-15)
 
 # ── ROW SPECS ─────────────────────────────────────────────────────────────────
 # ("section", title) starts a group; ("row", label, key) is one value; ("pair", label, k1, k2)
@@ -315,7 +315,8 @@ ILLUSTRATIVE_DISCLAIMER = (
 
 SUMMARY_DISCLAIMER = (
     "Benefits shown are a summary. The carrier's Summary of Benefits and Coverage and plan documents "
-    "govern. A dash (—) means the carrier's quote did not state that benefit."
+    "govern. \"See SBC\" means the carrier's quote did not state that benefit; see the carrier's "
+    "Summary of Benefits and Coverage."
 )
 
 CARRIER_DISCLAIMERS = {

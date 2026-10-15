@@ -241,7 +241,7 @@ Otherwise, look in "[Client]/Quoting/3. Proposal" for an existing file matching 
 Otherwise (no draft yet in either Drive or Dropbox, or newer files have landed since the last draft AND the cooldown has expired or doesn't apply), proceed to Step A6.
 
 STEP A6 — Build the analysis (for each ready, out-of-date client)
-Read the actual quote documents (PDFs/xlsx, including the carrier's benefit summaries and SBCs that sit in the same folder) inside each matched response subfolder in "2. Quotes" (including any "asking for apps" carrier that happens to have responded) and extract EVERY field in the SELECTOR SCHEMA v2 field list in Step A7B — medical, dental and vision alike — not just deductible, OOP, coinsurance and copays. The comparison tables still show the benchmark columns below, but the full extraction is what the client proposal is built from: anything not extracted here prints as a dash on the proposal (Will, 2026-10-15: "ALL of the information is already in the quotes"). Also record whether each quote is ILLUSTRATIVE (see Step A7B). Monthly premium by tier for all four tiers. Multiply by the actual census tier counts for that client (found in "1. Census" or within the quotes themselves) to get fully-loaded group monthly cost. Apply these rules, established and confirmed by Will:
+Read the actual quote documents (PDFs/xlsx, including the carrier's benefit summaries and SBCs that sit in the same folder) inside each matched response subfolder in "2. Quotes" (including any "asking for apps" carrier that happens to have responded) and extract EVERY field in the SELECTOR SCHEMA v2 field list in Step A7B — medical, dental and vision alike — not just deductible, OOP, coinsurance and copays. The comparison tables still show the benchmark columns below, but the full extraction is what the client proposal is built from: anything not extracted here prints as "See SBC" on the proposal (Will, 2026-10-15: "ALL of the information is already in the quotes"). Also record whether each quote is ILLUSTRATIVE (see Step A7B). Monthly premium by tier for all four tiers. Multiply by the actual census tier counts for that client (found in "1. Census" or within the quotes themselves) to get fully-loaded group monthly cost. Apply these rules, established and confirmed by Will:
 - Any response folder with "DTQ" in its name means that carrier declined to quote — EXCLUDE it entirely from benchmarking tables (it had no quote to compare).
 - Any response folder with "NOT COMP" in its name means the broker flagged it as NOT COMPETITIVE (not "not comparable") — include it in the doc but clearly labeled as not competitive / reference-only, excluded from the primary recommendation.
 - If a current/incumbent renewal quote was found in Step A4B, extract the same benchmark fields from it (deductible, OOP max, coinsurance, copays, premium by tier) and include it as a distinct "Current Plan / Renewal" entry, labeled with the incumbent carrier's actual name (e.g., "Beam Benefits — Current Plan Renewal") — do not fold it into the shopped-carrier benchmarking table as if it were a competing RFP response; give it its own clearly-labeled row/column so it's obviously the baseline, not one of the quotes Will requested. This entry always appears in the Executive Summary and benchmark table(s) when found — most importantly on a client where every shopped carrier is DTQ, where it may be the only real numbers in the whole document.
@@ -277,8 +277,9 @@ keys, so dental and vision cards printed "See SBC" on every line.
 Value rules:
 - Write values the way a client reads them, short: "$2,000", "20%", "$35", "20% after deductible",
   "100%, no deductible", "Not covered", "Per DMO copay schedule", "Every 12 months".
-- Use "" ONLY when no document in the carrier's folder states it. Never write "See SBC", "TBD" or
-  "N/A - see SBC" — go to the SBC / benefit summary and get the value.
+- Use "" ONLY when no document in the carrier's folder states it; the proposal then prints "See SBC"
+  as the final fallback. Don't write "See SBC", "TBD" or "N/A" yourself — go to the SBC / benefit
+  summary and get the value first.
 - Out-of-network on an in-network-only plan (EPO, DMO, INO): "Not covered".
 - Numbers for rates and premium (591.81, not "$591.81").
 - notes: one or two client-appropriate sentences (accrual basis, network rule, wellness perks,
@@ -433,7 +434,7 @@ IMPORTANT: Verify after replacement that the HTML contains actual plan data (sea
 9. Since the GitHub push is expected to be blocked (see KNOWN ENVIRONMENT LIMITATIONS), always do this: save the HTML to Dropbox as normal (this text-file save works fine), add this warning at the top of the Asana task description: "⚠️ Selector page generation failed — upload manually to GitHub (HTML saved to Dropbox Quoting/3. Proposal folder)", and continue — do NOT block the Asana task creation, and do NOT spend a retry attempting the push first.
 
 SELECTOR SCHEMA v2 REBUILD (2026-10-15): a selector page whose CLIENT_DATA lacks "schema": 2 was
-built under the old thin schema and makes a proposal full of dashes. On an on-demand run (mode A)
+built under the old thin schema and makes a proposal full of "See SBC". On an on-demand run (mode A)
 for a client whose selector page lacks it, rebuild the selector page (Step A7B/B7B) under v2 even
 when the comparison .docx is current — re-read the quote documents for the full field list. The
 docx does not need rebuilding for this alone. On the scheduled sweep, rebuild it for any client that
@@ -448,7 +449,7 @@ Validation checklist before pushing HTML:
 - {{QUOTE_ID}} replaced
 - All 6 {{..._CONTRIB}} fields replaced
 - HTML contains the word "carrier" at least once (proves plan data is embedded)
-- CLIENT_DATA contains "schema": 2 and tier_counts; no plan value is "See SBC"
+- CLIENT_DATA contains "schema": 2 and tier_counts; "See SBC" is never written into a plan value (leave "" instead)
 - Every plan has "illustrative" set to true or false; dental plans have annual_max_in, preventive,
   basic and major; vision plans have exam_copay, frame_allowance and exam_frequency (or "" only where
   no document states it)

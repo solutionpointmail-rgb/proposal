@@ -639,7 +639,8 @@ def coverage_pages(story, line, plans):
         block = [page_title(title, f"{line.title()} employer contribution",
                             F.contribution_text(CONTRIBUTIONS, line), LINE_COLORS[line], kind=line)]
         n_ill = sum(1 for p in chunk if F.is_illustrative(p))
-        avail = FRAME_H - block[0].wrap(CONTENT_W, FRAME_H)[1] - 4
+        # The page frame keeps 6pt padding top and bottom, so 12pt less than FRAME_H is usable.
+        avail = FRAME_H - 12 - block[0].wrap(CONTENT_W, FRAME_H)[1] - 6
         if n_ill:
             co = illustrative_callout(n_ill)
             block += [co, Spacer(1, 6)]

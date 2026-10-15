@@ -44,11 +44,27 @@ If a payload names a group, still run the whole check.
 
 ## 1. Pull the pipeline from Odoo
 
-**Tool:** Zapier MCP → `execute_zapier_read_action`, `selected_api: OdooCLIAPI`, `action: lead`, `params: {}`. The connection is `will@benefits.place @ the-benefits-group.odoo.com`.
+**Primary source — read Odoo directly (added 10/15):**
 
-- The response is large, often 400k+ characters. When it truncates, read the saved copy and parse it with code rather than skimming it.
-- **The feed returns only the 100 most recent records.** Older open opportunities can fall off it, which is why Step 1b exists.
-- Filter on `type == "opportunity"`, `active == true`, and `stage_id[1]` in the in-scope list.
+    curl -sS --max-time 120 https://proposal-fgqm.onrender.com/odoo-pipeline -o odoo.json
+
+No auth header: the environment's network secret adds it. Render cold-starts: on a timeout or 502/503,
+wait 30 seconds and retry once. A response with `"status":"success"` holds **every** active opportunity
+in Odoo (`records`, each with `stage` as plain text) plus the stage list (`stages`). Parse it with code.
+This is complete, so when it succeeds, Odoo's stage for every group is known: a group with active work
+that is missing from it is genuinely not an open opportunity in Odoo (Step 1b, "not in Odoo").
+
+**Fallback — only if /odoo-pipeline fails** (any non-success response, including 503 "not configured"):
+Zapier MCP → `execute_zapier_read_action`, `selected_api: OdooCLIAPI`, `action: lead`, `params: {}`.
+The connection is `will@benefits.place @ the-benefits-group.odoo.com`. Put "Odoo read through the Zapier
+feed (100 most recent records only); direct read failed: <reason>" in the run `gaps`.
+- That response is large, often 400k+ characters. When it truncates, read the saved copy and parse it with
+  code rather than skimming it.
+- **The feed returns only the 100 most recently created records.** Older open opportunities fall off it,
+  which is what Step 1b handles.
+
+**Either way:**
+- Filter on `type == "opportunity"`, `active == true`, and the stage name in the in-scope list.
 - Capture these fields for each group:
   - `id`, `name`, `partner_name`, `contact_name`, `email_from`, `email_domain_criterion`
   - `stage_id[1]`, `date_last_stage_update`, `date_deadline` (used as the effective date when filled)
@@ -57,7 +73,12 @@ If a payload names a group, still run the whole check.
 - De-duplicate by email domain and keep the record in the most advanced stage.
 - For free-mail addresses (gmail, yahoo, etc.), match on the full address instead of the domain.
 
-### 1b. Safety net: catch groups the Odoo feed missed
+### 1b. Safety net: catch groups the Odoo read missed
+
+When the direct read (/odoo-pipeline) succeeded, a group with active work that is not among its open
+opportunities is a real gap: flag it ⚪ "Active quoting work but no open opportunity in Odoo" and list it
+under Section C with "not in Odoo". The "older than the feed" rules below apply only when the Zapier
+fallback was used.
 - List the direct child folders of Hot Leads (Step 2).
 - List the **active (non-archived)** Asana projects whose name contains `Quoting` (Step 4).
 - Compare both lists with the Odoo feed (match by normalized name and email domain, as in Step 2):
@@ -275,7 +296,7 @@ One row per in-scope group, with these columns:
 - Asana project ✓/✗
 
 #### Section C — Odoo stage doesn't match the work
-List only the real mismatches from Step 1b: groups with active quoting work that the Odoo feed shows as WON, OPPORTUNITY LOST, or a RENEWAL stage. Give the stage Odoo shows. Groups that are simply missing from the feed are NOT listed here; they are in the exceptions and grid with stage "Odoo stage unknown (older than the feed)". If there are none, leave `outside` empty.
+List only the real mismatches from Step 1b: groups with active quoting work that Odoo shows as NEW, WON, OPPORTUNITY LOST, or a RENEWAL stage (give the stage Odoo shows), and — when the direct Odoo read succeeded — groups with active work and no open opportunity in Odoo at all ("not in Odoo"). When only the Zapier fallback was available, groups simply missing from the feed are NOT listed here; they are in the exceptions and grid with stage "Odoo stage unknown (older than the feed)". If there are none, leave `outside` empty.
 
 #### Section D — Run notes
 - Run timestamp in Central time

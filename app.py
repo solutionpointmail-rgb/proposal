@@ -874,6 +874,62 @@ def tool_font(name):
 
 
 # ============================================================
+# ODOO PIPELINE (read-only)
+# The Zapier Odoo feed only returns the 100 most recently created records, so older
+# opportunities fall off it. This reads every active opportunity straight from Odoo's
+# external API. Read-only: it only calls search_read.
+#
+#   GET /odoo-pipeline            (X-TBG-Secret required; the routine environment adds it)
+#
+# Render environment variables:
+#   ODOO_URL      https://the-benefits-group.odoo.com
+#   ODOO_LOGIN    will@benefits.place          (the Odoo user the API key belongs to)
+#   ODOO_API_KEY  <a key made in Odoo: My Profile > Account Security > Add API Key>
+#   ODOO_DB       optional; defaults to the subdomain of ODOO_URL
+# ============================================================
+_ODOO_FIELDS = ['id', 'name', 'partner_name', 'contact_name', 'email_from', 'email_domain_criterion',
+                'stage_id', 'date_last_stage_update', 'date_deadline', 'create_date', 'write_date',
+                'expected_revenue', 'user_id', 'description', 'type', 'active']
+
+
+@app.route('/odoo-pipeline', methods=['GET'])
+def odoo_pipeline():
+    import re as _re
+    import xmlrpc.client as _x
+    if not _tbg_authorized():
+        return jsonify({'error': 'unauthorized'}), 401
+    url = os.environ.get('ODOO_URL', '').rstrip('/')
+    login = os.environ.get('ODOO_LOGIN', '')
+    key = os.environ.get('ODOO_API_KEY', '')
+    if not (url and login and key):
+        return jsonify({'error': 'Odoo is not configured on Render (ODOO_URL, ODOO_LOGIN, ODOO_API_KEY)'}), 503
+    db = os.environ.get('ODOO_DB') or _re.sub(r'^https?://', '', url).split('.')[0]
+    try:
+        common = _x.ServerProxy(f'{url}/xmlrpc/2/common', allow_none=True)
+        uid = common.authenticate(db, login, key, {})
+        if not uid:
+            return jsonify({'error': 'Odoo rejected the login or API key', 'db': db}), 502
+        models = _x.ServerProxy(f'{url}/xmlrpc/2/object', allow_none=True)
+        include_leads = request.args.get('leads', '') == '1'
+        domain = [['active', '=', True]]
+        if not include_leads:
+            domain.append(['type', '=', 'opportunity'])
+        rows = models.execute_kw(db, uid, key, 'crm.lead', 'search_read', [domain],
+                                 {'fields': _ODOO_FIELDS, 'limit': 2000, 'order': 'write_date desc'})
+        stages = models.execute_kw(db, uid, key, 'crm.stage', 'search_read', [[]],
+                                   {'fields': ['id', 'name', 'sequence', 'is_won'], 'order': 'sequence'})
+    except Exception as e:
+        print(f"❌ odoo-pipeline error: {e}", flush=True)
+        return jsonify({'error': f'Odoo call failed: {e}', 'db': db}), 502
+    for r in rows:
+        desc = r.get('description') or ''
+        r['description'] = _re.sub(r'<[^>]+>', ' ', desc).strip()[:2000] if desc else ''
+        st = r.get('stage_id')
+        r['stage'] = st[1] if isinstance(st, list) and len(st) > 1 else ''
+    return jsonify({'status': 'success', 'count': len(rows), 'stages': stages, 'records': rows}), 200
+
+
+# ============================================================
 # LATEST NEW BUSINESS PIPELINE CHECK
 # The Pipeline Check routine files each run's PDF and HTML into PIPELINE_REPORT_FOLDER
 # with /save-file. This serves the newest one to the Action Center's "Open latest report"

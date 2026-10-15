@@ -874,6 +874,93 @@ def tool_font(name):
 
 
 # ============================================================
+# CORRECTLY-TYPED ATTACHMENT LINKS FOR CARRIER EMAILS
+# Asana's download links serve spreadsheets as text/plain, and Zapier passes that type on, so
+# carriers' encrypted-mail viewers could not open the census. The Send Carrier Emails routine asks
+# for a short-lived link here instead; the link serves the same Asana file with the right type and
+# file name.
+#   POST /attachment-link   {"attachment_gid": "123"}   (X-TBG-Secret; the routine environment adds it)
+#     -> {"status":"success","url":"https://.../attachment-file/<gid>/<exp>/<sig>/<file name>", ...}
+#   GET  /attachment-file/<gid>/<exp>/<sig>/<name>      (no auth; signed, valid 20 minutes)
+# ============================================================
+_MIME_BY_EXT = {
+    '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    '.xls': 'application/vnd.ms-excel',
+    '.csv': 'text/csv',
+    '.pdf': 'application/pdf',
+    '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    '.doc': 'application/msword',
+    '.zip': 'application/zip',
+}
+_LINK_TTL = 20 * 60
+
+
+def _link_sig(gid, exp):
+    import hmac, hashlib
+    key = (TBG_SECRET or 'unset').encode()
+    return hmac.new(key, f'{gid}|{exp}'.encode(), hashlib.sha256).hexdigest()[:32]
+
+
+def _asana_attachment(gid):
+    import requests as _rq
+    r = _rq.get(f'https://app.asana.com/api/1.0/attachments/{gid}',
+                headers={'Authorization': f"Bearer {os.environ['ASANA_TOKEN']}"},
+                params={'opt_fields': 'name,size,download_url,host'}, timeout=25)
+    r.raise_for_status()
+    return r.json().get('data', {})
+
+
+@app.route('/attachment-link', methods=['POST'])
+def attachment_link():
+    import time as _t
+    from urllib.parse import quote
+    if not _tbg_authorized():
+        return jsonify({'error': 'unauthorized'}), 401
+    data = request.get_json(silent=True) or {}
+    gid = str(data.get('attachment_gid') or '').strip()
+    if not gid.isdigit():
+        return jsonify({'error': 'attachment_gid (numeric) is required'}), 400
+    try:
+        att = _asana_attachment(gid)
+    except Exception as e:
+        return jsonify({'error': f'Asana lookup failed: {e}'}), 502
+    name = att.get('name') or f'attachment-{gid}'
+    ext = os.path.splitext(name)[1].lower()
+    exp = int(_t.time()) + _LINK_TTL
+    url = (f"{request.host_url.rstrip('/').replace('http://', 'https://')}/attachment-file/"
+           f"{gid}/{exp}/{_link_sig(gid, exp)}/{quote(name)}")
+    return jsonify({'status': 'success', 'url': url, 'name': name, 'size': att.get('size'),
+                    'content_type': _MIME_BY_EXT.get(ext, 'application/octet-stream'),
+                    'expires_in_seconds': _LINK_TTL}), 200
+
+
+@app.route('/attachment-file/<gid>/<int:exp>/<sig>/<path:name>', methods=['GET', 'HEAD'])
+def attachment_file(gid, exp, sig, name):
+    import hmac, time as _t
+    import requests as _rq
+    from flask import Response
+    if not gid.isdigit() or exp < _t.time() or not hmac.compare_digest(sig, _link_sig(gid, exp)):
+        return jsonify({'error': 'link expired or invalid'}), 403
+    try:
+        att = _asana_attachment(gid)
+        r = _rq.get(att['download_url'], timeout=60)
+        r.raise_for_status()
+        content = r.content
+    except Exception as e:
+        print(f"❌ attachment-file error: {e}", flush=True)
+        return jsonify({'error': 'could not fetch the file'}), 502
+    real = att.get('name') or name
+    ext = os.path.splitext(real)[1].lower()
+    out = Response(content if request.method == 'GET' else b'',
+                   mimetype=_MIME_BY_EXT.get(ext, 'application/octet-stream'))
+    safe = real.replace('"', '')
+    out.headers['Content-Disposition'] = f'attachment; filename="{safe}"'
+    out.headers['Content-Length'] = str(len(content))
+    out.headers['Cache-Control'] = 'no-store'
+    return out
+
+
+# ============================================================
 # ODOO PIPELINE (read-only)
 # The Zapier Odoo feed only returns the 100 most recently created records, so older
 # opportunities fall off it. This reads every active opportunity straight from Odoo's

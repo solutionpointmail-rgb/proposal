@@ -89,15 +89,26 @@ DB + Asana"), then its "Save Info Sheet" task.
 starting with "AUTO-SEND WAITING", saying "AUTO-SEND WAITING: no census attachment found in Asana for
 [Group]. Attach the census to this task and the next run will send." with an @-mention of Will via
 html_text `<a data-asana-gid="1197850067860922"/>`). For ABA only: if the ATTACH line is missing, also
-attach any file on those tasks whose name contains "claims" or "renewal". Asana download_urls expire quickly, so fetch the attachment
-list (fresh URLs) immediately before each send, never earlier in the run, and pass the download_url(s)
-as the `file` list (array of URLs) in send_email. After a send, confirm the tool result lists the
-attachment (name/size). If the result shows an empty attachments list, treat it as a failed attachment:
+attach any file on those tasks whose name contains "claims" or "renewal". NEVER pass Asana's own download_url to send_email (added 10/15): Asana
+serves spreadsheets as text/plain, and carriers' encrypted-mail viewers could not open the census. Instead,
+immediately before each send (never earlier in the run), get a correctly-typed link for EVERY file you
+will attach, using the attachment's gid from get_attachments:
+
+    curl -sS --max-time 60 -X POST https://proposal-fgqm.onrender.com/attachment-link \
+      -H "Content-Type: application/json" -d '{"attachment_gid": "[attachment gid]"}'
+
+No auth header: the environment's network secret adds it. Render cold-starts: on a timeout or 502/503,
+wait 30 seconds and retry once. Each "status":"success" response has a `url` (valid 20 minutes) that
+serves the same Asana file with the right file type and name. Pass those `url`s as the `file` list (array
+of URLs) in send_email. If any link cannot be made after the retry, do NOT send that email: leave the
+subtask untouched (no SENT or SEND FAILED comment), and report "Held: <carrier> — attachment link service
+unavailable: <error>" so the next run or the button sends it. After a send, confirm the tool result lists
+each attachment by its real name (e.g. "...Census....xlsx", not a random string) and size. If the result shows an empty attachments list, treat it as a failed attachment:
 the email already went out, so log it as "SENT (WARNING: attachment missing)" and notify Will
 immediately.
 
 STEP 4 — SEND. For each candidate that passed Steps 1-3, call send_email with: recipients = TO list,
-ccRecipients = CC list, subject, body, bodyFormat "HTML", file = census URL(s), and the quotes@
+ccRecipients = CC list, subject, body, bodyFormat "HTML", file = the /attachment-link URL(s) from Step 3, and the quotes@
 connection_id. HTML BODY RULES (per Will, 2026-10-10 — the reply-all line must appear in bold): build
 the HTML body from the drafted body text like this: HTML-escape &, < and > in the text; convert each line
 break to <br> (a blank line becomes <br><br>); replace the final line "**PLEASE REPLY ALL TO THIS

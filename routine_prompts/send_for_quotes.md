@@ -7,8 +7,8 @@ You only DRAFT. A separate routine, "TBG Send Carrier Emails", sends the drafts 
 ======================================================================
 DRAFT FORMAT FOR AUTO-SEND — ADDED 2026-10-13, REWRITTEN 2026-10-13 PM
 ======================================================================
-Every carrier subtask that carries an email (everything except the UHCLF / Arlo / SANA portal tasks and
-Imagine360's "schedule a conversation" task) uses EXACTLY this layout in its description. Each label
+Every carrier subtask that carries an email (everything except the UHCLF / Arlo / SANA / Simpara portal
+tasks and Imagine360's "schedule a conversation" task) uses EXACTLY this layout in its description. Each label
 starts its own line. The send routine reads it literally, so nothing may be paraphrased, merged onto one
 line, or rearranged. Square-bracket items are placeholders you fill in; the brackets themselves never
 appear in the draft.
@@ -47,6 +47,32 @@ Rules for the layout:
   line (Step 5b). New-business projects never name the incumbent.
 - The last body line is exactly **PLEASE REPLY ALL TO THIS EMAIL** including the four asterisks; the
   send routine turns it into bold text.
+
+BEAM DENTAL & VISION DRAFT (added 2026-10-15 per Will). Beam's email uses the same labels and rules
+above, with these differences only:
+- SUBJECT: Encrypt - [Group Name] - Beam Dental & Vision Quote Request
+- First body line: "Can you send dental and vision quotes for [Group Name]? [ATTACHMENT LINE]"
+- After the Desired Effective Date line (and after "Current Dental/Vision Carrier: [X]" for a renewal
+  whose current dental/vision carrier is known; leave that line out when it isn't), add a blank line
+  and then exactly:
+
+Dental, 3 plans (no ortho):
+1. 100/80/50, $1,000 annual max, endo and perio at 80%
+2. 100/90/60, $2,000 annual max, endo and perio at 90%
+3. 100/100/60, $5,000 annual max, endo and perio at 100%
+
+Vision, 3 plans:
+1. 12/12/12, $150 frame allowance
+2. 12/12/12, $175 frame allowance
+3. 12/12/12, $200 frame allowance
+
+Please quote at 15% commission.
+
+- Then the usual blank line, "Lindsey", blank line, and **PLEASE REPLY ALL TO THIS EMAIL**.
+- Beam never gets the medical "Current Carrier: [X]" line.
+- Beam's ATTACH line and [ATTACHMENT LINE] cover dental/vision only. Attach the census, plus current
+  DENTAL or VISION plan info only if it exists. Never attach a medical renewal or medical plan document to
+  Beam, and say "current plan info attached" only when dental/vision plan info is actually attached.
 
 RESOLVE SMALL DISCREPANCIES YOURSELF — DO NOT LET THEM HOLD UP QUOTES (per Will, 2026-10-13)
 Carriers verify details along the way, so minor conflicts between documents are not a reason to hold a
@@ -142,7 +168,9 @@ STEPS (Send-for-Quotes logic):
    - Gravie (contacts: Blake Schmeling blake.schmeling@gravie.com, Rob Haire rob.haire@gravie.com, Megan Radermacher megan.radermacher@gravie.com) — best fit 2-4 enrolled (ICHRA) or 15+ enrolled (Level Funded); a group sitting between 5 and 14 enrolled doesn't cleanly fit either bucket, exclude by default in that gap.
    - Edison (contacts: Jacob Bliel jbleil@edisonehs.com, Shawn Williams swilliams@edisonehs.com) = lower priority/optional.
    - Crumdale Partners (contact: Bri Calhoun bcalhoun@crumdalespecialty.com) = requires 25+ enrolled (lowered from 50+ per Will, 2026-08-11).
-   - Simpara / Level Health Plans (contact: Adam Berkowitz adam@levelhealthplans.com) = Level Funded, requires 10+ enrolled, Census-Based underwriting (no employee apps needed). Added to default rotation per Will, 2026-08-11.
+   - Simpara / Level Health Plans = PORTAL only, no outreach email (changed per Will, 2026-10-15). Lindsey uploads the census at https://quote.levelhealthplans.com/login. Level Funded, requires 10+ enrolled, Census-Based underwriting (no employee apps needed). Subtask name: "Simpara / Level Health Plans portal", with a short portal-upload note like UHCLF/Arlo/SANA. Never email Adam Berkowitz (adam@levelhealthplans.com) a quote request. Added to default rotation per Will, 2026-08-11.
+   - Beam = DENTAL & VISION quotes (separate from the medical carriers; added per Will, 2026-10-15). Contact: Marli Griesel, marli.griesel@beambenefits.com. Requires 2+ employees. Commission 15%. Include by default for every group with 2+ enrolling employees whose carrier subtasks you are creating, unless Beam is the group's stated current dental or vision carrier (Step 5a incumbent skip). Subtask name: "Beam (Dental & Vision) - Marli Griesel". The draft follows the BEAM DENTAL & VISION DRAFT rules under the DRAFT FORMAT, with the same AUTO-SEND READY checks as the medical drafts. Do not add Beam to projects whose carrier subtasks were created before 2026-10-15 unless Will asks for that group.
+   - Delta Dental = dental & vision, being added per Will (2026-10-15). Contact and criteria not yet provided: do NOT create Delta Dental subtasks until this line is replaced with its contact, minimum and plan designs.
    - CBC Triad Benefits (contact: Chad Olson chad@navigationhealthllc.com — same GA contact as Angle/Navigation Health/HIT; Program Manager: Triad Benefits, Stop Loss: Odyssey Re, TPA: Securus Benefits, Network: PHCS or Cigna or RBP, PBM: Disclosed Rx) = requires 10+ enrolled, Census-Based underwriting (no employee apps needed). Added to default rotation per Will, 2026-09-01. ONE EMAIL TO CHAD (rewritten 2026-10-13): Chad must never get two emails for the same group. When the group qualifies for CBC Triad (10+ enrolled), do NOT create a separate CBC Triad email subtask — instead name the single Chad subtask "Angle / Navigation Health / HIT / CBC Triad - Chad Olson", use the carrier label "Angle / Navigation Health / HIT / CBC Triad" in its subject, and write it as one draft in the DRAFT FORMAT. A group under 10 enrolled gets the Angle/Navigation Health/HIT subtask without CBC Triad. A group under Angle's 5-employee floor but at 10+ enrolled gets one Chad email for CBC Triad only, named "CBC Triad Benefits - Chad Olson". A group that qualifies for neither gets no Chad email at all.
    - SANA (contact: cal.axe@sanabenefits.com) = PORTAL only, no outreach email needed (like UHCLF/Arlo). Eligibility is state-based, not enrolled-count-based: only include for a group if the business is domiciled in one of these states (employees can live anywhere in the U.S. and still use the plan): AL, AZ, CO, DE, IL, IN, IA, KS, KY, MD, MA, MI, OH, OK, PA, TX, VA, WI. Check the group's Info Sheet / renewal data for the business address state before including — if the state isn't on this list, exclude SANA for that group (note it in your report as excluded-by-state, not a flag). Added to default rotation per Will, 2026-08-12.
    - Imagine360 = requires 50+ enrolled (below 50 is a case-by-case exception). Unlike the other carriers, Imagine360 wants a conversation about the group BEFORE quoting rather than a cold template email — contact is Becky Randles (rrandles@imagine360.com), National Director. Their subtask should read as "schedule a conversation with Becky Randles about this group," NOT include a pre-drafted send-this-verbatim email.
@@ -152,7 +180,7 @@ STEPS (Send-for-Quotes logic):
    - Optimyl, Nationwide/Allstate = excluded from default shortlist (quotes are illustrative, not fully underwritten — Lindsey has sent to these out of old habit, actively discouraged; only add manually if Will specifically wants it for a group).
    - Marpai, 90 Degrees, Emerson Rogers = excluded entirely (not applicable to TBG's business model).
    - BCBS = excluded (fully insured, no underwriting needed — added directly in Benefitter instead).
-   Create one subtask per selected carrier under "Send for Quotes," assigned to Lindsey Diaz (lindsey@benefits.place), named "[Carrier] - [contact/GA name]" (or "[Carrier] portal" for UHCLF/Arlo/SANA). Every email subtask's description is written in the DRAFT FORMAT at the top of these instructions — that layout replaces the older free-text email template. Imagine360 gets its "schedule a conversation with Becky Randles" note instead, and UHCLF/Arlo/SANA get a short portal-upload note instead; none of those three ever carry "AUTO-SEND READY". Set every subtask's `due_on` to one calendar day after this run's date (e.g. a run on Thursday sets Friday as the due date) — applies to every subtask created this run, including portal-only and Imagine360's "schedule a conversation" task.
+   Create one subtask per selected carrier under "Send for Quotes," assigned to Lindsey Diaz (lindsey@benefits.place), named "[Carrier] - [contact/GA name]" (or "[Carrier] portal" for UHCLF/Arlo/SANA, and "Simpara / Level Health Plans portal"). Every email subtask's description is written in the DRAFT FORMAT at the top of these instructions — that layout replaces the older free-text email template. Imagine360 gets its "schedule a conversation with Becky Randles" note instead, and UHCLF/Arlo/SANA/Simpara get a short portal-upload note instead; none of those ever carry "AUTO-SEND READY". Set every subtask's `due_on` to one calendar day after this run's date (e.g. a run on Thursday sets Friday as the due date) — applies to every subtask created this run, including portal-only and Imagine360's "schedule a conversation" task.
 
 5. Current-carrier handling:
    a. UNIVERSAL INCUMBENT-SKIP (per Will, 2026-09-01 — added after a Buffalo River Truss LLC run created a UHCLF subtask even though United Healthcare was their own stated current carrier): for EVERY group, new-business ("Quoting") or renewal alike, check whether the Info Sheet's or renewal data's stated "current carrier" field clearly matches a carrier in the default Send-for-Quotes rotation — including carrier-specific portals/programs that belong to the same underlying carrier (e.g. UHCLF is UnitedHealthcare's own portal, so a stated current carrier of "United Health" / "UnitedHealthcare" / "UHC" matches it). If it clearly matches, auto-skip creating a subtask for that one carrier — don't send a quote request to the group's own incumbent — and note the skip in your Step 7 comment / Step 8 summary (e.g. "Skipped [Carrier] — matches this group's stated current carrier"). Only skip on a clear, confident match between the stated carrier and a rotation carrier/GA; if it's ambiguous whether they're the same entity, don't guess — leave the carrier in the shortlist and flag the ambiguity instead.

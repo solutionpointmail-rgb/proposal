@@ -39,7 +39,7 @@ with subtasks. A subtask is a SEND CANDIDATE only if ALL are true:
  (c) its due_on is today (America/Chicago date) or earlier — SKIPPED in RUN SCOPE mode A;
  (d) none of its comments starts with "SENT", "HOLD", or "SEND FAILED" (HOLD means Will/Lindsey stopped
      it, SENT means already done, SEND FAILED needs a human before any retry — never auto-retry);
- (e) it is not a portal task or an Imagine360 task;
+ (e) it is not a portal task (UHCLF, Arlo, SANA, Simpara / Level Health Plans) or an Imagine360 task;
  (f) its notes contain none of these review flags (case-insensitive): "NOTE:", "confirm", "adjust",
      "TBD", "not provided", "verify". These mean the draft still has an open question. (A question
      mark in the email itself — "Can you send medical quotes...?" — is normal and is not a flag.) Skip
@@ -66,7 +66,9 @@ RECIPIENT ALLOWLIST (hard safety check): every TO address must be one of: tank@b
 chad@navigationhealthllc.com, luke@navigationhealthllc.com, johncasey@thecasongroup.com,
 willwestmoreland@thecasongroup.com, kcormier@gaig.com, blake.schmeling@gravie.com, rob.haire@gravie.com,
 megan.radermacher@gravie.com, jbleil@edisonehs.com, swilliams@edisonehs.com,
-bcalhoun@crumdalespecialty.com, adam@levelhealthplans.com, rpaddack@onehealthplus.com. CC must be
+bcalhoun@crumdalespecialty.com, rpaddack@onehealthplus.com, marli.griesel@beambenefits.com (Beam
+dental & vision, added 2026-10-15). adam@levelhealthplans.com was removed on 2026-10-15: Simpara / Level
+Health Plans is portal-only, so never email it. CC must be
 exactly lindsey@benefits.place, alex@benefits.place, will@benefits.place. If any TO address is not on the
 list (or any CC differs), do NOT send; skip and flag it for Will (Will may add carriers to this list by
 editing these instructions).

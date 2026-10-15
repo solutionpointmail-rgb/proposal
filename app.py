@@ -845,16 +845,78 @@ def clients():
 # The Client Quote Summary routine downloads the document generator from here
 # when its own repo checkout is missing. Only the files named below are served.
 # ============================================================
-_TOOL_FILES = {'renewal_analysis.py', 'renewal_analysis_example.json'}
+_TOOL_FILES = {'renewal_analysis.py', 'renewal_analysis_example.json',
+               'pipeline_report.py', 'pipeline_report_example.json'}
+_TOOL_BINARIES = {'tbg-logo.png': 'image/png'}
+_FONT_FILES = {'SourceSerif4_600SemiBold.ttf', 'PublicSans_400Regular.ttf', 'PublicSans_400Regular_Italic.ttf',
+               'PublicSans_600SemiBold.ttf', 'PublicSans_700Bold.ttf', 'IBMPlexMono-Regular.ttf',
+               'IBMPlexMono-Medium.ttf'}
 
 
 @app.route('/tools/<name>', methods=['GET'])
 def tool_file(name):
     from flask import send_from_directory
-    if name not in _TOOL_FILES:
+    here = os.path.dirname(os.path.abspath(__file__))
+    if name in _TOOL_FILES:
+        return send_from_directory(here, name, mimetype='text/plain')
+    if name in _TOOL_BINARIES:
+        return send_from_directory(here, name, mimetype=_TOOL_BINARIES[name])
+    return jsonify({'error': 'not found'}), 404
+
+
+@app.route('/tools/fonts/<name>', methods=['GET'])
+def tool_font(name):
+    from flask import send_from_directory
+    if name not in _FONT_FILES:
         return jsonify({'error': 'not found'}), 404
-    return send_from_directory(os.path.dirname(os.path.abspath(__file__)), name,
-                               mimetype='text/plain')
+    return send_from_directory(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fonts'), name,
+                               mimetype='font/ttf')
+
+
+# ============================================================
+# LATEST NEW BUSINESS PIPELINE CHECK
+# The Pipeline Check routine files each run's PDF and HTML into PIPELINE_REPORT_FOLDER
+# with /save-file. This serves the newest one to the Action Center's "Open latest report"
+# link. Read-only, behind the same read token as /clients.
+#   GET /pipeline-report?t=<TBG_READ_TOKEN>              -> newest PDF
+#   GET /pipeline-report?t=<TBG_READ_TOKEN>&format=html  -> newest interactive page
+# ============================================================
+PIPELINE_REPORT_FOLDER = '/Solutionpoint Groups/Pipeline Reports'
+
+
+@app.route('/pipeline-report', methods=['GET'])
+def pipeline_report():
+    from flask import Response
+    supplied = request.args.get('t', '') or request.headers.get('X-TBG-Read', '')
+    if not TBG_READ_TOKEN or supplied != TBG_READ_TOKEN:
+        return jsonify({'error': 'unauthorized'}), 401
+    want_html = request.args.get('format', '').lower() == 'html'
+    ext = '.html' if want_html else '.pdf'
+    try:
+        dbx_module, dbx = _dropbox_client()
+        res = dbx.files_list_folder(PIPELINE_REPORT_FOLDER)
+        entries = list(res.entries)
+        while res.has_more:
+            res = dbx.files_list_folder_continue(res.cursor)
+            entries.extend(res.entries)
+        files = [e for e in entries
+                 if isinstance(e, dbx_module.files.FileMetadata)
+                 and e.name.lower().endswith(ext)
+                 and not e.name.lower().endswith('-email.html')
+                 and e.name.lower().startswith('new business pipeline check')]
+        if not files:
+            return Response('<p style="font-family:Arial">No Pipeline Check report has been filed yet. '
+                            'Run it from the Action Center, or wait for the 7:45 AM weekday run.</p>',
+                            status=404, mimetype='text/html')
+        newest = max(files, key=lambda e: (e.name, e.server_modified))
+        _, resp = dbx.files_download(newest.path_lower)
+        out = Response(resp.content, mimetype='text/html' if want_html else 'application/pdf')
+        out.headers['Content-Disposition'] = f'inline; filename="{newest.name}"'
+        out.headers['Cache-Control'] = 'no-store'
+        return out
+    except Exception as e:
+        print(f"❌ pipeline-report error: {e}", flush=True)
+        return jsonify({'error': f'could not read the report folder: {e}'}), 502
 
 
 # ============================================================

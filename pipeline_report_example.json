@@ -1,0 +1,89 @@
+{
+  "_schema_notes": {
+    "purpose": "Worked example for pipeline_report.py. Every name here is invented. The routine writes a file in exactly this shape each run.",
+    "sev": "One of crit (Quiet & stuck: tiers 1-2), warn (Blocked: tiers 3-5), note (Analysis gap: tiers 6-7), info (Data cleanup: tier 8), ok (On track).",
+    "quiet": "Whole days since the last client email (0 = today). null when no client email was found in 60 days.",
+    "last.dir": "SENT TO (team emailed the client; team = who sent it) or FROM (client emailed us; team = who received it).",
+    "flags": "Each flag is {k, text} or {k, carriers:[{name, days, open}]}. open:false shows a carrier greyed (e.g. only 2 days out). Keys used: Quotes, Outstanding, Not sent, Census, Analysis, Selector, Drift, Data, Open question, Context, Misfiled, Setup, Status, Sensitive, Ready.",
+    "grid": "Values: 'y' = check, 'y:extra' = check plus a short note (e.g. 'y:nov2026'), 'n' = cross, '—' = not applicable, anything else is shown in amber (partial, stale, cold, archived). sent/received/outstanding are short text like '6/6'.",
+    "markup": "Text fields may use **bold**, *italic* and `mono` (for file names). Nothing else; no HTML.",
+    "never": "No SSNs, tax IDs, dates of birth or member IDs anywhere in this file."
+  },
+  "title": "New Business Pipeline Check",
+  "run": {
+    "label": "Mon 10/19/26 · 7:45 AM CT",
+    "date": "2026-10-19",
+    "groups_in_scope": 5,
+    "quiet_days": 8,
+    "sources": ["Odoo", "Dropbox", "Asana", "Outlook"],
+    "gaps": []
+  },
+  "today": [
+    {"rank": "11 days quiet", "group": "Example Dental Partners", "reason": "Quotes were presented 10/08 and the client hasn't replied. Effective 11/01, 13 days out."},
+    {"rank": "census blocking", "group": "Sample Logistics LLC", "reason": "No carrier can be sent until the census has dates of birth. Send for Quotes was due 10/16."},
+    {"rank": "carriers 12 days out", "group": "Placeholder Studios", "reason": "Three carriers are 12 days outstanding and no analysis has been run. Effective 12/01."}
+  ],
+  "callout": {"lead": "Two active groups are effective 11/01, 13 days out:", "text": "Example Dental Partners and Sample Logistics LLC."},
+  "groups": [
+    {
+      "name": "Example Dental Partners", "stage": "Quoted / Presented", "effective": "11/01/26", "sev": "crit",
+      "status": "Lingering in decision", "quiet": 11,
+      "last": {"dir": "SENT TO", "who": "Jordan Example", "team": "Will", "date": "10/08/26", "subject": "RE: Your quotes are in"},
+      "flags": [
+        {"k": "Quotes", "text": "All 6 carriers logged in Asana."},
+        {"k": "Selector", "text": "`exampledentalpartners-nov2026.html`, sent 10/08"},
+        {"k": "Context", "text": "Jordan, 10/08: reviewing with the owners this week"}
+      ],
+      "next": "Call Jordan and offer a 20-minute walkthrough of the selector page.",
+      "grid": {"stage": "Quoted/Presented", "eff": "11/01", "census": "y", "sent": "6/6", "received": "6/6", "outstanding": "0", "analysis": "y", "selector": "y:nov2026", "folder": "y", "asana": "y"}
+    },
+    {
+      "name": "Sample Logistics LLC", "stage": "Qualified · Waiting on info", "effective": "11/01/26", "sev": "warn",
+      "status": "Waiting on census", "quiet": 3,
+      "last": {"dir": "FROM", "who": "Casey Sample", "team": "Alex", "date": "10/16/26", "subject": "Re: Census"},
+      "flags": [
+        {"k": "Census", "text": "Lindsey 10/15: \"census is missing dates of birth.\" Newest file is `Census NEEDS INFO.xlsx` (10/14)."},
+        {"k": "Not sent", "carriers": [{"name": "Aetna/Cason"}, {"name": "Great American"}, {"name": "UHCLF portal"}]}
+      ],
+      "next": "Ask Casey for a payroll export with dates of birth, then release the drafts.",
+      "grid": {"stage": "Qualified", "eff": "11/01", "census": "partial", "sent": "0/3", "received": "0", "outstanding": "—", "analysis": "n", "selector": "n", "folder": "y", "asana": "y"}
+    },
+    {
+      "name": "Placeholder Studios", "stage": "Quoting", "effective": "12/01/26", "sev": "warn",
+      "status": "Waiting on carriers", "quiet": 2,
+      "last": {"dir": "SENT TO", "who": "Riley Placeholder", "team": "Will", "date": "10/17/26", "subject": "Quick update"},
+      "flags": [
+        {"k": "Outstanding", "carriers": [{"name": "Gravie", "days": "12d"}, {"name": "ABA", "days": "12d"}, {"name": "Angle", "days": "12d"}, {"name": "Simpara", "days": "3d", "open": false}]},
+        {"k": "Drift", "text": "Edison DTQ (10/12) is in Dropbox but not logged in Asana"}
+      ],
+      "next": "Log the Edison decline and chase Gravie, ABA and Angle.",
+      "grid": {"stage": "Quoting", "eff": "12/01", "census": "y", "sent": "8/8", "received": "4/8", "outstanding": "4", "analysis": "n", "selector": "n", "folder": "y", "asana": "y"}
+    },
+    {
+      "name": "Demo Hardware Co", "stage": "Qualified · Waiting on info", "effective": "", "meta": "Folder in Cold Leads", "sev": "info",
+      "quiet": 34,
+      "last": {"dir": "SENT TO", "who": "Taylor Demo", "team": "Alex", "date": "09/15/26", "subject": "Intro & intake"},
+      "flags": [{"k": "Status", "text": "Stage mismatch: Odoo shows Qualified, but the folder is in Cold Leads."}],
+      "next": "Move to Opportunity Lost in Odoo.",
+      "grid": {"stage": "Qualified", "eff": "—", "census": "n", "sent": "—", "received": "—", "outstanding": "—", "analysis": "n", "selector": "n", "folder": "cold", "asana": "archived"}
+    },
+    {
+      "name": "Specimen Health Group", "stage": "Quoting", "effective": "01/01/27", "meta": "Meeting Thu 10/22", "sev": "ok",
+      "quiet": 1,
+      "last": {"dir": "FROM", "who": "Morgan Specimen", "team": "Alex", "date": "10/18/26", "subject": "Re: Meeting Thursday"},
+      "flags": [{"k": "Ready", "text": "Carrier Comparison (10/16) · `specimenhealthgroup-jan2027.html` (10/16)"}],
+      "next": "Hold Thursday's meeting, then move to Quoted / Presented.",
+      "grid": {"stage": "Quoting", "eff": "01/01", "census": "y", "sent": "7/7", "received": "7/7", "outstanding": "0", "analysis": "y", "selector": "y:jan2027", "folder": "y", "asana": "y"}
+    }
+  ],
+  "empty_tier_notes": {"note": "Nothing in this tier today."},
+  "outside": [
+    {"name": "Mockup Ventures", "status": "Odoo NEW lead · Asana 12/01/26"},
+    {"name": "Template Farms", "status": "Not in feed · Asana idle since 9/20"}
+  ],
+  "notes": [
+    "Run Mon 10/19/26 at 7:45 AM CT (scheduled). All four systems answered; nothing failed. Read-only: nothing was changed in any system.",
+    "Odoo: 100 records returned; 5 opportunities in scope. Dropbox: 9 group folders in Hot Leads. Asana: 8 active quoting projects.",
+    "Outlook: Will's mailbox only, so these are the last *visible* communications — a minimum."
+  ]
+}

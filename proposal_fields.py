@@ -81,15 +81,17 @@ DENTAL_ROWS = [
 ]
 
 VISION_ROWS = [
+    # Labels say COPAY or ALLOWANCE outright (Will, 2026-10-16): "$20" for an exam is what the member
+    # pays; "$150" for frames is what the plan pays toward them. Same-looking numbers, opposite meaning.
     ("section", "Plan"),
     ("row",  "Network",               "network"),
-    ("section", "Copays"),
-    ("row",  "Eye exam",              ("exam_copay",)),
-    ("row",  "Materials",             "materials_copay"),
-    ("row",  "Lenses",                "lenses"),
-    ("section", "Allowances"),
-    ("row",  "Frames",                "frame_allowance"),
-    ("row",  "Contact lenses",        "contacts_allowance"),
+    ("section", "Copays (member pays)"),
+    ("row",  "Eye exam copay",        ("exam_copay",)),
+    ("row",  "Materials copay",       "materials_copay"),
+    ("row",  "Lenses copay",          "lenses"),
+    ("section", "Allowances (plan pays up to)"),
+    ("row",  "Frame allowance",       "frame_allowance"),
+    ("row",  "Contact lens allowance", "contacts_allowance"),
     ("row",  "LASIK",                 "lasik"),
     ("section", "Frequency"),
     ("row",  "Exam",                  "exam_frequency"),
@@ -306,6 +308,11 @@ GENERAL_DISCLAIMER = (
     "premium paid by, the group."
 )
 
+RATE_CONDITIONS = (
+    "Quotes are based on the census provided and are dependent upon final enrollment. Rates may change "
+    "if enrollment changes by more than 10%."
+)
+
 ILLUSTRATIVE_DISCLAIMER = (
     "Plans marked ILLUSTRATIVE are illustrative quotes only. Their rates are estimates, not final rates, and "
     "are subject to the carrier's medical underwriting, which may require every enrolling employee to "
@@ -326,7 +333,7 @@ CARRIER_DISCLAIMERS = {
 
 
 def disclaimers(plans):
-    out = [GENERAL_DISCLAIMER]
+    out = [GENERAL_DISCLAIMER, RATE_CONDITIONS]
     if any(is_illustrative(p) for p in plans):
         out.append(ILLUSTRATIVE_DISCLAIMER)
     out.append(SUMMARY_DISCLAIMER)

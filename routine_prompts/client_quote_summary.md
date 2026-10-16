@@ -102,6 +102,12 @@ A. THE CARRIER COMPARISON (primary source). It already holds: every carrier requ
    recommendation. Most of the analysis comes from here. Treat its recommendation as Will's starting
    point, not as the answer — you are writing the considered, client-ready version.
 
+LARGE FILES: the Dropbox connector only extracts text from files up to 5 MB. For anything larger (or when
+   fetch fails), POST {"path": "<Dropbox path>"} to https://proposal-fgqm.onrender.com/dropbox-text and
+   read the "text" field (see the Analyze Quotes instructions for the exact curl). Never for census files.
+   The rate-conditions note ("dependent upon final enrollment… more than 10%") is printed by
+   renewal_analysis.py at the end of every document automatically — do not add it to the JSON again.
+
 B. THE RISK SCORECARDS — check the ANGLE and the UHCLF folders if they exist. In "<Quoting>/2. Quotes",
    look for subfolders whose names contain "Angle", or "UHCLF" / "UHC LF" / "UHC Level Funded" —
    including ones also marked DTQ or NOT COMP (a non-competitive carrier's scorecard is still valid
@@ -232,19 +238,91 @@ B. RUN RECEIPT — send one every run, no exceptions, as the LAST step, through 
      recipients: ["will@benefits.place", "alex@benefits.place"]
      bodyFormat: "HTML"
      subject: "TBG Client Quote Summary — <Client> — <Ran | Nothing to do | Problem>"
-     body (Arial 13px, no images, under ~10 lines):
-       <b>TBG Client Quote Summary</b><br>
-       Requested: on-demand from the Action Center<br>
-       Group: <client><br>
-       Outcome: <b><Ran | Nothing to do | Problem></b><br>
-       <one line: the recommendation, or what happened><br>
-       Saved to: <full Dropbox path> (one line per file, only if /save-file succeeded)<br>
-       Reason: <specific reason> (only if nothing was produced)<br>
-       Needs attention: <what and who> (interim comparison, missing scorecard, source disagreement…)<br>
-       Client-facing — review before sending.<br>
-       Run at <time> Central.
+     body: HTML in the TBG EMAIL STYLE below (routine name "CLIENT QUOTE SUMMARY"), containing:
+       - Header: the client; on demand from the Action Center; date and time.
+       - Outcome pill (Ran | Nothing to do | Problem) and the recommendation in one or two sentences.
+       - Needs attention: interim comparison, missing scorecard, source disagreement, broker-selected
+         plan that was left out — one bullet each, naming who.
+       - At a glance (when produced): current monthly cost, recommended option's monthly cost, annual
+         difference.
+       - A "Recommendation" section with label rows: Recommended, Runner-up, Why, What it gives up.
+       - Saved to Dropbox: both files, full paths (only if /save-file succeeded).
+       - If nothing was produced, the specific reason.
+       - A closing line in the outcome sentence or a final row: "Client-facing — please review before
+         it goes to the client."
    Never say a file was saved unless /save-file returned success. If the Outlook send fails, say so in
    your final summary.
+
+TBG EMAIL STYLE — EVERY STATUS EMAIL THIS ROUTINE SENDS (Will, 2026-10-16)
+Will, Alex and Lindsey read these on phones and in Outlook. Compact one-line-per-thing blocks were hard
+to digest, so every status email (receipt, report, summary) is laid out as below. Give each fact room;
+never cram several facts onto one line with dashes or semicolons. Length follows the content — there is
+no line cap — but no filler sentences either.
+
+Build it with tables and INLINE styles only (Outlook ignores <style> blocks and most CSS). Skeleton:
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F4F6F8;padding:16px 0;font-family:Arial,Helvetica,sans-serif;">
+<tr><td align="center">
+<table role="presentation" width="640" cellpadding="0" cellspacing="0" style="max-width:640px;width:100%;background:#FFFFFF;border:1px solid #E2E8F0;">
+  <!-- HEADER -->
+  <tr><td style="background:#0D1B2A;padding:18px 24px;">
+    <div style="font-size:11px;letter-spacing:1.5px;color:#4CAF7D;font-weight:bold;">THE BENEFITS GROUP · [ROUTINE NAME IN CAPS]</div>
+    <div style="font-size:20px;color:#FFFFFF;font-weight:bold;margin-top:6px;">[Group or "All groups"]</div>
+    <div style="font-size:13px;color:#A0AEC0;margin-top:4px;">[Requested: scheduled 6:07 AM run | on demand from the Action Center] · [Day Mon D] · [h:mm AM/PM] CT</div>
+  </td></tr>
+  <tr><td style="height:4px;background:#4CAF7D;font-size:0;line-height:0;">&nbsp;</td></tr>
+  <!-- OUTCOME -->
+  <tr><td style="padding:20px 24px 4px 24px;">
+    <span style="display:inline-block;padding:5px 12px;border-radius:14px;font-size:13px;font-weight:bold;background:[#E6F4EC|#EDF2F7|#FDE8E8];color:[#276749|#4A5568|#9B2C2C];">[Outcome]</span>
+    <div style="font-size:15px;line-height:1.55;color:#1A202C;margin-top:12px;">[One or two plain sentences: what happened and what it means.]</div>
+  </td></tr>
+  <!-- NEEDS ATTENTION (only when something does; always ABOVE the details) -->
+  <tr><td style="padding:12px 24px;">
+    <div style="background:#FEF3C7;border-left:4px solid #F59E0B;padding:12px 16px;">
+      <div style="font-size:13px;font-weight:bold;color:#92400E;letter-spacing:.5px;">NEEDS ATTENTION</div>
+      <ul style="margin:8px 0 0 18px;padding:0;font-size:14px;line-height:1.55;color:#7C2D12;">
+        <li style="margin-bottom:6px;"><b>[Who]</b>: [what to do, and why]</li>
+      </ul>
+    </div>
+  </td></tr>
+  <!-- AT A GLANCE (optional, 2-4 numbers) -->
+  <tr><td style="padding:8px 24px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+      <td style="background:#F7F9FC;border:1px solid #E2E8F0;padding:10px;text-align:center;">
+        <div style="font-size:22px;font-weight:bold;color:#0D1B2A;">[N]</div>
+        <div style="font-size:12px;color:#718096;">[label]</div></td>
+      <!-- repeat a cell per number, all the same width (2 cells = 49%, 3 = 32%, 4 = 24%), with an 8px spacer cell between -->
+    </tr></table>
+  </td></tr>
+  <!-- SECTION (repeat per group / bucket) -->
+  <tr><td style="padding:18px 24px 6px 24px;">
+    <div style="font-size:16px;font-weight:bold;color:#0D1B2A;border-bottom:2px solid #4CAF7D;padding-bottom:6px;">[Section heading]</div>
+  </td></tr>
+  <tr><td style="padding:4px 24px 8px 24px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:14px;line-height:1.5;color:#1A202C;">
+      <tr><td style="width:34%;padding:8px 10px 8px 0;border-bottom:1px solid #EDF2F7;color:#4A5568;vertical-align:top;"><b>[Label]</b></td>
+          <td style="padding:8px 0;border-bottom:1px solid #EDF2F7;vertical-align:top;">[Value — one fact per row]</td></tr>
+    </table>
+  </td></tr>
+  <!-- FILES (when any were saved) -->
+  <tr><td style="padding:8px 24px;">
+    <div style="font-size:13px;color:#4A5568;font-weight:bold;margin-bottom:4px;">Saved to Dropbox</div>
+    <div style="font-family:Consolas,Menlo,monospace;font-size:12px;color:#2D3748;background:#F7F9FC;padding:8px 10px;margin-bottom:6px;word-break:break-all;">[full Dropbox path]</div>
+  </td></tr>
+  <!-- FOOTER -->
+  <tr><td style="padding:16px 24px 20px 24px;border-top:1px solid #E2E8F0;font-size:12px;color:#A0AEC0;">
+    Sent by the TBG Action Center · [routine name] · run at [time] CT
+  </td></tr>
+</table>
+</td></tr></table>
+
+Rules: outcome pill colors — green for Ran / Sent / Saved, grey for Nothing to do, red for Problem.
+Leave out any block that has nothing in it (no empty "Needs attention", no zero-only stats). Group
+names in bold. Dates as "Mon 10/16". Links (selector pages, Dropbox shared links, Asana tasks) as
+<a href="..." style="color:#2B6CB0;">short label</a>, never a bare long URL in running text.
+Tables of several groups (e.g. "Waiting on a carrier") use a real table: header row background
+#F7F9FC, bold 13px; body cells 14px with 8px padding and a 1px #EDF2F7 bottom border.
+
 
 ======================================================================
 GUARDRAILS

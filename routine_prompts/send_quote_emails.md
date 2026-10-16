@@ -39,7 +39,7 @@ with subtasks. A subtask is a SEND CANDIDATE only if ALL are true:
  (c) its due_on is today (America/Chicago date) or earlier — SKIPPED in RUN SCOPE mode A;
  (d) none of its comments starts with "SENT", "HOLD", or "SEND FAILED" (HOLD means Will/Lindsey stopped
      it, SENT means already done, SEND FAILED needs a human before any retry — never auto-retry);
- (e) it is not a portal task (UHCLF, Arlo, SANA, Simpara / Level Health Plans) or an Imagine360 task;
+ (e) it is not a portal task (UHCLF, SANA, Simpara / Level Health Plans) or an Imagine360 task. Arlo is NOT a portal task since 2026-10-16: "Arlo - Michael Tankersley" and "ABA / Arlo - Michael Tankersley" are normal email subtasks;
  (f) its notes contain none of these review flags (case-insensitive): "NOTE:", "confirm", "adjust",
      "TBD", "not provided", "verify". These mean the draft still has an open question. (A question
      mark in the email itself — "Can you send medical quotes...?" — is normal and is not a flag.) Skip
@@ -67,7 +67,8 @@ chad@navigationhealthllc.com, luke@navigationhealthllc.com, johncasey@thecasongr
 willwestmoreland@thecasongroup.com, kcormier@gaig.com, blake.schmeling@gravie.com, rob.haire@gravie.com,
 megan.radermacher@gravie.com, jbleil@edisonehs.com, swilliams@edisonehs.com,
 bcalhoun@crumdalespecialty.com, rpaddack@onehealthplus.com, marli.griesel@beambenefits.com (Beam
-dental & vision, added 2026-10-15). adam@levelhealthplans.com was removed on 2026-10-15: Simpara / Level
+dental & vision, added 2026-10-15), jbutterfield2@deltadentaltn.com (Delta Dental dental & vision, added
+2026-10-16). adam@levelhealthplans.com was removed on 2026-10-15: Simpara / Level
 Health Plans is portal-only, so never email it. CC must be
 exactly lindsey@benefits.place, alex@benefits.place, will@benefits.place. If any TO address is not on the
 list (or any CC differs), do NOT send; skip and flag it for Will (Will may add carriers to this list by
@@ -149,17 +150,85 @@ Outlook connection (NOT quotes@benefits.place — that account is for carrier em
   recipients: ["will@benefits.place", "alex@benefits.place", "lindsey@benefits.place"]
   bodyFormat: "HTML"
   subject:  "TBG Send Carrier Emails — [Group or 'all groups'] — [Sent N | Nothing to send | Problem]"
-  body: a compact HTML block, Arial 13px, no images, in this exact shape:
+  body: HTML in the TBG EMAIL STYLE below (routine name "SEND CARRIER EMAILS"), containing:
+    - Header: the group, or "All groups"; scheduled 8:22 AM run or on demand; date and time.
+    - Outcome pill (Sent N | Nothing to send | Problem) and one or two sentences.
+    - Needs attention: one bullet per held email or failure that a person must fix, naming who.
+    - At a glance: emails sent, held (only when something happened).
+    - One section per group, headed "[Group]", then a table with columns Carrier | Sent to | Attached
+      (the real attachment names) for every email sent, and a "Held" row per skipped subtask with its
+      specific reason.
+    - If nothing was eligible, the specific reason.
 
-    <b>TBG Send Carrier Emails</b><br>
-    Requested: [scheduled 8:22 AM run, or on-demand from the Action Center]<br>
-    Group: [group name, or "all groups (daily run)"]<br>
-    Outcome: <b>[Sent N | Nothing to send | Problem]</b><br>
-    [One line per email sent: "Sent to <carrier> (<to addresses>) — census <filename> attached".]<br>
-    [One line per skipped subtask: "Held: <carrier> — <specific reason>".]<br>
-    [If nothing was eligible: "Reason: <the specific reason>".]<br>
-    [If anything needs a person: "Needs attention: <what and who>".]<br>
-    Run at [time] Central.
+TBG EMAIL STYLE — EVERY STATUS EMAIL THIS ROUTINE SENDS (Will, 2026-10-16)
+Will, Alex and Lindsey read these on phones and in Outlook. Compact one-line-per-thing blocks were hard
+to digest, so every status email (receipt, report, summary) is laid out as below. Give each fact room;
+never cram several facts onto one line with dashes or semicolons. Length follows the content — there is
+no line cap — but no filler sentences either.
+
+Build it with tables and INLINE styles only (Outlook ignores <style> blocks and most CSS). Skeleton:
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F4F6F8;padding:16px 0;font-family:Arial,Helvetica,sans-serif;">
+<tr><td align="center">
+<table role="presentation" width="640" cellpadding="0" cellspacing="0" style="max-width:640px;width:100%;background:#FFFFFF;border:1px solid #E2E8F0;">
+  <!-- HEADER -->
+  <tr><td style="background:#0D1B2A;padding:18px 24px;">
+    <div style="font-size:11px;letter-spacing:1.5px;color:#4CAF7D;font-weight:bold;">THE BENEFITS GROUP · [ROUTINE NAME IN CAPS]</div>
+    <div style="font-size:20px;color:#FFFFFF;font-weight:bold;margin-top:6px;">[Group or "All groups"]</div>
+    <div style="font-size:13px;color:#A0AEC0;margin-top:4px;">[Requested: scheduled 6:07 AM run | on demand from the Action Center] · [Day Mon D] · [h:mm AM/PM] CT</div>
+  </td></tr>
+  <tr><td style="height:4px;background:#4CAF7D;font-size:0;line-height:0;">&nbsp;</td></tr>
+  <!-- OUTCOME -->
+  <tr><td style="padding:20px 24px 4px 24px;">
+    <span style="display:inline-block;padding:5px 12px;border-radius:14px;font-size:13px;font-weight:bold;background:[#E6F4EC|#EDF2F7|#FDE8E8];color:[#276749|#4A5568|#9B2C2C];">[Outcome]</span>
+    <div style="font-size:15px;line-height:1.55;color:#1A202C;margin-top:12px;">[One or two plain sentences: what happened and what it means.]</div>
+  </td></tr>
+  <!-- NEEDS ATTENTION (only when something does; always ABOVE the details) -->
+  <tr><td style="padding:12px 24px;">
+    <div style="background:#FEF3C7;border-left:4px solid #F59E0B;padding:12px 16px;">
+      <div style="font-size:13px;font-weight:bold;color:#92400E;letter-spacing:.5px;">NEEDS ATTENTION</div>
+      <ul style="margin:8px 0 0 18px;padding:0;font-size:14px;line-height:1.55;color:#7C2D12;">
+        <li style="margin-bottom:6px;"><b>[Who]</b>: [what to do, and why]</li>
+      </ul>
+    </div>
+  </td></tr>
+  <!-- AT A GLANCE (optional, 2-4 numbers) -->
+  <tr><td style="padding:8px 24px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+      <td style="background:#F7F9FC;border:1px solid #E2E8F0;padding:10px;text-align:center;">
+        <div style="font-size:22px;font-weight:bold;color:#0D1B2A;">[N]</div>
+        <div style="font-size:12px;color:#718096;">[label]</div></td>
+      <!-- repeat a cell per number, all the same width (2 cells = 49%, 3 = 32%, 4 = 24%), with an 8px spacer cell between -->
+    </tr></table>
+  </td></tr>
+  <!-- SECTION (repeat per group / bucket) -->
+  <tr><td style="padding:18px 24px 6px 24px;">
+    <div style="font-size:16px;font-weight:bold;color:#0D1B2A;border-bottom:2px solid #4CAF7D;padding-bottom:6px;">[Section heading]</div>
+  </td></tr>
+  <tr><td style="padding:4px 24px 8px 24px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:14px;line-height:1.5;color:#1A202C;">
+      <tr><td style="width:34%;padding:8px 10px 8px 0;border-bottom:1px solid #EDF2F7;color:#4A5568;vertical-align:top;"><b>[Label]</b></td>
+          <td style="padding:8px 0;border-bottom:1px solid #EDF2F7;vertical-align:top;">[Value — one fact per row]</td></tr>
+    </table>
+  </td></tr>
+  <!-- FILES (when any were saved) -->
+  <tr><td style="padding:8px 24px;">
+    <div style="font-size:13px;color:#4A5568;font-weight:bold;margin-bottom:4px;">Saved to Dropbox</div>
+    <div style="font-family:Consolas,Menlo,monospace;font-size:12px;color:#2D3748;background:#F7F9FC;padding:8px 10px;margin-bottom:6px;word-break:break-all;">[full Dropbox path]</div>
+  </td></tr>
+  <!-- FOOTER -->
+  <tr><td style="padding:16px 24px 20px 24px;border-top:1px solid #E2E8F0;font-size:12px;color:#A0AEC0;">
+    Sent by the TBG Action Center · [routine name] · run at [time] CT
+  </td></tr>
+</table>
+</td></tr></table>
+
+Rules: outcome pill colors — green for Ran / Sent / Saved, grey for Nothing to do, red for Problem.
+Leave out any block that has nothing in it (no empty "Needs attention", no zero-only stats). Group
+names in bold. Dates as "Mon 10/16". Links (selector pages, Dropbox shared links, Asana tasks) as
+<a href="..." style="color:#2B6CB0;">short label</a>, never a bare long URL in running text.
+Tables of several groups (e.g. "Waiting on a carrier") use a real table: header row background
+#F7F9FC, bold 13px; body cells 14px with 8px padding and a 1px #EDF2F7 bottom border.
 
 RULES FOR THE RECEIPT
 - Send it for EVERY run, including runs where nothing was eligible. In the daily run, if no group had a

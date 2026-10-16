@@ -29,6 +29,18 @@ KNOWN ENVIRONMENT LIMITATIONS — read this once, don't rediscover it every run:
 - SAVING FILES TO DROPBOX — the Dropbox connector cannot upload binary files (.docx, .pdf, .xlsx), but TBG's own Render app can, and the routine environment is allowed to reach it. To file any binary deliverable, POST it from the shell:
   curl -sS --max-time 120 -X POST https://proposal-fgqm.onrender.com/save-file -H "X-Dropbox-Path: <full Dropbox path including the filename>" --data-binary @"<local file path>"
   There is NO auth header to add — the environment's network secret attaches it automatically. Dropbox paths start with "/Solutionpoint Groups/1. Solutionpoint Groups/...". A JSON response containing "status":"success" means the file is filed; treat anything else as a failure, say so plainly in the report, and fall back to delivering the file in the run with SendUserFile plus the path it belongs in. Always send the file with --data-binary from the shell — never read it into the conversation, and never base64 it into a tool-call parameter. Still deliver a copy to Will in the run as well, so he has it without opening Dropbox.
+- LARGE QUOTE FILES — READ THEM THROUGH RENDER (added 2026-10-16). The Dropbox connector's fetch only
+  extracts text from files up to 5 MB. Carrier proposals often run larger — One Health's proposal PDFs
+  (about 5.5 MB) are the usual case, and a skipped proposal is why The Arise Group's One Health cards came
+  out with only a deductible and rates. Whenever fetch fails, returns nothing useful, or the file is over
+  5 MB, get the text from Render instead:
+    curl -sS --max-time 180 -X POST https://proposal-fgqm.onrender.com/dropbox-text \
+      -H "Content-Type: application/json" \
+      -d '{"path": "<the file's Dropbox path, as the connector shows it>"}' -o quote.json
+  (no auth header; the environment's network secret adds it). The JSON has "text" with "===== page N ====="
+  markers, plus "pages" and "truncated" (pass "max_chars" to raise the 300,000 limit). If "note" says the
+  file is scanned images, say so in the receipt. Never call it on a census file — it refuses them anyway.
+  Never write "could not be read" into a plan's notes when this route exists: use it first.
 - The GitHub push endpoint (https://proposal-fgqm.onrender.com/push-to-github, used in the selector-page steps) is blocked by this sandbox's network egress policy — POSTs to it will not succeed. This is also a confirmed, permanent limitation. Do NOT retry it or spend cycles testing it. Go straight to the fallback every time: save the HTML selector page to Dropbox (this part works fine, since HTML is a plain-text file Dropbox CAN create) and add the "⚠️ Selector page generation failed — upload manually to GitHub" warning to the Asana task description immediately, without first attempting the push.
 - Dropbox binary DOWNLOADS are also blocked (dropboxusercontent.com / www.dropbox.com are outside this sandbox's egress allowlist), so you cannot pull the logo PNG down to embed in the .docx. Do NOT retry this. Use a text wordmark — "THE BENEFITS GROUP" in navy (#1F3864) caps at the top of the cover page and in the running header. This matches the approved reference document (TennGreen v4), so it is correct output, not a degraded fallback.
 - OVERWRITING — /save-file overwrites by default, so a corrected draft or selector page replaces the old one instead of piling up as -v2, -v3, -v5. Pass the header "X-Overwrite: false" only when both copies genuinely need to be kept. The Dropbox connector's own create_file still cannot overwrite (it returns ALREADY_EXISTS), so use /save-file for anything that may already exist.
@@ -310,8 +322,9 @@ Dental adds:
   ortho ("50%" / "Not covered" / "Child only, 50%"), ortho_max, ortho_age,
   waiting_periods, oon_reimbursement ("90th percentile UCR", "MAC")
 
-Vision adds:
-  exam_copay, materials_copay, lenses, frame_allowance, contacts_allowance, lasik,
+Vision adds (copays are what the MEMBER pays; allowances are what the PLAN pays toward frames or
+contacts — keep them in the right fields, the proposal labels them "copay" and "allowance"):
+  exam_copay, materials_copay, lenses (lens copay), frame_allowance, contacts_allowance, lasik,
   exam_frequency, lenses_frequency, frames_frequency, contacts_frequency, oon_reimbursement
 
 Carrier-name nomenclature maps like this (use judgment for others): "PCP / Primary care / Office
@@ -321,6 +334,19 @@ ASC" -> outpatient_surgery; "Type A / Class I / Diagnostic & preventive" -> prev
 Class II" -> basic; "Type C / Class III" -> major; "Calendar-year max / Annual benefit max" ->
 annual_max_in; "Frame allowance / retail frames" -> frame_allowance; "Elective contacts" ->
 contacts_allowance.
+
+ONE HEALTH (Will, 2026-10-16: One Health quotes were not carrying over). One Health sends a rate grid
+(designs like "$1,000 Classic", "$3,500 HSA") plus a proposal PDF that holds the benefit summary for
+each design — deductible, OOP max, coinsurance, copays, ER, urgent care, Rx. The rate grid alone is not
+enough: read the proposal PDF too (through /dropbox-text when it is over 5 MB) and fill every medical
+field for each design. Carrier name is always "One Health" (not "One Health Plus" or "OneHealth").
+A One Health plan object with an empty OOP max, coinsurance or office copay means the proposal was not
+read: go back and read it before building the selector.
+
+THIN CARRIER DATA = REBUILD. On an on-demand run, if the group's existing selector page has any carrier
+whose plans are missing oop_in_ind, coinsurance_in and doctor_visit on most plans (the One Health cards on
+The Arise Group, 2026-10-15), rebuild the selector page for that group even when the comparison .docx is
+current, re-reading that carrier's documents.
 
 CBC TRIAD — ONE PLAN DESIGN, TWO NETWORKS (Will, 2026-10-15). CBC Triad (Triad Benefits; quotes
 arrive "Presented by Navigation Health LLC", usually in the Navigation Health / Chad / CBC Triad
@@ -521,20 +547,20 @@ STEP 9 — Send the internal exception-report email (Will + Alex only)
 ======================================================================
 Only send an email if at least one client across EITHER pipeline landed in "Waiting on carrier(s)", "New draft generated today", or "Skipped — needs a look". If every client in both pipelines is either not-yet-in-progress, resolved (per CLIENT RESOLUTIONS), or already-current with nothing new, skip sending entirely — a quiet day stays quiet, do not send an empty or "nothing to report" email.
 
-LOCKED OUTPUT FORMAT — Will approved this exact layout on 2026-10-12. Reproduce it every run, in this order, with these headings and these words. Do not redesign it, do not rename the sections, do not add or drop sections, and do not switch a table to a list or a list to a table. Consistency between runs matters more than any improvement you might think of.
+LOCKED OUTPUT FORMAT — Will approved these sections on 2026-10-12 and the visual style on 2026-10-16. Reproduce it every run, in this order, with these headings and these words. Do not redesign it, do not rename the sections, do not add or drop sections, and do not switch a table to a list or a list to a table. Consistency between runs matters more than any improvement you might think of.
 
-HTML AND STYLE
-- Plain white background, Arial/Helvetica sans-serif, font-size 13px, color #222. No images, no logos, no outer borders or cards.
-- Navy for all headings: #1F3864.
-- Title (h2-equivalent): font-size 17px, bold, navy, no underline.
-  Text: "Carrier Quote Status — Hot Leads & Renewals — [Month D, YYYY]" (e.g. "October 11, 2026").
-- Lead sentence immediately under the title, 13px, color #222: "Automated daily check." then a bold clause stating the day's headline fact, then one plain sentence of context. Examples:
-  - Nothing built: "Automated daily check. <b>No new drafts were built today.</b> Every client with complete carrier responses already has a current draft, or its carrier decision has already been made."
-  - Drafts built: "Automated daily check. <b>[N] new draft(s) built today.</b> They are listed under New Draft Ready for Review and still need to be saved into Dropbox."
-- Pipeline headers: uppercase, bold, navy, font-size 14px, with a 1px solid #1F3864 bottom border spanning the content width, and ~18px of space above. Exactly these two, in this order: "NEW BUSINESS (HOT LEADS)" then "RENEWALS". Omit a pipeline entirely if it has nothing to report.
-- Bucket headings inside a pipeline: bold, navy, font-size 13px, no border, ~12px above.
-- Tables: full width, border-collapse: collapse, every cell 1px solid #BFBFBF, cell padding 4px 6px, font-size 12px. Header row bold on a #F2F2F2 fill. No zebra striping.
-- Bullet lists: standard <ul>/<li>, 12.5px, client name in <b>, then a colon, then the note.
+HTML AND STYLE (restyled 2026-10-16 per Will: the old compact 13px layout was hard to digest)
+- Build the whole email in the TBG EMAIL STYLE at the end of these instructions (routine name
+  "ANALYZE QUOTES"). Header line 2: "Hot Leads & Renewals"; header line 3: "Daily check · [Day Mon D]".
+- Outcome sentence under the pill: "No new drafts were built today." / "[N] new draft(s) built today."
+  followed by one plain sentence of context.
+- Needs attention box: everything a person must act on today, across both pipelines, one bullet each.
+- At a glance: waiting on carriers, new drafts, needs a manual look, already current (counts).
+- Pipeline headers are SECTION headings, exactly "NEW BUSINESS (HOT LEADS)" then "RENEWALS". Omit a
+  pipeline with nothing to report. Bucket headings inside a pipeline are bold 15px navy (#0D1B2A)
+  lines with 14px top padding.
+- Tables follow the style's table rule (header #F7F9FC, 14px body, 8px padding). Bullet lists are
+  14px with 6px between items, client name in <b>, then a colon, then the note.
 
 SECTION ORDER WITHIN EACH PIPELINE — skip any bucket with nothing in it, never show an empty heading:
 1. "Waiting on a Carrier" — a TABLE with exactly three columns, in this order:
@@ -563,26 +589,95 @@ Will and Alex cannot see this run. So the LAST thing every run does, whether it 
   recipients: ["will@benefits.place", "alex@benefits.place"]
   bodyFormat: "HTML"
   subject:  "TBG Analyze Quotes — [Group or 'all groups'] — [Ran | Nothing to do | Problem]"
-  body: a compact HTML block, Arial 13px, no images, in this exact shape:
-
-    <b>TBG Analyze Quotes</b><br>
-    Requested: [how it started — scheduled 7:05 AM run, or on-demand from the Action Center]<br>
-    Group: [group name, or "all groups (daily sweep)"]<br>
-    Outcome: <b>[Ran | Nothing to do | Problem]</b><br>
-    [One line saying what happened, in plain words.]<br>
-    [If a file was produced: "Saved to: &lt;full Dropbox path&gt;" — one line per file.]<br>
-    [If nothing was produced: "Reason: &lt;the specific reason&gt;" — e.g. "a current comparison is already filed in Quoting/3. Proposal (dated 10/09)", "the client is renewing with their current carrier", "two carriers have not responded yet", "refreshed 3 days ago, next eligible 10/17".]<br>
-    [If anything needs a person: "Needs attention: &lt;what and who&gt;".]<br>
-    Run at [time] Central.
+  body: HTML in the TBG EMAIL STYLE below (routine name "ANALYZE QUOTES"), containing:
+    - Header: the group, or "All groups (daily sweep)"; scheduled 7:05 AM run or on demand; date, time.
+    - Outcome pill (Ran | Nothing to do | Problem) and one or two plain sentences.
+    - Needs attention: one bullet per thing a person must do, naming who.
+    - One section per group with an outcome: label rows Outcome, Carriers in the comparison, Illustrative
+      quotes (if any), Selector page (link), Files saved.
+    - Saved to Dropbox: every file, full path.
+    - If nothing was produced, the specific reason — e.g. "a current comparison is already filed in
+      Quoting/3. Proposal (dated 10/09)", "two carriers have not responded yet", "refreshed 3 days ago,
+      next eligible 10/17".
 
 RULES FOR THE RECEIPT
 - Send it for EVERY run, including runs where you did nothing. "Nothing to do" with a specific reason is the most useful message this automation sends — it is how Will and Alex know the request was received and judged, rather than lost.
-- Keep it under about ten lines. It is a receipt, not a report. The full exception report (Step 9) is separate and only goes out on the daily sweep when something is outstanding.
+- Lay it out with the TBG EMAIL STYLE, one fact per row. The full exception report (Step 9) is separate and only goes out on the daily sweep when something is outstanding.
 - Never say a file was saved unless the /save-file call returned success. If it failed, say so on the Outcome line and mark it "Problem".
 - Name the exact Dropbox path, not "the client's folder".
 - If the run covered several groups, give one line per group that had an outcome, and keep the "nothing happened" groups to a single summary count.
 - If the Outlook send itself fails, say so in your final summary so Will knows the receipt never went out.
 
+
+TBG EMAIL STYLE — EVERY STATUS EMAIL THIS ROUTINE SENDS (Will, 2026-10-16)
+Will, Alex and Lindsey read these on phones and in Outlook. Compact one-line-per-thing blocks were hard
+to digest, so every status email (receipt, report, summary) is laid out as below. Give each fact room;
+never cram several facts onto one line with dashes or semicolons. Length follows the content — there is
+no line cap — but no filler sentences either.
+
+Build it with tables and INLINE styles only (Outlook ignores <style> blocks and most CSS). Skeleton:
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F4F6F8;padding:16px 0;font-family:Arial,Helvetica,sans-serif;">
+<tr><td align="center">
+<table role="presentation" width="640" cellpadding="0" cellspacing="0" style="max-width:640px;width:100%;background:#FFFFFF;border:1px solid #E2E8F0;">
+  <!-- HEADER -->
+  <tr><td style="background:#0D1B2A;padding:18px 24px;">
+    <div style="font-size:11px;letter-spacing:1.5px;color:#4CAF7D;font-weight:bold;">THE BENEFITS GROUP · [ROUTINE NAME IN CAPS]</div>
+    <div style="font-size:20px;color:#FFFFFF;font-weight:bold;margin-top:6px;">[Group or "All groups"]</div>
+    <div style="font-size:13px;color:#A0AEC0;margin-top:4px;">[Requested: scheduled 6:07 AM run | on demand from the Action Center] · [Day Mon D] · [h:mm AM/PM] CT</div>
+  </td></tr>
+  <tr><td style="height:4px;background:#4CAF7D;font-size:0;line-height:0;">&nbsp;</td></tr>
+  <!-- OUTCOME -->
+  <tr><td style="padding:20px 24px 4px 24px;">
+    <span style="display:inline-block;padding:5px 12px;border-radius:14px;font-size:13px;font-weight:bold;background:[#E6F4EC|#EDF2F7|#FDE8E8];color:[#276749|#4A5568|#9B2C2C];">[Outcome]</span>
+    <div style="font-size:15px;line-height:1.55;color:#1A202C;margin-top:12px;">[One or two plain sentences: what happened and what it means.]</div>
+  </td></tr>
+  <!-- NEEDS ATTENTION (only when something does; always ABOVE the details) -->
+  <tr><td style="padding:12px 24px;">
+    <div style="background:#FEF3C7;border-left:4px solid #F59E0B;padding:12px 16px;">
+      <div style="font-size:13px;font-weight:bold;color:#92400E;letter-spacing:.5px;">NEEDS ATTENTION</div>
+      <ul style="margin:8px 0 0 18px;padding:0;font-size:14px;line-height:1.55;color:#7C2D12;">
+        <li style="margin-bottom:6px;"><b>[Who]</b>: [what to do, and why]</li>
+      </ul>
+    </div>
+  </td></tr>
+  <!-- AT A GLANCE (optional, 2-4 numbers) -->
+  <tr><td style="padding:8px 24px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+      <td style="background:#F7F9FC;border:1px solid #E2E8F0;padding:10px;text-align:center;">
+        <div style="font-size:22px;font-weight:bold;color:#0D1B2A;">[N]</div>
+        <div style="font-size:12px;color:#718096;">[label]</div></td>
+      <!-- repeat a cell per number, all the same width (2 cells = 49%, 3 = 32%, 4 = 24%), with an 8px spacer cell between -->
+    </tr></table>
+  </td></tr>
+  <!-- SECTION (repeat per group / bucket) -->
+  <tr><td style="padding:18px 24px 6px 24px;">
+    <div style="font-size:16px;font-weight:bold;color:#0D1B2A;border-bottom:2px solid #4CAF7D;padding-bottom:6px;">[Section heading]</div>
+  </td></tr>
+  <tr><td style="padding:4px 24px 8px 24px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:14px;line-height:1.5;color:#1A202C;">
+      <tr><td style="width:34%;padding:8px 10px 8px 0;border-bottom:1px solid #EDF2F7;color:#4A5568;vertical-align:top;"><b>[Label]</b></td>
+          <td style="padding:8px 0;border-bottom:1px solid #EDF2F7;vertical-align:top;">[Value — one fact per row]</td></tr>
+    </table>
+  </td></tr>
+  <!-- FILES (when any were saved) -->
+  <tr><td style="padding:8px 24px;">
+    <div style="font-size:13px;color:#4A5568;font-weight:bold;margin-bottom:4px;">Saved to Dropbox</div>
+    <div style="font-family:Consolas,Menlo,monospace;font-size:12px;color:#2D3748;background:#F7F9FC;padding:8px 10px;margin-bottom:6px;word-break:break-all;">[full Dropbox path]</div>
+  </td></tr>
+  <!-- FOOTER -->
+  <tr><td style="padding:16px 24px 20px 24px;border-top:1px solid #E2E8F0;font-size:12px;color:#A0AEC0;">
+    Sent by the TBG Action Center · [routine name] · run at [time] CT
+  </td></tr>
+</table>
+</td></tr></table>
+
+Rules: outcome pill colors — green for Ran / Sent / Saved, grey for Nothing to do, red for Problem.
+Leave out any block that has nothing in it (no empty "Needs attention", no zero-only stats). Group
+names in bold. Dates as "Mon 10/16". Links (selector pages, Dropbox shared links, Asana tasks) as
+<a href="..." style="color:#2B6CB0;">short label</a>, never a bare long URL in running text.
+Tables of several groups (e.g. "Waiting on a carrier") use a real table: header row background
+#F7F9FC, bold 13px; body cells 14px with 8px padding and a 1px #EDF2F7 bottom border.
 
 IMPORTANT GUARDRAILS
 This task NEVER sends, emails, or shares anything with a client or a carrier, in either pipeline. It only reads Dropbox/Asana, writes draft files into Dropbox's "3. Proposal" folders, and — per Step 9 — sends one internal exception-report email to Will and Alex only, and only on days something is outstanding. That internal status email is the one exception to "never send anything"; it is never sent to a client or carrier, and it never contains client-facing material, just status/exception tracking. A Renewal draft is exactly as informal/internal as a New Business draft — it is a tool for Will to decide his renewal strategy, not a client-facing renewal proposal.

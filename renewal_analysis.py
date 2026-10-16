@@ -388,6 +388,23 @@ def bottom_line(doc, text):
     add_runs(p, text, size=11.5, color=NAVY, bold=True)
 
 
+RATE_CONDITIONS = (
+    "Quotes are based on the census provided and are dependent upon final enrollment. Rates may change "
+    "if enrollment changes by more than 10%, and are not final until the carrier approves the group and "
+    "issues final rates."
+)
+
+
+def rate_conditions(doc, text=RATE_CONDITIONS):
+    """Fixed closing note on every Client Quote Summary (Will, 2026-10-16). Always printed, so it
+    never depends on the routine remembering to write it."""
+    spacer(doc, 10)
+    p = doc.add_paragraph()
+    para_fmt(p, after=0, line=1.2)
+    add_runs(p, "Important: ", size=8.5, color=NAVY, bold=True)
+    add_runs(p, text, size=8.5, color=MUTED, italic=True)
+
+
 def footer(doc, text):
     sec = doc.sections[0]
     p = sec.footer.paragraphs[0]
@@ -446,6 +463,7 @@ def build(data, out_path):
                 BLOCKS[kind](doc, block)
     next_steps(doc, data.get("next_steps", []))
     bottom_line(doc, data.get("bottom_line"))
+    rate_conditions(doc, data.get("rate_conditions") or RATE_CONDITIONS)
     footer(doc, data.get("footer", "The Benefits Group  |  Benefits that feel like care."))
     doc.save(out_path)
     return out_path

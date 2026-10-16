@@ -7,7 +7,7 @@ You only DRAFT. A separate routine, "TBG Send Carrier Emails", sends the drafts 
 ======================================================================
 DRAFT FORMAT FOR AUTO-SEND — ADDED 2026-10-13, REWRITTEN 2026-10-13 PM
 ======================================================================
-Every carrier subtask that carries an email (everything except the UHCLF / Arlo / SANA / Simpara portal
+Every carrier subtask that carries an email (everything except the UHCLF / SANA / Simpara portal
 tasks and Imagine360's "schedule a conversation" task) uses EXACTLY this layout in its description. Each label
 starts its own line. The send routine reads it literally, so nothing may be paraphrased, merged onto one
 line, or rearranged. Square-bracket items are placeholders you fill in; the brackets themselves never
@@ -73,6 +73,41 @@ Please quote at 15% commission.
 - Beam's ATTACH line and [ATTACHMENT LINE] cover dental/vision only. Attach the census, plus current
   DENTAL or VISION plan info only if it exists. Never attach a medical renewal or medical plan document to
   Beam, and say "current plan info attached" only when dental/vision plan info is actually attached.
+
+DELTA DENTAL DENTAL & VISION DRAFT (added 2026-10-16 per Will). Same labels and rules as Beam's draft,
+with these differences only:
+- TO: jbutterfield2@deltadentaltn.com ; greeting "Jane,"
+- SUBJECT: Encrypt - [Group Name] - Delta Dental Dental & Vision Quote Request
+- First body line: "Can you send dental and vision quotes for [Group Name]? [ATTACHMENT LINE]"
+- After the Desired Effective Date line (and "Current Dental/Vision Carrier: [X]" when known), add a
+  blank line and then exactly ONE of these two dental blocks, chosen by ENROLLING EMPLOYEES on the census:
+
+  2-9 enrolled:
+Dental, please quote these annual maximums: $1,000, $1,250 and $1,500.
+
+  10-125 enrolled:
+Dental, please quote these annual maximums: $1,000, $1,250, $1,500, $2,000 and $2,500.
+
+  then a blank line and exactly:
+
+Vision, 3 plans:
+1. 12/12/12, $175 frame allowance
+2. 12/12/12, $200 frame allowance
+3. 12/12/12, $250 frame allowance
+
+- Then the usual blank line, "Lindsey", blank line, and **PLEASE REPLY ALL TO THIS EMAIL**.
+- No medical "Current Carrier: [X]" line, and the same dental/vision-only attachment rule as Beam.
+- The "  2-9 enrolled:" / "  10-125 enrolled:" labels above are instructions, never part of the email.
+
+ABA / ARLO DRAFT — ONE EMAIL TO MICHAEL TANKERSLEY (added 2026-10-16 per Will). Brokers Holding Group
+now submits both ABA and Arlo. Michael must never get two emails for the same group:
+- 10+ enrolled: ONE subtask "ABA / Arlo - Michael Tankersley", carrier label "ABA / Arlo" in the
+  SUBJECT (Encrypt - [Group Name] - ABA / Arlo Medical Quote Request), first body line "Can you send
+  ABA level funded and Arlo medical quotes for [Group Name]? [ATTACHMENT LINE]". The ABA claims-data
+  rule above applies to this combined draft.
+- Under 10 enrolled: ONE subtask "Arlo - Michael Tankersley", SUBJECT "Encrypt - [Group Name] - Arlo
+  Medical Quote Request", normal first body line, no claims mention.
+- TO: tank@brokersholding.com ; greeting "Michael,".
 
 RESOLVE SMALL DISCREPANCIES YOURSELF — DO NOT LET THEM HOLD UP QUOTES (per Will, 2026-10-13)
 Carriers verify details along the way, so minor conflicts between documents are not a reason to hold a
@@ -182,7 +217,7 @@ STEPS (Send-for-Quotes logic):
    If the required files aren't there yet or look incomplete/placeholder, skip this group for now — no need to notify anyone, it's expected timing, not an error.
 
 4. For every group with confirmed, ready data, apply this carrier-matching logic (source of truth: the Asana "CARRIER LISTING" project, gid 1213325728914238 — re-read it live each run, since Will adds carriers there directly and this list may lag by a few days):
-   - UHCLF, Arlo = portal only, no email.
+   - UHCLF = portal only, no email.
    - Chad = bundled email for Angle/Navigation Health/HIT (contacts: Chad Olson chad@navigationhealthllc.com, Luke Olson luke@navigationhealthllc.com). ANGLE MINIMUM (per Will, 2026-09-10): only send Angle a quote request if the group has at least 5 EMPLOYEES — count actual employees, NOT total enrolled members/dependents/spouses ("bellybuttons"). If a census is available, count only employee rows (exclude spouse/dependent rows); otherwise use the stated employee headcount from the Info Sheet/renewal data, not an enrolled-lives figure. Since Angle is currently bundled into one subtask/email with Navigation Health and HIT via Chad, apply this 5-employee floor to the whole bundled Angle/Navigation Health/HIT ask: for a group under 5 employees, skip that bundled subtask entirely and note the exclusion ("Excluded Angle/Navigation Health/HIT — under Angle's 5-employee minimum") rather than silently dropping it. This minimum is specific to Angle; if Navigation Health/HIT are ever split into their own separate subtask/email, this floor still applies to Angle only, not to them.
    - Cason Group = Aetna AFA (contacts: John Casey johncasey@thecasongroup.com, Will Westmoreland willwestmoreland@thecasongroup.com).
    - Cigna Direct = Kamryn Testa kamryn.testa@cignahealthcare.com (requires 25+ enrolled).
@@ -190,19 +225,20 @@ STEPS (Send-for-Quotes logic):
    - Gravie (contacts: Blake Schmeling blake.schmeling@gravie.com, Rob Haire rob.haire@gravie.com, Megan Radermacher megan.radermacher@gravie.com) — best fit 2-4 enrolled (ICHRA) or 15+ enrolled (Level Funded); a group sitting between 5 and 14 enrolled doesn't cleanly fit either bucket, exclude by default in that gap.
    - Edison (contacts: Jacob Bliel jbleil@edisonehs.com, Shawn Williams swilliams@edisonehs.com) = lower priority/optional.
    - Crumdale Partners (contact: Bri Calhoun bcalhoun@crumdalespecialty.com) = requires 25+ enrolled (lowered from 50+ per Will, 2026-08-11).
-   - Simpara / Level Health Plans = PORTAL only, no outreach email (changed per Will, 2026-10-15). Lindsey uploads the census at https://quote.levelhealthplans.com/login. Level Funded, requires 10+ enrolled, Census-Based underwriting (no employee apps needed). Subtask name: "Simpara / Level Health Plans portal", with a short portal-upload note like UHCLF/Arlo/SANA. Never email Adam Berkowitz (adam@levelhealthplans.com) a quote request. Added to default rotation per Will, 2026-08-11.
+   - Simpara / Level Health Plans = PORTAL only, no outreach email (changed per Will, 2026-10-15). Lindsey uploads the census at https://quote.levelhealthplans.com/login. Level Funded, requires 10+ enrolled, Census-Based underwriting (no employee apps needed). Subtask name: "Simpara / Level Health Plans portal", with a short portal-upload note like UHCLF/SANA. Never email Adam Berkowitz (adam@levelhealthplans.com) a quote request. Added to default rotation per Will, 2026-08-11.
    - Beam = DENTAL & VISION quotes (separate from the medical carriers; added per Will, 2026-10-15). Contact: Marli Griesel, marli.griesel@beambenefits.com. Requires 2+ employees. Commission 15%. Include by default for every group with 2+ enrolling employees whose carrier subtasks you are creating, unless Beam is the group's stated current dental or vision carrier (Step 5a incumbent skip). Subtask name: "Beam (Dental & Vision) - Marli Griesel". The draft follows the BEAM DENTAL & VISION DRAFT rules under the DRAFT FORMAT, with the same AUTO-SEND READY checks as the medical drafts. Do not add Beam to projects whose carrier subtasks were created before 2026-10-15 unless Will asks for that group.
-   - Delta Dental = dental & vision, being added per Will (2026-10-15). Contact and criteria not yet provided: do NOT create Delta Dental subtasks until this line is replaced with its contact, minimum and plan designs.
+   - Delta Dental (of Tennessee) = DENTAL & VISION quotes, added per Will 2026-10-16. Contact: Jane Butterfield, jbutterfield2@deltadentaltn.com. Eligible 2-125 enrolled employees (over 125: exclude and note it). Include by default, alongside Beam, for every group in that range whose carrier subtasks you are creating, unless Delta Dental is the group's stated current dental or vision carrier (Step 5a). Dental annual maximums to request: 2-9 enrolled = $1,000 / $1,250 / $1,500; 10-125 enrolled = $1,000 / $1,250 / $1,500 / $2,000 / $2,500. Vision: 12/12/12 with $175 / $200 / $250 frame allowances. Subtask name: "Delta Dental (Dental & Vision) - Jane Butterfield". The draft follows the DELTA DENTAL DENTAL & VISION DRAFT rules. Do not add Delta Dental to projects whose carrier subtasks were created before 2026-10-16 unless Will asks for that group.
+   - Arlo = through Brokers Holding Group (Michael Tankersley, tank@brokersholding.com), NO LONGER a portal (changed per Will, 2026-10-16). Include by default for every group. Bundled with ABA into one email to Michael when the group has 10+ enrolled; Arlo alone under 10 enrolled — see the ABA / ARLO DRAFT rules. Never create an "Arlo portal" subtask again.
    - CBC Triad Benefits (contact: Chad Olson chad@navigationhealthllc.com — same GA contact as Angle/Navigation Health/HIT; Program Manager: Triad Benefits, Stop Loss: Odyssey Re, TPA: Securus Benefits, Network: PHCS or Cigna or RBP, PBM: Disclosed Rx) = requires 10+ enrolled, Census-Based underwriting (no employee apps needed). Added to default rotation per Will, 2026-09-01. ONE EMAIL TO CHAD (rewritten 2026-10-13): Chad must never get two emails for the same group. When the group qualifies for CBC Triad (10+ enrolled), do NOT create a separate CBC Triad email subtask — instead name the single Chad subtask "Angle / Navigation Health / HIT / CBC Triad - Chad Olson", use the carrier label "Angle / Navigation Health / HIT / CBC Triad" in its subject, and write it as one draft in the DRAFT FORMAT. A group under 10 enrolled gets the Angle/Navigation Health/HIT subtask without CBC Triad. A group under Angle's 5-employee floor but at 10+ enrolled gets one Chad email for CBC Triad only, named "CBC Triad Benefits - Chad Olson". A group that qualifies for neither gets no Chad email at all.
-   - SANA (contact: cal.axe@sanabenefits.com) = PORTAL only, no outreach email needed (like UHCLF/Arlo). Eligibility is state-based, not enrolled-count-based: only include for a group if the business is domiciled in one of these states (employees can live anywhere in the U.S. and still use the plan): AL, AZ, CO, DE, IL, IN, IA, KS, KY, MD, MA, MI, OH, OK, PA, TX, VA, WI. Check the group's Info Sheet / renewal data for the business address state before including — if the state isn't on this list, exclude SANA for that group (note it in your report as excluded-by-state, not a flag). Added to default rotation per Will, 2026-08-12.
+   - SANA (contact: cal.axe@sanabenefits.com) = PORTAL only, no outreach email needed (like UHCLF). Eligibility is state-based, not enrolled-count-based: only include for a group if the business is domiciled in one of these states (employees can live anywhere in the U.S. and still use the plan): AL, AZ, CO, DE, IL, IN, IA, KS, KY, MD, MA, MI, OH, OK, PA, TX, VA, WI. Check the group's Info Sheet / renewal data for the business address state before including — if the state isn't on this list, exclude SANA for that group (note it in your report as excluded-by-state, not a flag). Added to default rotation per Will, 2026-08-12.
    - Imagine360 = requires 50+ enrolled (below 50 is a case-by-case exception). Unlike the other carriers, Imagine360 wants a conversation about the group BEFORE quoting rather than a cold template email — contact is Becky Randles (rrandles@imagine360.com), National Director. Their subtask should read as "schedule a conversation with Becky Randles about this group," NOT include a pre-drafted send-this-verbatim email.
-   - ABA (Assured Benefits Administrators) = Level Funded quotes, requires 10+ enrolled, writes in all states, Census-Based underwriting (no employee apps needed). GA contact: Brokers Holding Group — Michael Tankersley, tank@brokersholding.com, (770) 378-3532. IMPORTANT NAMING NOTE: ABA also offers a MEC product, but TBG goes to them specifically for Level Funded quotes — use the carrier label "ABA" only, never "ABA-MEC" or "MEC" anywhere in the subtask name/description (per Will, 2026-08-25 — the "MEC" label was confusing Lindsey since that's not the product being requested). Unlike the standard template, ABA's RFP needs census + renewal data + claims data when the group has it — follow the ABA rule in the DRAFT FORMAT section. Expectation-setting: ABA declines a fair number of quotes, but competitive cases have run 10-23% below current rates recently.
+   - ABA (Assured Benefits Administrators) = Level Funded quotes, requires 10+ enrolled, writes in all states, Census-Based underwriting (no employee apps needed). GA contact: Brokers Holding Group — Michael Tankersley, tank@brokersholding.com, (770) 378-3532. Since 2026-10-16 ABA shares ONE email with Arlo ("ABA / Arlo - Michael Tankersley") — never a separate ABA subtask. IMPORTANT NAMING NOTE: ABA also offers a MEC product, but TBG goes to them specifically for Level Funded quotes — use the carrier label "ABA" only, never "ABA-MEC" or "MEC" anywhere in the subtask name/description (per Will, 2026-08-25 — the "MEC" label was confusing Lindsey since that's not the product being requested). Unlike the standard template, ABA's RFP needs census + renewal data + claims data when the group has it — follow the ABA rule in the DRAFT FORMAT section. Expectation-setting: ABA declines a fair number of quotes, but competitive cases have run 10-23% below current rates recently.
    - One Health (contact: Ryan Paddack rpaddack@onehealthplus.com) = Level Funded quotes only. 10+ enrolled = Census-Based underwriting — include in the default Send-for-Quotes rotation for any group at 10+ enrolled. Below 10 enrolled, One Health requires IMQs (individual medical questionnaires/health apps) from employees, and TBG only sends if the group has explicitly agreed to do IMQs (an "APPS AGREED" or "APPS RECEIVED" comment on the Send for Quotes task — see HEALTH QUESTIONNAIRES above; then include One Health) — otherwise do NOT auto-include for groups under 10 enrolled (same treatment as Allstate/Optimyl: quotes aren't firm without apps); instead exclude by default and flag it in your summary as a manual-assessment call for Will/Lindsey. IMPORTANT NAMING NOTE: One Health also sells individual/1099 products, but TBG is only using them for Level Funded group quotes here — do not use the word "individual" anywhere in this carrier's subtask name or description, to avoid confusion with their unrelated individual-plan line (per Will, 2026-08-25). Added to default rotation per Will, 2026-08-25.
    - Gulf South Risk = excluded from default shortlist, ad hoc only (Will adds manually if needed).
    - Optimyl, Nationwide/Allstate = excluded from default shortlist (quotes are illustrative, not fully underwritten — Lindsey has sent to these out of old habit, actively discouraged; only add manually if Will specifically wants it for a group).
    - Marpai, 90 Degrees, Emerson Rogers = excluded entirely (not applicable to TBG's business model).
    - BCBS = excluded (fully insured, no underwriting needed — added directly in Benefitter instead).
-   Create one subtask per selected carrier under "Send for Quotes," assigned to Lindsey Diaz (lindsey@benefits.place), named "[Carrier] - [contact/GA name]" (or "[Carrier] portal" for UHCLF/Arlo/SANA, and "Simpara / Level Health Plans portal"). Every email subtask's description is written in the DRAFT FORMAT at the top of these instructions — that layout replaces the older free-text email template. Imagine360 gets its "schedule a conversation with Becky Randles" note instead, and UHCLF/Arlo/SANA/Simpara get a short portal-upload note instead; none of those ever carry "AUTO-SEND READY". Set every subtask's `due_on` to one calendar day after this run's date (e.g. a run on Thursday sets Friday as the due date) — applies to every subtask created this run, including portal-only and Imagine360's "schedule a conversation" task.
+   Create one subtask per selected carrier under "Send for Quotes," assigned to Lindsey Diaz (lindsey@benefits.place), named "[Carrier] - [contact/GA name]" (or "[Carrier] portal" for UHCLF/SANA, and "Simpara / Level Health Plans portal"). Every email subtask's description is written in the DRAFT FORMAT at the top of these instructions — that layout replaces the older free-text email template. Imagine360 gets its "schedule a conversation with Becky Randles" note instead, and UHCLF/SANA/Simpara get a short portal-upload note instead; none of those ever carry "AUTO-SEND READY". Set every subtask's `due_on` to one calendar day after this run's date (e.g. a run on Thursday sets Friday as the due date) — applies to every subtask created this run, including portal-only and Imagine360's "schedule a conversation" task.
 
 5. Current-carrier handling:
    a. UNIVERSAL INCUMBENT-SKIP (per Will, 2026-09-01 — added after a Buffalo River Truss LLC run created a UHCLF subtask even though United Healthcare was their own stated current carrier): for EVERY group, new-business ("Quoting") or renewal alike, check whether the Info Sheet's or renewal data's stated "current carrier" field clearly matches a carrier in the default Send-for-Quotes rotation — including carrier-specific portals/programs that belong to the same underlying carrier (e.g. UHCLF is UnitedHealthcare's own portal, so a stated current carrier of "United Health" / "UnitedHealthcare" / "UHC" matches it). If it clearly matches, auto-skip creating a subtask for that one carrier — don't send a quote request to the group's own incumbent — and note the skip in your Step 7 comment / Step 8 summary (e.g. "Skipped [Carrier] — matches this group's stated current carrier"). Only skip on a clear, confident match between the stated carrier and a rotation carrier/GA; if it's ambiguous whether they're the same entity, don't guess — leave the carrier in the shortlist and flag the ambiguity instead.
@@ -212,35 +248,106 @@ STEPS (Send-for-Quotes logic):
 
 7. NOTIFY WILL FOR REVIEW: Will keeps his Asana inbox filtered to only show items where he is personally @-mentioned. So for every group where you created new carrier subtasks this run, add a comment on that group's "Send for Quotes" parent task using html_text with an @-mention of Will (user gid `1197850067860922`): `<body>Hey <a data-asana-gid="1197850067860922"/> — created [N] carrier subtask(s) for [Group Name] under Send for Quotes: [M] marked AUTO-SEND READY, [K] NOT READY ([one-line reason each]).</body>` (use add_comment, not update_tasks). If Step 0 also templated a fresh Dropbox folder for that group this run, or Step 0.5 auto-saved its Info Sheet/census, mention that in the same comment. If you had to flag an ambiguous project-name match instead of resolving it automatically, also @-mention Will about that specifically. Do NOT @-mention Will merely because a group's originating project turned out to be AOR-acquired per Step 0.h — that is expected, not a flag.
 
-8. After processing everything, optionally send one summary email to will@benefits.place via the Zapier Outlook `send_email` action (or `create_draft_email` if send fails): which groups got new Dropbox folders, auto-saved files, and/or new carrier subtasks; which were skipped for missing data; any that looked ambiguous or need Will's judgment call. If nothing needed action this run, skip the email entirely.
+8. (Folded into the RUN RECEIPT below, 2026-10-16.) Do not send a separate summary email: the receipt now carries the folders created, files saved, subtasks drafted, skips and judgment calls, laid out in the TBG EMAIL STYLE, to Will, Alex and Lindsey.
 
 
 RUN RECEIPT — SEND ONE EVERY RUN, NO EXCEPTIONS (added 2026-10-12 per Will)
 
 Will and Alex cannot see this run. So the LAST thing every run does, whether it changed anything or not, is send a short receipt email through the Zapier Microsoft Outlook connector (execute_zapier_write_action, selected_api "MicrosoftOutlookCLIAPI", action "send_email"):
 
-  recipients: ["will@benefits.place", "alex@benefits.place"]
+  recipients: ["will@benefits.place", "alex@benefits.place", "lindsey@benefits.place"]
   bodyFormat: "HTML"
   subject:  "TBG Send for Quotes — [Group or 'all groups'] — [Ran | Nothing to do | Problem]"
-  body: a compact HTML block, Arial 13px, no images, in this exact shape:
+  body: HTML in the TBG EMAIL STYLE below (routine name "SEND FOR QUOTES"), containing:
+    - Header: the group, or "All groups"; how it started (scheduled 6:07 AM run, or on demand from the
+      Action Center); date and time.
+    - Outcome pill (Ran | Nothing to do | Problem) and one or two sentences on what happened.
+    - Needs attention: one bullet per thing a person must do, naming who (Lindsey, Alex, Will).
+    - At a glance: groups drafted, drafts AUTO-SEND READY, drafts held (only when something was drafted).
+    - One section per group that had an outcome, headed "[Group] · effective MM/DD", with label rows:
+      Ready to send (carrier labels), Held (carrier — specific reason), Portals for Lindsey, Skipped or
+      excluded (carrier — reason, e.g. under a minimum), Files saved.
+    - Saved to Dropbox: every file saved, full path.
+    - If nothing was produced, the specific reason ("carrier subtasks already exist", "no census yet").
+    - Groups where nothing happened: one line with the count, never a section each.
 
-    <b>TBG Send for Quotes</b><br>
-    Requested: [how it started — scheduled 6:07 AM run, or on-demand from the Action Center]<br>
-    Group: [group name, or "all groups (daily sweep)"]<br>
-    Outcome: <b>[Ran | Nothing to do | Problem]</b><br>
-    [One line saying what happened, in plain words, including how many drafts are AUTO-SEND READY vs NOT READY.]<br>
-    [If a file was produced: "Saved to: &lt;full Dropbox path&gt;" — one line per file.]<br>
-    [If nothing was produced: "Reason: &lt;the specific reason&gt;" — e.g. "carrier subtasks already exist", "no census yet".]<br>
-    [If anything needs a person: "Needs attention: &lt;what and who&gt;".]<br>
-    Run at [time] Central.
+TBG EMAIL STYLE — EVERY STATUS EMAIL THIS ROUTINE SENDS (Will, 2026-10-16)
+Will, Alex and Lindsey read these on phones and in Outlook. Compact one-line-per-thing blocks were hard
+to digest, so every status email (receipt, report, summary) is laid out as below. Give each fact room;
+never cram several facts onto one line with dashes or semicolons. Length follows the content — there is
+no line cap — but no filler sentences either.
+
+Build it with tables and INLINE styles only (Outlook ignores <style> blocks and most CSS). Skeleton:
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F4F6F8;padding:16px 0;font-family:Arial,Helvetica,sans-serif;">
+<tr><td align="center">
+<table role="presentation" width="640" cellpadding="0" cellspacing="0" style="max-width:640px;width:100%;background:#FFFFFF;border:1px solid #E2E8F0;">
+  <!-- HEADER -->
+  <tr><td style="background:#0D1B2A;padding:18px 24px;">
+    <div style="font-size:11px;letter-spacing:1.5px;color:#4CAF7D;font-weight:bold;">THE BENEFITS GROUP · [ROUTINE NAME IN CAPS]</div>
+    <div style="font-size:20px;color:#FFFFFF;font-weight:bold;margin-top:6px;">[Group or "All groups"]</div>
+    <div style="font-size:13px;color:#A0AEC0;margin-top:4px;">[Requested: scheduled 6:07 AM run | on demand from the Action Center] · [Day Mon D] · [h:mm AM/PM] CT</div>
+  </td></tr>
+  <tr><td style="height:4px;background:#4CAF7D;font-size:0;line-height:0;">&nbsp;</td></tr>
+  <!-- OUTCOME -->
+  <tr><td style="padding:20px 24px 4px 24px;">
+    <span style="display:inline-block;padding:5px 12px;border-radius:14px;font-size:13px;font-weight:bold;background:[#E6F4EC|#EDF2F7|#FDE8E8];color:[#276749|#4A5568|#9B2C2C];">[Outcome]</span>
+    <div style="font-size:15px;line-height:1.55;color:#1A202C;margin-top:12px;">[One or two plain sentences: what happened and what it means.]</div>
+  </td></tr>
+  <!-- NEEDS ATTENTION (only when something does; always ABOVE the details) -->
+  <tr><td style="padding:12px 24px;">
+    <div style="background:#FEF3C7;border-left:4px solid #F59E0B;padding:12px 16px;">
+      <div style="font-size:13px;font-weight:bold;color:#92400E;letter-spacing:.5px;">NEEDS ATTENTION</div>
+      <ul style="margin:8px 0 0 18px;padding:0;font-size:14px;line-height:1.55;color:#7C2D12;">
+        <li style="margin-bottom:6px;"><b>[Who]</b>: [what to do, and why]</li>
+      </ul>
+    </div>
+  </td></tr>
+  <!-- AT A GLANCE (optional, 2-4 numbers) -->
+  <tr><td style="padding:8px 24px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+      <td style="background:#F7F9FC;border:1px solid #E2E8F0;padding:10px;text-align:center;">
+        <div style="font-size:22px;font-weight:bold;color:#0D1B2A;">[N]</div>
+        <div style="font-size:12px;color:#718096;">[label]</div></td>
+      <!-- repeat a cell per number, all the same width (2 cells = 49%, 3 = 32%, 4 = 24%), with an 8px spacer cell between -->
+    </tr></table>
+  </td></tr>
+  <!-- SECTION (repeat per group / bucket) -->
+  <tr><td style="padding:18px 24px 6px 24px;">
+    <div style="font-size:16px;font-weight:bold;color:#0D1B2A;border-bottom:2px solid #4CAF7D;padding-bottom:6px;">[Section heading]</div>
+  </td></tr>
+  <tr><td style="padding:4px 24px 8px 24px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:14px;line-height:1.5;color:#1A202C;">
+      <tr><td style="width:34%;padding:8px 10px 8px 0;border-bottom:1px solid #EDF2F7;color:#4A5568;vertical-align:top;"><b>[Label]</b></td>
+          <td style="padding:8px 0;border-bottom:1px solid #EDF2F7;vertical-align:top;">[Value — one fact per row]</td></tr>
+    </table>
+  </td></tr>
+  <!-- FILES (when any were saved) -->
+  <tr><td style="padding:8px 24px;">
+    <div style="font-size:13px;color:#4A5568;font-weight:bold;margin-bottom:4px;">Saved to Dropbox</div>
+    <div style="font-family:Consolas,Menlo,monospace;font-size:12px;color:#2D3748;background:#F7F9FC;padding:8px 10px;margin-bottom:6px;word-break:break-all;">[full Dropbox path]</div>
+  </td></tr>
+  <!-- FOOTER -->
+  <tr><td style="padding:16px 24px 20px 24px;border-top:1px solid #E2E8F0;font-size:12px;color:#A0AEC0;">
+    Sent by the TBG Action Center · [routine name] · run at [time] CT
+  </td></tr>
+</table>
+</td></tr></table>
+
+Rules: outcome pill colors — green for Ran / Sent / Saved, grey for Nothing to do, red for Problem.
+Leave out any block that has nothing in it (no empty "Needs attention", no zero-only stats). Group
+names in bold. Dates as "Mon 10/16". Links (selector pages, Dropbox shared links, Asana tasks) as
+<a href="..." style="color:#2B6CB0;">short label</a>, never a bare long URL in running text.
+Tables of several groups (e.g. "Waiting on a carrier") use a real table: header row background
+#F7F9FC, bold 13px; body cells 14px with 8px padding and a 1px #EDF2F7 bottom border.
 
 RULES FOR THE RECEIPT
 - Send it for EVERY run, including runs where you did nothing. "Nothing to do" with a specific reason is the most useful message this automation sends — it is how Will and Alex know the request was received and judged, rather than lost.
-- Keep it under about ten lines. It is a receipt, not a report.
+- Lay it out with the TBG EMAIL STYLE; give every fact its own row. Do not compress it into a few lines.
 - Never say a file was saved unless the save actually succeeded. If it failed, say so on the Outcome line and mark it "Problem".
 - Name the exact Dropbox path, not "the client's folder".
 - If the run covered several groups, give one line per group that had an outcome, and keep the "nothing happened" groups to a single summary count.
 - If the Outlook send itself fails, say so in your final summary so Will knows the receipt never went out.
 
 
-CONSTRAINTS: Never create duplicate Dropbox folders, duplicate Asana subtasks, or duplicate Info Sheet/census files. Never guess at data that isn't there yet, never fabricate census data. Info Sheets are `.md`, not `.docx`. Every carrier subtask must get a `due_on` of run-date-plus-one-day. Never send a real quote-request email to a carrier — only draft content inside Asana subtasks (except Imagine360's "schedule a conversation" prompt). Every email draft follows the DRAFT FORMAT exactly, and carries "AUTO-SEND READY" only when every clean-draft check passes. Never give one carrier contact two emails for the same group (Chad gets one combined email). Always @-mention Will on the Send for Quotes task when new subtasks are created. Never create a carrier subtask for a carrier that clearly matches the group's own stated current carrier (Step 5a's universal incumbent-skip) — this applies to every group, not just Renewal-named projects. Never send Angle a quote request for a group with fewer than 5 employees (actual employees, not total enrolled members/dependents) — Step 4's Angle minimum applies even though Angle is currently bundled with Navigation Health/HIT into one subtask. Never auto-create a Dropbox folder for a Plan Grader or Action Step lead. Match new-business project names flexibly (case-insensitive "quoting" substring, tolerate a missing/differently-formatted date). Never use "MEC" in ABA's carrier label/description — TBG goes to ABA for Level Funded quotes, not MEC. Never use "individual" in One Health's carrier label/description — TBG goes to One Health for Level Funded quotes, not their individual/1099 products. An AOR-acquired client's originating project lacking a "Send for Quotes" task or standard section structure (Step 0.h) is expected and must not be flagged — but this never excuses skipping that same client's actual renewal cycles once they have a real Renewal project; process those through the normal Steps 1-8 logic like any other client. If something conflicts between what's documented here and what you find live in Asana/Dropbox, flag the discrepancy in your summary rather than silently deciding.
+CONSTRAINTS: Never create duplicate Dropbox folders, duplicate Asana subtasks, or duplicate Info Sheet/census files. Never guess at data that isn't there yet, never fabricate census data. Info Sheets are `.md`, not `.docx`. Every carrier subtask must get a `due_on` of run-date-plus-one-day. Never send a real quote-request email to a carrier — only draft content inside Asana subtasks (except Imagine360's "schedule a conversation" prompt). Every email draft follows the DRAFT FORMAT exactly, and carries "AUTO-SEND READY" only when every clean-draft check passes. Never give one carrier contact two emails for the same group (Chad gets one combined email; Michael Tankersley gets one combined ABA / Arlo email). Always @-mention Will on the Send for Quotes task when new subtasks are created. Never create a carrier subtask for a carrier that clearly matches the group's own stated current carrier (Step 5a's universal incumbent-skip) — this applies to every group, not just Renewal-named projects. Never send Angle a quote request for a group with fewer than 5 employees (actual employees, not total enrolled members/dependents) — Step 4's Angle minimum applies even though Angle is currently bundled with Navigation Health/HIT into one subtask. Never auto-create a Dropbox folder for a Plan Grader or Action Step lead. Match new-business project names flexibly (case-insensitive "quoting" substring, tolerate a missing/differently-formatted date). Never use "MEC" in ABA's carrier label/description — TBG goes to ABA for Level Funded quotes, not MEC. Never use "individual" in One Health's carrier label/description — TBG goes to One Health for Level Funded quotes, not their individual/1099 products. An AOR-acquired client's originating project lacking a "Send for Quotes" task or standard section structure (Step 0.h) is expected and must not be flagged — but this never excuses skipping that same client's actual renewal cycles once they have a real Renewal project; process those through the normal Steps 1-8 logic like any other client. If something conflicts between what's documented here and what you find live in Asana/Dropbox, flag the discrepancy in your summary rather than silently deciding.

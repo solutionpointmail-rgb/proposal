@@ -182,8 +182,8 @@ function renderDentalCard(plan,idx){
 function renderVisionCard(plan,idx){
   const badges=plan.plan_type?`<span class="badge badge-blue">${v(plan.plan_type)}</span>`:'';
   return cardShell('vision','vis-',plan,idx,badges,
-    row('Exam / materials copay',pair(plan.exam_copay,plan.materials_copay))+
-    row('Frames / contacts',pair(plan.frame_allowance,plan.contacts_allowance))+
+    row('Exam copay',plan.exam_copay)+row('Lenses / materials copay',plan.lenses||plan.materials_copay)+
+    row('Frame allowance',plan.frame_allowance)+row('Contact lens allowance',plan.contacts_allowance)+
     row('Frequency (exam / lens / frame)',[plan.exam_frequency,plan.lenses_frequency,plan.frames_frequency].map(v).join(' / '))+
     row('EE only rate',formatMoney(plan.rate_ee)+'/mo'));
 }

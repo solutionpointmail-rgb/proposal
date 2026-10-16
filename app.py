@@ -1296,6 +1296,125 @@ def pipeline_report():
 _CENSUS_EXTS = ('.xlsx', '.xls', '.csv', '.pdf')
 
 
+def _strip_wb(path):
+    """Accept paths as the Dropbox connector shows them ('/William Brown/Solutionpoint Groups/...')
+    or as Render's root sees them ('/Solutionpoint Groups/...')."""
+    path = (path or '').strip()
+    if path.lower().startswith('/william brown/'):
+        path = path[len('/William Brown'):]
+    return path
+
+
+_SAVE_URL_HOSTS = ('zapier.com', 'zapierusercontent.com', 'amazonaws.com')
+
+
+@app.route('/save-from-url', methods=['POST'])
+def save_from_url():
+    """Fetch a file from a Zapier file URL and write it to Dropbox (added 2026-10-16).
+
+    The Quote Inbox routine reads quotes@benefits.place through Zapier, whose "Get Attachment"
+    action returns each attachment as a zapier.com/engine/hydrate/... URL. The routine's sandbox
+    cannot reach zapier.com and must never carry file bytes through a tool call, so it hands the
+    URL here and Render does the download and the Dropbox upload.
+
+      POST {"url": "<zapier hydrate url>", "dropbox_path": "/Solutionpoint Groups/.../file.pdf"}
+    Only Zapier file hosts are fetched. Census files are refused (they belong in 1. Census, filed
+    by people). Never overwrites: a same-named file gets " (1)" added.
+    """
+    if not _tbg_authorized():
+        return jsonify({'error': 'unauthorized'}), 401
+    import urllib.parse as up, requests as _rq
+    data = request.get_json(force=True, silent=True) or {}
+    url = (data.get('url') or '').strip()
+    path = _strip_wb(data.get('dropbox_path'))
+    host = (up.urlparse(url).hostname or '').lower()
+    if not url.startswith('https://') or not any(host == h or host.endswith('.' + h) for h in _SAVE_URL_HOSTS):
+        return jsonify({'error': 'url must be an https Zapier file URL'}), 400
+    if not path.startswith('/Solutionpoint Groups/') or '/quoting/' not in path.lower():
+        return jsonify({'error': 'dropbox_path must be inside a group\'s Quoting folder'}), 400
+    if '/1. census/' in path.lower():
+        return jsonify({'error': 'census files are not auto-filed'}), 400
+    try:
+        r = _rq.get(url, timeout=90, allow_redirects=True)
+        if r.status_code != 200 or not r.content:
+            return jsonify({'error': f'download failed: HTTP {r.status_code}'}), 502
+        if len(r.content) > 60 * 1024 * 1024:
+            return jsonify({'error': 'file larger than 60 MB'}), 413
+        dbx_module, dbx = _dropbox_client()
+        meta = dbx.files_upload(r.content, path, mode=dbx_module.files.WriteMode.add, autorename=True)
+        print(f"✅ save-from-url: {len(r.content)} bytes → {meta.path_display}", flush=True)
+        return jsonify({'status': 'success', 'path': meta.path_display, 'bytes': len(r.content),
+                        'renamed': meta.path_display.rsplit('/', 1)[-1] != path.rsplit('/', 1)[-1]}), 200
+    except Exception as e:
+        print(f"❌ save-from-url error: {e}", flush=True)
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/dropbox-text', methods=['POST'])
+def dropbox_text():
+    """Text of a quote document in Dropbox, extracted on Render (added 2026-10-16).
+
+    The Dropbox connector only extracts text from files up to 5 MB, and carrier proposals often run
+    larger — One Health's proposal PDFs (5.5 MB on Jerry Harvey) came through as rate grids with no
+    benefits, so their selector cards were blank. Render has no such limit.
+      POST {"path": "/Solutionpoint Groups/.../One Health/Proposal.pdf", "max_chars": 300000}
+    Reads PDF, XLSX, DOCX and plain text. Census files are refused.
+    """
+    if not _tbg_authorized():
+        return jsonify({'error': 'unauthorized'}), 401
+    import io, zipfile
+    data = request.get_json(force=True, silent=True) or {}
+    path = _strip_wb(data.get('path'))
+    max_chars = int(data.get('max_chars') or 300000)
+    low = path.lower()
+    if not path.startswith('/Solutionpoint Groups/'):
+        return jsonify({'error': 'path must be under /Solutionpoint Groups/'}), 400
+    if '/1. census/' in low or 'census' in low.rsplit('/', 1)[-1]:
+        return jsonify({'error': 'census files are not read through this endpoint'}), 403
+    try:
+        _, dbx = _dropbox_client()
+        meta, resp = dbx.files_download(path)
+        blob = resp.content
+        ext = low.rsplit('.', 1)[-1]
+        pages = None
+        if ext == 'pdf':
+            from pypdf import PdfReader
+            reader = PdfReader(io.BytesIO(blob))
+            parts = []
+            for i, pg in enumerate(reader.pages, 1):
+                parts.append(f"\n===== page {i} =====\n" + (pg.extract_text() or ''))
+            pages = len(reader.pages)
+            text = ''.join(parts)
+        elif ext in ('xlsx', 'xlsm'):
+            import openpyxl
+            wb = openpyxl.load_workbook(io.BytesIO(blob), read_only=True, data_only=True)
+            parts = []
+            for ws in wb.worksheets:
+                parts.append(f"\n===== sheet {ws.title} =====")
+                for row in ws.iter_rows(values_only=True):
+                    vals = ['' if v is None else str(v) for v in row]
+                    if any(vals):
+                        parts.append(' | '.join(vals).rstrip(' |'))
+            text = '\n'.join(parts)
+        elif ext == 'docx':
+            with zipfile.ZipFile(io.BytesIO(blob)) as z:
+                xml = z.read('word/document.xml').decode('utf-8', 'replace')
+            xml = re.sub(r'</w:p>', '\n', xml)
+            text = re.sub(r'<[^>]+>', '', xml)
+        elif ext in ('txt', 'csv', 'md', 'html', 'htm'):
+            text = blob.decode('utf-8', 'replace')
+        else:
+            return jsonify({'error': f'unsupported file type .{ext}'}), 415
+        empty = len(text.strip()) < 50
+        return jsonify({'status': 'success', 'path': meta.path_display, 'bytes': len(blob), 'pages': pages,
+                        'chars': len(text), 'truncated': len(text) > max_chars,
+                        'note': 'little or no text: the file is probably scanned images' if empty else '',
+                        'text': text[:max_chars]}), 200
+    except Exception as e:
+        print(f"❌ dropbox-text error: {e}", flush=True)
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/attach-census', methods=['POST'])
 def attach_census():
     import requests as _rq

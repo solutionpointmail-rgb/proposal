@@ -1319,7 +1319,8 @@ def save_from_url():
 
       POST {"url": "<zapier hydrate url>", "dropbox_path": "/Solutionpoint Groups/.../file.pdf"}
     Only Zapier file hosts are fetched. Census files are refused (they belong in 1. Census, filed
-    by people). Never overwrites: a same-named file gets " (1)" added.
+    by people). Never overwrites: if a file with that name is already there it returns
+    {"status": "exists"} and saves nothing; pass "keep_both": true to save a " (1)" copy instead.
     """
     if not _tbg_authorized():
         return jsonify({'error': 'unauthorized'}), 401
@@ -1335,6 +1336,14 @@ def save_from_url():
     if '/1. census/' in path.lower():
         return jsonify({'error': 'census files are not auto-filed'}), 400
     try:
+        # Already filed (by a person or an earlier run)? Skip rather than save a " (1)" copy.
+        if not data.get('keep_both'):
+            try:
+                _, dbx0 = _dropbox_client()
+                existing = dbx0.files_get_metadata(path)
+                return jsonify({'status': 'exists', 'path': existing.path_display}), 200
+            except Exception:
+                pass
         r = _rq.get(url, timeout=90, allow_redirects=True)
         if r.status_code != 200 or not r.content:
             return jsonify({'error': f'download failed: HTTP {r.status_code}'}), 502

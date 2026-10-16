@@ -68,8 +68,18 @@ GET https://graph.microsoft.com/v1.0/me/mailFolders/inbox/messages with querystr
 Page with @odata.nextLink if present. Drop every message whose categories include "TBG Filed" or
 "TBG Needs Review" (a person still owes that one a look; the summary already listed it).
 
+FORWARDED REPLIES (Will, 2026-10-16): until every carrier writes to quotes@, Will, Alex or Lindsey will
+forward carrier replies there. A message from @benefits.place or @solutionpointconsulting.com whose
+subject starts "FW:", "Fw:" or "Fwd:" is a FORWARD: read the forwarded header in the body ("From: <name>
+<address>", "Sent:", "Subject:") and treat the message exactly as if the carrier had sent it — carrier
+from the ORIGINAL sender's address, group from the ORIGINAL subject, date from the original "Sent:" line,
+attachments from the forward itself. If the forward has no forwarded header you can read, or the original
+sender isn't a carrier, mark it "TBG Needs Review" and list it. Forwarded attachments are saved the same
+way; note "forwarded by <who>" in the email record and the summary.
+
 Also drop, without categorizing:
-- anything from @benefits.place or @solutionpointconsulting.com (our own mail, including our sends);
+- anything else from @benefits.place or @solutionpointconsulting.com (our own mail, including our
+  sends) that is NOT a forward as described above;
 - automatic replies (subject starts "Automatic reply", "Out of Office", "Undeliverable", or the body
   is plainly an out-of-office);
 - Proofpoint/encryption notices with no carrier content ("You have received a secure message" with
@@ -152,8 +162,15 @@ WHAT TO SAVE into that folder:
    b. curl -sS --max-time 180 -X POST https://proposal-fgqm.onrender.com/save-from-url \
         -H "Content-Type: application/json" \
         -d '{"url": "<file url>", "dropbox_path": "<Render path of the folder>/<attachment name>"}'
-   c. success = "status":"success". Note the saved path (it may have " (1)" added if that file was
-      already there — that's fine, it means the carrier re-sent it).
+   c. "status":"success" = saved. "status":"exists" = a file with that name is already in that folder
+      (a person or an earlier run filed it) — nothing was saved, and that is correct: count it as
+      "already filed", not as a failure or a new save.
+   ALREADY FILED BY HAND: before saving, look at what is already in "2. Quotes" (all carrier folders,
+   one level down). If the same file name is already anywhere there — for example Will dragged it into
+   "Gravie" while the routine would have used "Gravie Level Funded" — do not save a second copy; count
+   it as already filed. When every attachment of an email is already filed and the folder exists, the
+   email is simply "already filed": category "TBG Filed", no Asana comment, and in the summary at most
+   one line per group ("3 replies were already filed by hand").
    NEVER save a census: skip any attachment whose name contains "census" (carriers echo ours back).
 2. ANGLE: an Angle reply — quote or decline — always comes with a risk scorecard (a PDF whose name has
    "Scorecard", "Score Card" or "Risk"). It MUST be saved, in "Angle" or "Angle - DTQ". If an Angle

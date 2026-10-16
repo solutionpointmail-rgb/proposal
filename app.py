@@ -25,10 +25,135 @@ def scrub_name(value):
     return ' '.join(value.split()).strip()
 
 
-def find_client_dropbox_folder(client_name, dbx):
-    search_name = scrub_name(client_name.replace(' — Review for Proposal', ''))
+def group_name(value):
+    """The company's own name, as its Dropbox folder is named.
+
+    Names arrive from the Asana task/project with workflow tags attached:
+    "Jerry Harvey Audio LLC (Renewal)", "AH Supplies — Review for Proposal (Renewal)",
+    "Acme Co Renewal 12/01/2026". Those tags never appear in the Dropbox folder name, so the
+    folder lookup missed and renewals landed in _NEEDS FILING (Will, 2026-10-16). Strip them.
+    """
+    v = scrub_name(value)
+    v = re.sub(r'\s*[—–-]+\s*Review for Proposal\b', '', v, flags=re.I)
+    v = re.sub(r'\s*[\(\[]\s*renewals?\s*[\)\]]', '', v, flags=re.I)
+    v = re.sub(r'[\s,\-–—:]+renewals?(\s+\d{1,2}[/\-.]\d{1,2}([/\-.]\d{2,4})?)?\s*$', '', v, flags=re.I)
+    return ' '.join(v.split()).strip(' -–—,')
+
+
+def is_renewal_name(value):
+    return bool(re.search(r'\brenewals?\b', value or '', re.I))
+
+
+CURRENT_CLIENTS_ROOT = "/Solutionpoint Groups/1. Solutionpoint Groups/1. CURRENT CLIENTS"
+
+
+def _norm_folder(name):
+    """'Harrison Audio LLC (Alex)' -> 'harrisonaudio' — drop notes in parens, entity suffixes, punctuation."""
+    n = re.sub(r'\([^)]*\)', ' ', name or '')
+    n = re.sub(r'[,\s]+(inc|llc|l\.l\.c\.|co|corp|corporation|ltd|pllc|pc)\.?\s*$', '', n.strip(), flags=re.I)
+    return re.sub(r'[^a-z0-9]', '', n.lower())
+
+
+def _subfolders(dbx, path):
+    import dropbox as _dbx
+    out = []
+    try:
+        res = dbx.files_list_folder(path)
+        while True:
+            out += [e for e in res.entries if isinstance(e, _dbx.files.FolderMetadata)]
+            if not res.has_more:
+                break
+            res = dbx.files_list_folder_continue(res.cursor)
+    except Exception as e:
+        print(f"list_folder failed for {path}: {e}", flush=True)
+    return out
+
+
+def _exists(dbx, path):
+    try:
+        return dbx.files_get_metadata(path).path_display
+    except Exception:
+        return None
+
+
+def _renewal_proposal_folder(dbx, name, year):
+    """Renewals live one level deeper than new business:
+         1. CURRENT CLIENTS/Jerry Harvey Audio/2026 Jerry Harvey Renewal/Quoting/3. Proposal
+         1. CURRENT CLIENTS/AH Supplies Inc/2026 AH Renewal/Quoting/3. Proposal
+       and the client folder rarely carries the Asana name exactly (no LLC, an "(Alex)" note).
+       Find the client folder by normalized name, then the cycle folder for this effective year."""
+    want = _norm_folder(name)
+    if not want:
+        return None
+    clients = _subfolders(dbx, CURRENT_CLIENTS_ROOT)
+    exact = [f for f in clients if _norm_folder(f.name) == want]
+    loose = [f for f in clients if len(want) >= 6 and f not in exact and
+             (_norm_folder(f.name).startswith(want) or want.startswith(_norm_folder(f.name) or '\0'))]
+    for client in (exact or loose)[:3]:
+        best, best_score = None, -1
+        for sub in _subfolders(dbx, client.path_lower):
+            low = sub.name.lower()
+            if 'renewal' not in low and not re.search(r'20\d\d', low):
+                continue
+            found = _exists(dbx, f"{sub.path_lower}/quoting/3. proposal")
+            if not found:
+                continue
+            years = [int(y) for y in re.findall(r'20\d\d', low)]
+            score = (100 if year and year in years else 0) + (50 if 'renewal' in low else 0) + (max(years) - 2000 if years else 0)
+            if 'enrollment' in low:
+                score -= 40
+            if score > best_score:
+                best, best_score = found, score
+        if best:
+            print(f"Found renewal folder: {best}", flush=True)
+            return best
+        direct = _exists(dbx, f"{client.path_lower}/quoting/3. proposal")
+        if direct:
+            print(f"Found client folder: {direct}", flush=True)
+            return direct
+    return None
+
+
+def _folder_from_selector_copy(dbx, selector_url):
+    """Analyze Quotes saves a backup of the selector page in the group's Quoting/3. Proposal
+    folder, so finding that file finds the exact folder the proposal belongs in."""
+    import dropbox as _dbx, urllib.parse as up
+    if not selector_url:
+        return None
+    fname = os.path.basename(up.unquote(selector_url.split('?')[0].split('#')[0].replace('\\', '/')))
+    if not fname.lower().endswith('.html'):
+        return None
+    stem = re.sub(r'-v\d+$', '', fname[:-5])
+    try:
+        opts = _dbx.files.SearchOptions(path="/Solutionpoint Groups/1. Solutionpoint Groups",
+                                        file_status=_dbx.files.FileStatus.active, filename_only=True)
+        res = dbx.files_search_v2(query=stem, options=opts)
+        for match in res.matches:
+            meta = match.metadata.get_metadata()
+            p = getattr(meta, 'path_display', '') or ''
+            if p.lower().endswith('.html') and os.path.basename(p).lower().startswith(stem.lower()) \
+                    and '/quoting/3. proposal/' in p.lower():
+                folder = p.rsplit('/', 1)[0]
+                print(f"Found folder from selector copy: {folder}", flush=True)
+                return folder
+    except Exception as e:
+        print(f"Selector-copy search failed: {e}", flush=True)
+    return None
+
+
+def find_client_dropbox_folder(client_name, dbx, selector_url='', effective_date=''):
+    search_name = group_name(client_name)
     if not search_name:
         return None
+
+    found = _folder_from_selector_copy(dbx, selector_url)
+    if found:
+        return found
+    if is_renewal_name(client_name) or (selector_url and '-renewal-' in selector_url.lower()):
+        m = re.search(r'(20\d\d)', effective_date or '')
+        found = _renewal_proposal_folder(dbx, search_name, int(m.group(1)) if m else None)
+        if found:
+            return found
 
     roots = [
         "/Solutionpoint Groups/1. Solutionpoint Groups/Proposals/2026/{n}",
@@ -37,6 +162,11 @@ def find_client_dropbox_folder(client_name, dbx):
         "/Solutionpoint Groups/1. Solutionpoint Groups/4. RENEWALS/{n}/Quoting/3. Proposal",
         "/Solutionpoint Groups/1. Solutionpoint Groups/1. CURRENT CLIENTS/{n}/Quoting/3. Proposal",
     ]
+
+    if is_renewal_name(client_name):
+        # A renewal lives under Current Clients (or Renewals): look there first.
+        roots = [r for r in roots if 'CURRENT CLIENTS' in r or 'RENEWALS' in r] + \
+                [r for r in roots if 'CURRENT CLIENTS' not in r and 'RENEWALS' not in r]
 
     import re as _re
     names = [search_name]
@@ -178,7 +308,7 @@ def build_client_and_plans(client_name, effective_date, quote_id, enrolling_empl
     Uses full plan JSON if available, otherwise falls back to plan names only.
     client_extra is the selector page's CLIENT_DATA (group profile and census tier counts).
     """
-    clean_name = scrub_name(client_name.replace(' — Review for Proposal', ''))
+    clean_name = group_name(client_name)
     x = client_extra or {}
 
     # Group details come from the selector page's CLIENT_DATA. Anything it doesn't carry stays
@@ -307,7 +437,7 @@ def run_pipeline(client_name, effective_date, quote_id, task_id, notes,
             contributions = {}
 
         if not client_extra:
-            client_extra = selector_client_data(selector_url, scrub_name(client_name.replace(' — Review for Proposal', '')))
+            client_extra = selector_client_data(selector_url, group_name(client_name))
         CLIENT, CONTRIBUTIONS, MEDICAL_PLANS, DENTAL_PLANS, VISION_PLANS = build_client_and_plans(
             client_name, effective_date, quote_id, enrolling_employees, contributions,
             medical_plans, dental_plans, vision_plans,
@@ -350,6 +480,8 @@ def run_pipeline(client_name, effective_date, quote_id, task_id, notes,
         # Generate files
         timestamp  = datetime.now().strftime('%Y%m%d_%H%M%S')
         safe_name  = clean_name.replace(' ', '_').replace('/', '-')
+        if is_renewal_name(client_name):
+            safe_name += '_Renewal'
         pdf_name   = f"Proposal_{safe_name}_{timestamp}.pdf"
         excel_name = f"Proposal_{safe_name}_{timestamp}.xlsx"
         pdf_path   = f"/tmp/{pdf_name}"
@@ -374,7 +506,7 @@ def run_pipeline(client_name, effective_date, quote_id, task_id, notes,
             app_secret=os.environ['DROPBOX_APP_SECRET']
         )
 
-        existing_folder = find_client_dropbox_folder(clean_name, dbx)
+        existing_folder = find_client_dropbox_folder(client_name, dbx, selector_url, CLIENT.get('effective_date', ''))
         # No match never creates a per-client folder (that is how the stray
         # /Benefits Group/Proposals/2026/GunnCo folder appeared). Unmatched
         # proposals all land in ONE holding folder and the Asana comment says so.

@@ -5,7 +5,7 @@ arrive in the quotes@benefits.place inbox into the right group's Dropbox "Quotin
 nobody has to drag attachments by hand, then emails Will, Alex and Lindsey what it filed.
 
 It runs two ways:
-- SCHEDULED: weekdays, every hour from about 7 AM to 6 PM Central. Process every unfiled email from
+- SCHEDULED: every day, every hour from about 7 AM to 6 PM Central. Process every unfiled email from
   the last 7 days. Send the summary email ONLY if something was filed or needs a person; a quiet run
   sends nothing.
 - ON DEMAND: the routine-fire-payload block may name a group. Then process only emails for that group,
@@ -13,10 +13,11 @@ It runs two ways:
 
 HOURS GUARD — DO THIS FIRST (added 2026-10-16). A scheduled task created without a repository can only
 be set to "Hourly", so it fires around the clock. Check the current time in America/Chicago before
-anything else. If this is a SCHEDULED run (no group named in a routine-fire-payload block) and it is
-Saturday, Sunday, or before 7:00 AM or after 6:59 PM Central on a weekday, stop immediately: no tool
-calls, no email, just end with "Outside business hours — skipped." Carrier replies that arrived
-overnight are picked up by the 7 AM run. An ON-DEMAND run ignores this guard.
+anything else. Weekends count (Will, 2026-10-16: file weekend replies so Monday has less to read). If
+this is a SCHEDULED run (no group named in a routine-fire-payload block) and it is before 7:00 AM or
+after 6:59 PM Central on any day, stop immediately: no tool calls, no email, just end with "Outside
+hours — skipped." Replies that arrived overnight are picked up by the 7 AM run. An ON-DEMAND run
+ignores this guard.
 
 CONNECTORS: this task may have every connector attached. Use only Zapier (Microsoft Outlook), Dropbox
 and Asana. Never use Docusign, Fireflies, Google, QuickBooks, Zoom, Microsoft 365 or any other

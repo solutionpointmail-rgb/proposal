@@ -46,16 +46,22 @@ CONNECTIONS AND IDS (do not rediscover)
     existing categories, so include any category the email already had. Do not pass isRead: leave
     read/unread as people left it.
 - Dropbox connector: paths look like "/William Brown/Solutionpoint Groups/1. Solutionpoint Groups/...".
-- Render (https://proposal-fgqm.onrender.com), reached with curl from the shell. No auth header: the
-  environment's network secret adds it. Render's paths drop the leading "/William Brown".
-  - POST /save-from-url {"url": "<hydrate url>", "dropbox_path": "/Solutionpoint Groups/.../<file name>"}
-    downloads the attachment and writes it to Dropbox. Never overwrites (adds " (1)"). Returns
-    {"status":"success","path":...}. Anything else is a failure.
-  - POST /dropbox-text {"path": ...} returns a document's text when you need to read a large file.
-  Render cold-starts: on a timeout or 502/503, wait 30 seconds and retry once.
-- Asana: Will gid 1197850067860922, Alex 1207730690627632, Lindsey Diaz (lindsey@benefits.place).
+- Zapier, Dropbox (selected_api "DropBoxCLIAPI") — SAVES THE ATTACHMENTS (changed 2026-10-16: this
+  scheduled task's sandbox cannot reach the Render app, and doesn't need to). Action "file", tool_name
+  "dropbox_upload_file", params:
+    {"file": "<the hydrate URL from get_attachment_by_id>",
+     "root_id": "624541879",                      (Will's space, the one that holds Solutionpoint Groups)
+     "directory": "<folder path WITHOUT the leading /William Brown>",
+     "new_name": "<attachment name WITHOUT its extension — Zapier adds the extension back>",
+     "overwrite": "false",
+     "include_sharing_link": "no"}
+  e.g. directory "/Solutionpoint Groups/1. Solutionpoint Groups/2.  HOT LEADS/RM Consulting/Quoting/2. Quotes/Beam".
+  Success returns the saved "path". Zapier runs the download and upload on its own side, so nothing
+  touches this task's network. Tested 10/16 on RM Consulting's Beam quote (.xlsx and .pdf).
+  Do NOT use the Render app (proposal-fgqm.onrender.com) in this routine.
 
-Never pass file bytes or base64 through a tool call. Files move only by URL through /save-from-url.
+Never pass file bytes or base64 through a tool call. Files move only by URL: the attachment's hydrate
+URL goes straight into the Zapier Dropbox upload.
 
 ======================================================================
 STEP 1 — Find unfiled carrier emails
@@ -102,7 +108,8 @@ CARRIER — from the sender's domain, then confirmed by the subject and body:
   onehealthplus.com → One Health               levelhealthplans.com → Simpara (Level Health)
   sanabenefits.com → SANA                      imagine360.com → Imagine360
   uhc.com / optum.com → UHC Level Funded
-  brokersholding.com → ABA or Arlo (Michael Tankersley submits both — decide from the subject, body
+  brokersholding.com or warnerpacific.com → ABA or Arlo (Michael Tankersley submits both; he now often
+    writes from warnerpacific.com — decide from the subject, body
     and attachment names; a reply covering both is two carriers)
   navigationhealthllc.com → Angle, Navigation Health, HIT or CBC Triad (Chad Olson / Luke Olson send
     all four). Decide per attachment and per paragraph: an Angle risk scorecard or Angle quote = Angle;
@@ -158,19 +165,14 @@ Create folders with the Dropbox connector (create_folder). Use plain ASCII hyphe
 WHAT TO SAVE into that folder:
 1. Every real attachment: isInline false, and a document type (pdf, xlsx, xls, csv, docx, doc, zip).
    Skip signature images, logos, "ATT0000…" images, calendar files and buttons. For each one:
-   a. get_attachment_by_id on the quotes@ connection → its "file" URL;
-   b. curl -sS --max-time 180 -X POST https://proposal-fgqm.onrender.com/save-from-url \
-        -H "Content-Type: application/json" \
-        -d '{"url": "<file url>", "dropbox_path": "<Render path of the folder>/<attachment name>"}'
-   c. "status":"success" = saved. "status":"exists" = a file with that name is already in that folder
-      (a person or an earlier run filed it) — nothing was saved, and that is correct: count it as
-      "already filed", not as a failure or a new save.
-   ALREADY FILED BY HAND: before saving, look at what is already in "2. Quotes" (all carrier folders,
-   one level down). If the same file name is already anywhere there — for example Will dragged it into
-   "Gravie" while the routine would have used "Gravie Level Funded" — do not save a second copy; count
-   it as already filed. When every attachment of an email is already filed and the folder exists, the
-   email is simply "already filed": category "TBG Filed", no Asana comment, and in the summary at most
-   one line per group ("3 replies were already filed by hand").
+   a. get_attachment_by_id on the quotes@ connection → its "file" URL (fetch it right before the upload;
+      the URL expires).
+   b. Zapier Dropbox "dropbox_upload_file" with that URL, root_id "624541879", directory = the carrier
+      folder's path without "/William Brown", new_name = the attachment name without its extension,
+      overwrite "false".
+   c. A result with a "path" = saved. An error saying the file already exists = it was already filed
+      (count it as "already filed", not a failure). Any other error: retry once; if it fails again, list
+      the attachment under Needs attention so a person drags it in.
    NEVER save a census: skip any attachment whose name contains "census" (carriers echo ours back).
 2. ANGLE: an Angle reply — quote or decline — always comes with a risk scorecard (a PDF whose name has
    "Scorecard", "Score Card" or "Risk"). It MUST be saved, in "Angle" or "Angle - DTQ". If an Angle
@@ -235,7 +237,7 @@ Send through Zapier Outlook send_email on the will@benefits.place connection:
   diagnosis"). Never put any member health detail, name, age or condition in the email or the Asana
   comment — write "declined (reason in the filed email record)". Never mention census contents.
 
-Never say a file was saved unless /save-from-url (or create_file) returned success.
+Never say a file was saved unless the Zapier Dropbox upload (or create_file) returned success.
 
 ======================================================================
 GUARDRAILS

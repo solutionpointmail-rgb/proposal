@@ -228,7 +228,7 @@ def build_client_and_plans(client_name, effective_date, quote_id, enrolling_empl
     vis_sel = parse_plan_names(vision_plans_str)
 
     # Try to use full plan JSON objects from webhook
-    def filter_plans(all_json, selected_names, default_include_all):
+    def filter_plans(all_json, selected_names, default_include_all, raw_text=''):
         try:
             all_plans = json.loads(all_json) if all_json else []
         except Exception:
@@ -247,29 +247,33 @@ def build_client_and_plans(client_name, effective_date, quote_id, enrolling_empl
                 p['include'] = bool(default_include_all)
             return all_plans
 
-        # The selector joins the chosen names with commas, but plan names can contain commas
-        # ("... (illustrative, subject to IMQs)"), so first match whole names against the joined
-        # string. Only selection pieces no whole name accounts for fall back to the old loose
-        # match — exact first, then substring. Substring-only matching made "GA 1.2A DMO" also
-        # pull in "GA 1.2A DMO Ortho", and "subject to IMQs)" pull in every illustrative plan.
+        # The selector joins the chosen names with commas, but plan names contain commas too:
+        # "(illustrative, subject to IMQs)", and every dollar amount ("$9,000 OOPM"). So match
+        # each plan's WHOLE name against the raw joined string first. Jerry Harvey (2026-10-16):
+        # the old code matched against parse_plan_names() pieces, which drops pieces of 2
+        # characters or fewer, so "$9" vanished from "Surest PPO (copay-only, $9,000 OOPM)", the
+        # whole name no longer matched, and the leftover piece "000 OOPM)" pulled in all four
+        # Surest plans. A leftover piece now only counts when it identifies exactly one plan.
         def norm(t):
             return ','.join(x.strip().lower() for x in re.split(r'[,\n]', t or ''))
-        raw = ',' + norm(','.join(selected_names)) + ','
+        raw = ',' + norm(raw_text if raw_text else ','.join(selected_names)) + ','
         names = [(p.get('plan_name') or '').strip() for p in all_plans]
         include = [bool(n) and (',' + norm(n) + ',') in raw for n in names]
         covered = set()
         for n, inc in zip(names, include):
             if inc:
                 covered.update(norm(n).split(','))
-        for sel in selected_names:
-            s_ = sel.lower().strip()
-            if s_ in covered:
+        for piece in raw.strip(',').split(','):
+            s_ = piece.strip()
+            if not s_ or s_ in covered:
                 continue
             hits = [i for i, n in enumerate(names) if n.lower() == s_]
-            if not hits:
+            if not hits and len(s_) > 3:
                 hits = [i for i, n in enumerate(names) if n and (s_ in n.lower() or n.lower() in s_)]
-            for i in hits:
-                include[i] = True
+            if len(hits) == 1:
+                include[hits[0]] = True
+            elif hits:
+                print(f"⚠️ Selection piece '{piece}' matches {len(hits)} plans — ignored as ambiguous", flush=True)
         for p, inc in zip(all_plans, include):
             p['include'] = inc
         return all_plans
@@ -277,9 +281,9 @@ def build_client_and_plans(client_name, effective_date, quote_id, enrolling_empl
     # True only when the caller sent no selection fields whatsoever (legacy payload).
     legacy_payload = all(v is None for v in (medical_plans_str, dental_plans_str, vision_plans_str))
 
-    MEDICAL_PLANS = filter_plans(all_medical_json, med_sel, legacy_payload)
-    DENTAL_PLANS  = filter_plans(all_dental_json,  den_sel, legacy_payload)
-    VISION_PLANS  = filter_plans(all_vision_json,  vis_sel, legacy_payload)
+    MEDICAL_PLANS = filter_plans(all_medical_json, med_sel, legacy_payload, medical_plans_str)
+    DENTAL_PLANS  = filter_plans(all_dental_json,  den_sel, legacy_payload, dental_plans_str)
+    VISION_PLANS  = filter_plans(all_vision_json,  vis_sel, legacy_payload, vision_plans_str)
 
     print(f"Medical plans loaded: {len(MEDICAL_PLANS)} total, {sum(1 for p in MEDICAL_PLANS if p.get('include'))} selected", flush=True)
     print(f"Dental plans loaded:  {len(DENTAL_PLANS)} total, {sum(1 for p in DENTAL_PLANS if p.get('include'))} selected", flush=True)

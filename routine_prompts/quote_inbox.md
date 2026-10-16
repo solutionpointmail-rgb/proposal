@@ -11,6 +11,17 @@ It runs two ways:
 - ON DEMAND: the routine-fire-payload block may name a group. Then process only emails for that group,
   and ALWAYS send the summary email, even if it says "nothing new".
 
+HOURS GUARD — DO THIS FIRST (added 2026-10-16). A scheduled task created without a repository can only
+be set to "Hourly", so it fires around the clock. Check the current time in America/Chicago before
+anything else. If this is a SCHEDULED run (no group named in a routine-fire-payload block) and it is
+Saturday, Sunday, or before 7:00 AM or after 6:59 PM Central on a weekday, stop immediately: no tool
+calls, no email, just end with "Outside business hours — skipped." Carrier replies that arrived
+overnight are picked up by the 7 AM run. An ON-DEMAND run ignores this guard.
+
+CONNECTORS: this task may have every connector attached. Use only Zapier (Microsoft Outlook), Dropbox
+and Asana. Never use Docusign, Fireflies, Google, QuickBooks, Zoom, Microsoft 365 or any other
+connector, even if it is available.
+
 This task has no memory of earlier runs. The Outlook category "TBG Filed" on an email IS the memory:
 an email carrying it has been handled and is never touched again.
 

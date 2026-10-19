@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Johnson McGinnis Elder Care Law & Estate Planning, PLLC — Proposal Plan Selector</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #F0F4F8; min-height: 100vh; }
+  .header { background: #0D1B2A; padding: 0; }
+  .header-inner { max-width: 1100px; margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; }
+  .header-logo { display: flex; align-items: center; gap: 12px; }
+  .header-logo img { height: 42px; width: auto; display: block; }
+  .header-logo-text { color: #fff; font-size: 15px; font-weight: 600; }
+  .header-bar { height: 3px; background: #4CAF7D; }
+  .hero { background: #1B2E45; padding: 28px 24px; }
+  .hero-inner { max-width: 1100px; margin: 0 auto; }
+  .hero-label { color: #4CAF7D; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; }
+  .hero-title { color: #fff; font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .hero-meta { color: #A0AEC0; font-size: 13px; display: flex; flex-wrap: wrap; gap: 16px; margin-top: 10px; }
+  .hero-meta strong { color: #CBD5E0; }
+  .instructions { background: #EAF7F1; border-left: 3px solid #4CAF7D; max-width: 1100px; margin: 20px auto 0; padding: 12px 16px; border-radius: 0 6px 6px 0; font-size: 13px; color: #2D6A4F; }
+  .main { max-width: 1100px; margin: 20px auto; padding: 0 24px 40px; }
+  .section { margin-bottom: 28px; }
+  .section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 2px solid #E2E8F0; }
+  .section-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .icon-medical { background: #EAF7F1; }
+  .icon-dental  { background: #FFF8E8; }
+  .icon-vision  { background: #EDF4FB; }
+  .section-title { font-size: 16px; font-weight: 700; color: #0D1B2A; }
+  .section-contrib { font-size: 12px; color: #718096; margin-left: auto; background: #F7F9FC; padding: 4px 10px; border-radius: 20px; border: 1px solid #E2E8F0; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+  .plan-card { background: #fff; border: 2px solid #E2E8F0; border-radius: 10px; padding: 14px; cursor: pointer; transition: all 0.15s; position: relative; user-select: none; }
+  .plan-card:hover { border-color: #4CAF7D; box-shadow: 0 2px 8px rgba(76,175,125,0.12); }
+  .plan-card.selected { border-color: #4CAF7D; background: #EAF7F1; }
+  .check { position: absolute; top: 10px; right: 10px; width: 20px; height: 20px; background: #4CAF7D; border-radius: 50%; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.15s; }
+  .plan-card.selected .check { opacity: 1; }
+  .check svg { width: 11px; height: 11px; stroke: #fff; stroke-width: 2.5; fill: none; }
+  .card-carrier { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #718096; margin-bottom: 4px; }
+  .card-name { font-size: 13px; font-weight: 600; color: #1A202C; margin-bottom: 8px; line-height: 1.35; }
+  .card-premium { font-size: 18px; font-weight: 800; color: #4CAF7D; margin-bottom: 2px; }
+  .card-premium-label { font-size: 10px; color: #A0AEC0; margin-bottom: 8px; }
+  .card-badges { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
+  .badge { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 10px; }
+  .badge-blue { background: #EBF4FF; color: #2B6CB0; }
+  .badge-green { background: #EAF7F1; color: #276749; }
+  .badge-gold { background: #FFFFF0; color: #975A16; }
+  .badge-illus { background: #FEF3C7; color: #B45309; border: 1px solid #F59E0B; }
+  .plan-card.illus { border-style: dashed; }
+  .card-details { border-top: 1px solid #E2E8F0; padding-top: 8px; }
+  .card-detail-row { display: flex; justify-content: space-between; gap: 10px; font-size: 11px; margin-bottom: 3px; }
+  .card-detail-row span:first-child { flex: 0 0 42%; }
+  .card-detail-row span:last-child { text-align: right; }
+  .card-detail-row span:first-child { color: #718096; }
+  .card-detail-row span:last-child { color: #2D3748; font-weight: 500; }
+  .carrier-group { margin-bottom: 16px; }
+  .carrier-label { font-size: 11px; font-weight: 700; color: #4A5568; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 8px; padding: 4px 0; }
+  .submit-bar { position: sticky; bottom: 0; background: #0D1B2A; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 -4px 20px rgba(0,0,0,0.15); }
+  .submit-count { color: #A0AEC0; font-size: 13px; }
+  .submit-count strong { color: #4CAF7D; font-size: 16px; }
+  .submit-btn { background: #4CAF7D; color: #fff; border: none; padding: 12px 32px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; transition: background 0.15s; }
+  .submit-btn:hover { background: #3A8C61; }
+  .submit-btn:disabled { background: #A0AEC0; cursor: not-allowed; }
+  .success-overlay { display: none; position: fixed; inset: 0; background: rgba(13,27,42,0.92); z-index: 100; align-items: center; justify-content: center; }
+  .success-overlay.show { display: flex; }
+  .success-box { background: #fff; border-radius: 16px; padding: 40px; max-width: 440px; text-align: center; }
+  .success-icon { width: 64px; height: 64px; background: #EAF7F1; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+  .success-icon svg { width: 32px; height: 32px; stroke: #4CAF7D; stroke-width: 2.5; fill: none; }
+  .success-title { font-size: 20px; font-weight: 700; color: #0D1B2A; margin-bottom: 8px; }
+  .success-msg { font-size: 14px; color: #718096; line-height: 1.6; }
+  .success-client { color: #4CAF7D; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-inner">
+    <div class="header-logo">
+      <img src="https://solutionpointmail-rgb.github.io/proposal/tbg-logo.png" alt="The Benefits Group" style="height:42px;width:auto;display:block">
+      <div>
+        <div class="header-logo-text">The Benefits Group</div>
+      </div>
+    </div>
+    <div style="color:#A0AEC0;font-size:12px;text-align:right">
+      Proposal Plan Selector<br>
+      <span style="color:#4CAF7D">December 1, 2026</span>
+    </div>
+  </div>
+  <div class="header-bar"></div>
+</div>
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-label">Proposal plan selection</div>
+    <div class="hero-title">Johnson McGinnis Elder Care Law & Estate Planning, PLLC</div>
+    <div class="hero-meta">
+      <span>&#128197; <strong>Effective:</strong> December 1, 2026</span>
+      <span>&#128101; <strong>Employees:</strong> 14 enrolling</span>
+    </div>
+  </div>
+</div>
+<div class="main">
+  <div class="instructions">
+    <strong>Instructions:</strong> Click each plan to toggle include/exclude. Green = included in proposal. When ready, hit <strong>Submit selections</strong> at the bottom — the proposal will generate automatically.
+  </div>
+  <div class="section" style="margin-top:20px">
+    <div class="section-header">
+      <div class="section-icon icon-medical">&#10010;</div>
+      <div class="section-title">Medical Coverage</div>
+      <div class="section-contrib">EE TBD / Dep TBD</div>
+    </div>
+    <div id="medical-plans"></div>
+  </div>
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon icon-dental">&#9673;</div>
+      <div class="section-title">Dental Coverage</div>
+      <div class="section-contrib">EE 0% / Dep 0%</div>
+    </div>
+    <div id="dental-plans"></div>
+  </div>
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon icon-vision">&#128065;</div>
+      <div class="section-title">Vision Coverage</div>
+      <div class="section-contrib">EE 0% / Dep 0%</div>
+    </div>
+    <div id="vision-plans"></div>
+  </div>
+  <div style="height:80px"></div>
+</div>
+<div class="submit-bar">
+  <div class="submit-count"><strong id="selected-count">0</strong> plans selected</div>
+  <button class="submit-btn" id="submit-btn" onclick="submitSelections()" disabled>Submit selections</button>
+</div>
+<div class="success-overlay" id="success-overlay">
+  <div class="success-box">
+    <div class="success-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <div class="success-title">Selections submitted!</div>
+    <div class="success-msg">The proposal for <span class="success-client">Johnson McGinnis Elder Care Law & Estate Planning, PLLC</span> is now generating automatically.<br><br>You'll find the PDF and Excel files in Dropbox and the Asana task will be marked complete once ready. You can close this tab.</div>
+  </div>
+</div>
+<script>
+const ZAPIER_WEBHOOK = 'https://hooks.zapier.com/hooks/catch/5928257/4ueg7t8/';
+const CLIENT_DATA = {"schema": 2, "name": "Johnson McGinnis Elder Care Law & Estate Planning, PLLC", "effective_date": "December 1, 2026", "address": "104 Wyncrest Way, Ste. 100", "city_state_zip": "Hendersonville, TN 37075", "state": "TN", "zip": "37075", "county": "Sumner", "sic_code": "8111", "quote_id": "Arlo 1602316", "total_employees": 16, "eligible_employees": 14, "enrolling_employees": 14, "waiving_employees": 0, "total_members": 14, "tier_counts": {"ee": 14, "es": 0, "ec": 0, "ef": 0}, "rate_guarantee": "12 months", "contributions": {"medical_ee": "TBD", "medical_dep": "TBD", "dental_ee": "0%", "dental_dep": "0%", "vision_ee": "0%", "vision_dep": "0%"}};
+const PLAN_DATA = {
+  medical: [{"carrier": "Arlo", "plan_name": "Arlo Clear 1 (501.1)", "plan_type": "Copay-only PPO", "funding": "Level Funded", "network": "Cigna PPO", "illustrative": true, "quote_status": "Illustrative", "quote_status_note": "Arlo requires a group medical disclosure form (and current/renewal rates) before binding; rates can be re-rated or declined if high-risk conditions are disclosed.", "hsa_eligible": false, "deductible_in_ind": "$0", "deductible_in_fam": "$0", "deductible_out_ind": "", "deductible_out_fam": "", "oop_in_ind": "$2,000", "oop_in_fam": "$4,000", "oop_out_ind": "", "oop_out_fam": "", "coinsurance_in": "0%", "coinsurance_out": "", "preventive": "", "doctor_visit": "$0", "virtual_visit": "$0", "specialist": "$35", "xray_lab": "Lab $25 / X-ray $50", "imaging": "$100 (MRI / CT / PET)", "urgent_care": "$50", "er": "$500", "hospital": "$1,000 per day", "outpatient_surgery": "$1,500", "rx": "$0 / $35 / $70 / $250", "rx_deductible": "", "rate_ee": 1193.46, "rate_es": 2634.52, "rate_ec": 1983.55, "rate_ef": 3438.11, "monthly_premium": 16708.5, "rate_guarantee": "12 months (proposal expires 12/14/2026)", "notes": "Cigna PPO network with SmithRx pharmacy. Arlo includes $0 virtual care, $0 generics and $0 mental health benefits. Behavioral health visit: $10.", "include": true}, {"carrier": "Arlo", "plan_name": "Arlo Clear 2 (502.1)", "plan_type": "Copay-only PPO", "funding": "Level Funded", "network": "Cigna PPO", "illustrative": true, "quote_status": "Illustrative", "quote_status_note": "Arlo requires a group medical disclosure form (and current/renewal rates) before binding; rates can be re-rated or declined if high-risk conditions are disclosed.", "hsa_eligible": false, "deductible_in_ind": "$0", "deductible_in_fam": "$0", "deductible_out_ind": "", "deductible_out_fam": "", "oop_in_ind": "$4,000", "oop_in_fam": "$8,000", "oop_out_ind": "", "oop_out_fam": "", "coinsurance_in": "0%", "coinsurance_out": "", "preventive": "", "doctor_visit": "$0", "virtual_visit": "$0", "specialist": "$50", "xray_lab": "Lab $35 / X-ray $70", "imaging": "$150 (MRI / CT / PET)", "urgent_care": "$75", "er": "$500", "hospital": "$1,500 per day", "outpatient_surgery": "$2,000", "rx": "$0 / $50 / $100 / $250", "rx_deductible": "", "rate_ee": 1131.31, "rate_es": 2491.25, "rate_ec": 1876.94, "rate_ef": 3250.38, "monthly_premium": 15838.38, "rate_guarantee": "12 months (proposal expires 12/14/2026)", "notes": "Cigna PPO network with SmithRx pharmacy. Arlo includes $0 virtual care, $0 generics and $0 mental health benefits. Behavioral health visit: $15.", "include": true}, {"carrier": "Arlo", "plan_name": "Arlo Clear 3 (503.1)", "plan_type": "Copay-only PPO", "funding": "Level Funded", "network": "Cigna PPO", "illustrative": true, "quote_status": "Illustrative", "quote_status_note": "Arlo requires a group medical disclosure form (and current/renewal rates) before binding; rates can be re-rated or declined if high-risk conditions are disclosed.", "hsa_eligible": false, "deductible_in_ind": "$0", "deductible_in_fam": "$0", "deductible_out_ind": "", "deductible_out_fam": "", "oop_in_ind": "$6,000", "oop_in_fam": "$12,000", "oop_out_ind": "", "oop_out_fam": "", "coinsurance_in": "0%", "coinsurance_out": "", "preventive": "", "doctor_visit": "$0", "virtual_visit": "$0", "specialist": "$75", "xray_lab": "Lab $35 / X-ray $70", "imaging": "$200 (MRI / CT / PET)", "urgent_care": "$75", "er": "$750", "hospital": "$2,000 per day", "outpatient_surgery": "$2,500", "rx": "$0 / $50 / $150 / $250", "rx_deductible": "", "rate_ee": 1092.18, "rate_es": 2401.04, "rate_ec": 1809.82, "rate_ef": 3132.18, "monthly_premium": 15290.57, "rate_guarantee": "12 months (proposal expires 12/14/2026)", "notes": "Cigna PPO network with SmithRx pharmacy. Arlo includes $0 virtual care, $0 generics and $0 mental health benefits. Behavioral health visit: $20.", "include": true}, {"carrier": "Arlo", "plan_name": "Arlo Clear 4 (504.1)", "plan_type": "Copay-only PPO", "funding": "Level Funded", "network": "Cigna PPO", "illustrative": true, "quote_status": "Illustrative", "quote_status_note": "Arlo requires a group medical disclosure form (and current/renewal rates) before binding; rates can be re-rated or declined if high-risk conditions are disclosed.", "hsa_eligible": false, "deductible_in_ind": "$0", "deductible_in_fam": "$0", "deductible_out_ind": "", "deductible_out_fam": "", "oop_in_ind": "$8,000", "oop_in_fam": "$16,000", "oop_out_ind": "", "oop_out_fam": "", "coinsurance_in": "0%", "coinsurance_out": "", "preventive": "", "doctor_visit": "$0", "virtual_visit": "$0", "specialist": "$75", "xray_lab": "Lab $50 / X-ray $100", "imaging": "$250 (MRI / CT / PET)", "urgent_care": "$100", "er": "$750", "hospital": "$2,500 per day", "outpatient_surgery": "$2,500", "rx": "$0 / $75 / $150 / $250", "rx_deductible": "", "rate_ee": 1043.3, "rate_es": 2288.35, "rate_ec": 1725.97, "rate_ef": 2984.53, "monthly_premium": 14606.21, "rate_guarantee": "12 months (proposal expires 12/14/2026)", "notes": "Cigna PPO network with SmithRx pharmacy. Arlo includes $0 virtual care, $0 generics and $0 mental health benefits. Behavioral health visit: $20.", "include": true}, {"carrier": "Arlo", "plan_name": "Arlo Clear 5 (505.1)", "plan_type": "Copay-only PPO", "funding": "Level Funded", "network": "Cigna PPO", "illustrative": true, "quote_status": "Illustrative", "quote_status_note": "Arlo requires a group medical disclosure form (and current/renewal rates) before binding; rates can be re-rated or declined if high-risk conditions are disclosed.", "hsa_eligible": false, "deductible_in_ind": "$0", "deductible_in_fam": "$0", "deductible_out_ind": "", "deductible_out_fam": "", "oop_in_ind": "$9,200", "oop_in_fam": "$18,400", "oop_out_ind": "", "oop_out_fam": "", "coinsurance_in": "0%", "coinsurance_out": "", "preventive": "", "doctor_visit": "$0", "virtual_visit": "$0", "specialist": "$75", "xray_lab": "Lab $50 / X-ray $100", "imaging": "$300 (MRI / CT / PET)", "urgent_care": "$125", "er": "$1,000", "hospital": "$3,000 per day", "outpatient_surgery": "$3,000", "rx": "$0 / $100 / $200 / $350", "rx_deductible": "", "rate_ee": 1002.2, "rate_es": 2193.6, "rate_ec": 1655.47, "rate_ef": 2860.37, "monthly_premium": 14030.79, "rate_guarantee": "12 months (proposal expires 12/14/2026)", "notes": "Cigna PPO network with SmithRx pharmacy. Arlo includes $0 virtual care, $0 generics and $0 mental health benefits. Behavioral health visit: $20.", "include": true}, {"carrier": "Arlo", "plan_name": "Platinum 0/2500 (101.1)", "plan_type": "PPO", "funding": "Level Funded", "network": "Cigna PPO", "illustrative": true, "quote_status": "Illustrative", "quote_status_note": "Arlo requires a group medical disclosure form (and current/renewal rates) before binding; rates can be re-rated or declined if high-risk conditions are disclosed.", "hsa_eligible": false, "deductible_in_ind": "$0", "deductible_in_fam": "$0", "deductible_out_ind": "", "deductible_out_fam": "", "oop_in_ind": "$2,500", "oop_in_fam": "$5,000", "oop_out_ind": "", "oop_out_fam": "", "coinsurance_in": "10%", "coinsurance_out": "", "preventive": "", "doctor_visit": "$0", "virtual_visit": "$0", "specialist": "$35", "xray_lab": "10%", "imaging": "10%", "urgent_care": "$75", "er": "$300", "hospital": "10%", "outpatient_surgery": "10%", "rx": "$0 / $35 / $75 / 10%", "rx_deductible": "", "rate_ee": 1199.31, "rate_es": 2648.0, "rate_ec": 1993.58, "rate_ef": 3455.76, "monthly_premium": 16790.33, "rate_guarantee": "12 months (proposal expires 12/14/2026)", "notes": "Cigna PPO network with SmithRx pharmacy. Arlo includes $0 virtual care, $0 generics and $0 mental health benefits. Behavioral health visit: $10.", "include": true}, {"carrier": "Arlo", "plan_name": "Platinum 500/2500 (102.1)", "plan_type": "PPO", "funding": "Level Funded", "network": "Cigna PPO", "illustrative": true, "quote_status": "Illustrative", "quote_status_note": "Arlo requires a group medical disclosure form (and current/renewal rates) before binding; rates can be re-rated or declined if high-risk conditions are disclosed.", "hsa_eligible": false, "deductible_in_ind": "$500", "deductible_in_fam": "$1,000", "deductible_out_ind": "", "deductible_out_fam": "", "oop_in_ind": "$2,500", "oop_in_fam": "$5,000", "oop_out_ind": "", "oop_out_fam": "", "coinsurance_in": "10%", "coinsurance_out": "", "preventive": "", "doctor_visit": "$0", "virtual_visit": "$0", "specialist": "$35", "xray_lab": "10%", "imaging": "10%", "urgent_care": "$75", "er": "10%", "hospital": "10%", "outpatient_surgery": "10%", "rx": "$0 / $35 / $75 / 10%", "rx_deductible": "", "rate_ee": 1149.84, "rate_es": 2533.94, "rate_ec": 1908.71, "rate_ef": 3306.32, "monthly_premium": 16097.67, "rate_guarantee": "12 months (proposal expires 12/14/2026)", "notes": "Cigna PPO network with SmithRx pharmacy. Arlo includes $0 virtual care, $0 generics and $0 mental health benefits. Behavioral health visit: $10.", "include": true}, {"carrier": "Arlo", "plan_name": "Platinum 1000/3000 (103.1)", "plan_type": "PPO", "funding": "Level Funded", "network": "Cigna PPO", "illustrative": true, "quote_status": "Illustrative", "quote_status_note": "Arlo requires a group medical disclosure form (and current/renewal rates) before binding; rates can be re-rated or declined if high-risk conditions are disclosed.", "hsa_eligible": false, "deductible_in_ind": "$1,000", "deductible_in_fam": "$2,000", "deductible_out_ind": "", "deductible_out_fam": "", "oop_in_ind": "$3,000", "oop_in_fam": "$6,000", "oop_out_ind": "", "oop_out_fam": "", "coinsurance_in": "10%", "coinsurance_out": "", "preventive": "", "doctor_visit": "$0", "virtual_visit": "$0", "specialist": "$35", "xray_lab": "0%", "imaging": "10%", "urgent_care": "$75", "er": "$300", "hospital": "10%", "outpatient_surgery": "10%", "rx": "$0 / $35 / $75 / 10%", "rx_deductible": "", "rate_ee": 1108.8, "rate_es": 2439.35, "rate_ec": 1838.33, "rate_ef": 3182.37, "monthly_premium": 15523.18, "rate_guarantee": "12 months (proposal expires 12/14/2026)", "notes": "Cigna PPO network with SmithRx pharmacy. Arlo includes $0 virtual care, $0 generics and $0 mental health benefits. Behavioral health visit: $10.", "include": true}, {"carrier": "Arlo", "plan_name": "Gold 1000/4000 (201.1)", "plan_type": "PPO", "funding": "Level Funded", "network": "Cigna PPO", "illustrative": true, "quote_status": "Illustrative", "quote_status_note": "Arlo requires a group medical disclosure form (and current/renewal rates) before binding; rates can be re-rated or declined if high-risk conditions are disclosed.", "hsa_eligible": false, "deductible_in_ind": "$1,000", "deductible_in_fam": "$2,000", "deductible_out_ind": "", "deductible_out_fam": "", "oop_in_ind": "$4,000", "oop_in_fam": "$8,000", "oop_out_ind": "", "oop_out_fam": "", "coinsurance_in": "20%", "coinsurance_out": "", "preventive": "", "doctor_visit": "$0", "virtual_visit": "$0", "specialist": "$50", "xray_lab": "20%", "imaging": "20%", "urgent_care": "$75", "er": "20%", "hospital": "20%", "outpatient_surgery": "20%", "rx": "$0 / $35 / $75 / 20%", "rx_deductible": "", "rate_ee": 1068.05, "rate_es": 2345.39, "rate_ec": 1768.41, "rate_ef": 3059.27, "monthly_premium": 14952.61, "rate_guarantee": "12 months (proposal expires 12/14/2026)", "notes": "Cigna PPO network with SmithRx pharmacy. Arlo includes $0 virtual care, $0 generics and $0 mental health benefits. Behavioral health visit: $15.", "include": true}, {"carrier": "Arlo", "plan_name": "Gold 1500/5000 (202.1)", "plan_type": "PPO", "funding": "Level Funded", "network": "Cigna PPO", "illustrative": true, "quote_status": "Illustrative", "quote_status_note": "Arlo requires a group medical disclosure form (and current/renewal rates) before binding; rates can be re-rated or declined if high-risk conditions are disclosed.", "hsa_eligible": false, "deductible_in_ind": "$1,500", "deductible_in_fam": "$3,000", "deductible_out_ind": "", "deductible_out_fam": "", "oop_in_ind": "$5,000", "oop_in_fam": "$10,000", "oop_out_ind": "", "oop_out_fam": "", "coinsurance_in": "20%", "coinsurance_out": "", "preventive": "", "doctor_visit": "$0", "virtual_visit": "$0", "specialist": "$50", "xray_lab": "20%", "imaging": "20%", "urgent_care": "$75", "er": "20%", "hospital": "20%", "outpatient_surgery": "20%", "rx": "$0 / $35 / $75 / 20%", "rx_deductible": "", "rate_ee": 1019.16, "rate_es": 2232.7, "rate_ec": 1684.57, "rate_ef": 2911.61, "monthly_premium": 14268.24, "rate_guarantee": "12 months (proposal expires 12/14/2026)", "notes": "Cigna PPO network with SmithRx pharmacy. Arlo includes $0 virtual care, $0 generics and $0 mental health benefits. Behavioral health visit: $15.", "include": true}, {"carrier": "Arlo", "plan_name": "Gold 3400/3400 HSA (203.1)", "plan_type": "HSA-qualified PPO", "funding": "Level Funded", "network": "Cigna PPO", "illustrative": true, "quote_status": "Illustrative", "quote_status_note": "Arlo requires a group medical disclosure form (and current/renewal rates) before binding; rates can be re-rated or declined if high-risk conditions are disclosed.", "hsa_eligible": true, "deductible_in_ind": "$3,400", "deductible_in_fam": "$6,800", "deductible_out_ind": "", "deductible_out_fam": "", "oop_in_ind": "$3,400", "oop_in_fam": "$6,800", "oop_out_ind": "", "oop_out_fam": "", "coinsurance_in": "0% after deductible", "coinsurance_out": "", "preventive": "", "doctor_visit": "0% after deductible", "virtual_visit": "$0", "specialist": "0% after deductible", "xray_lab": "0% after deductible", "imaging": "0% after deductible", "urgent_care": "0% after deductible", "er": "0% after deductible", "hospital": "0% after deductible", "outpatient_surgery": "0% after deductible", "rx": "0% / 0% / 0% / 0% (after deductible)", "rx_deductible": "Combined with medical deductible (HSA plan)", "rate_ee": 1015.8, "rate_es": 2224.96, "rate_ec": 1678.8, "rate_ef": 2901.45, "monthly_premium": 14221.2, "rate_guarantee": "12 months (proposal expires 12/14/2026)", "notes": "Cigna PPO network with SmithRx pharmacy. Arlo includes $0 virtual care, $0 generics and $0 mental health benefits. Behavioral health visit: 0% after deductible.", "include": true}, {"carrier": "Arlo", "plan_name": "Gold 3500/5000 HSA (204.1)", "plan_type": "HSA-qualified PPO", "funding": "Level Funded", "network": "Cigna PPO", "illustrative": true, "quote_status": "Illustrative", "quote_status_note": "Arlo requires a group medical disclosure form (and current/renewal rates) before binding; rates can be re-rated or declined if high-risk conditions are disclosed.", "hsa_eligible": true, "deductible_in_ind": "$3,500", "deductible_in_fam": "$7,000", "deductible_out_ind": "", "deductible_out_fam": "", "oop_in_ind": "$5,000", "oop_in_fam": "$10,000", "oop_out_ind": "", "oop_out_fam": "", "coinsurance_in": "50% after deductible", "coinsurance_out": "", "preventive": "", "doctor_visit": "20% after deductible", "virtual_visit": "$0", "specialist": "20% after deductible", "xray_lab": "20% after deductible", "imaging": "20% after deductible", "urgent_care": "20% after deductible", "er": "20% after deductible", "hospital": "20% after deductible", "outpatient_surgery": "20% after deductible", "rx": "0% / 25% / 45% / 30% (after deductible)", "rx_deductible": "Combined with medical deductible (HSA plan)", "rate_ee": 961.72, "rate_es": 2100.29, "rate_ec": 1586.03, "rate_ef": 2738.11, "monthly_premium": 13464.1, "rate_guarantee": "12 months (proposal expires 12/14/2026)", "notes": "Cigna PPO network with SmithRx pharmacy. Arlo includes $0 virtual care, $0 generics and $0 mental health benefits. Behavioral health visit: 20% after deductible. Arlo's plan grid lists 50% plan coinsurance but 20% on each service; confirm with Arlo before presenting.", "include": true}, {"carrier": "Arlo", "plan_name": "Silver 1000/7500 (301.1)", "plan_type": "PPO", "funding": "Level Funded", "network": "Cigna PPO", "illustrative": true, "quote_status": "Illustrative", "quote_status_note": "Arlo requires a group medical disclosure form (and current/renewal rates) before binding; rates can be re-rated or declined if high-risk conditions are disclosed.", "hsa_eligible": false, "deductible_in_ind": "$1,000", "deductible_in_fam": "$2,000", "deductible_out_ind": "", "deductible_out_fam": "", "oop_in_ind": "$7,500", "oop_in_fam": "$15,000", "oop_out_ind": "", "oop_out_fam": "", "coinsurance_in": "20%", "coinsurance_out": "", "preventive": "", "doctor_visit": "$0", "virtual_visit": "$0", "specialist": "$65", "xray_lab": "20%", "imaging": "20%", "urgent_care": "$75", "er": "20%", "hospital": "20%", "outpatient_surgery": "20%", "rx": "$0 / $35 / $75 / 20%", "rx_deductible": "", "rate_ee": 983.56, "rate_es": 2150.61, "rate_ec": 1623.48, "rate_ef": 2804.05, "monthly_premium": 13769.73, "rate_guarantee": "12 months (proposal expires 12/14/2026)", "notes": "Cigna PPO network with SmithRx pharmacy. Arlo includes $0 virtual care, $0 generics and $0 mental health benefits. Behavioral health visit: 20%.", "include": true}, {"carrier": "Arlo", "plan_name": "Silver 2000/5500 (302.1)", "plan_type": "PPO", "funding": "Level Funded", "network": "Cigna PPO", "illustrative": true, "quote_status": "Illustrative", "quote_status_note": "Arlo requires a group medical disclosure form (and current/renewal rates) before binding; rates can be re-rated or declined if high-risk conditions are disclosed.", "hsa_eligible": false, "deductible_in_ind": "$2,000", "deductible_in_fam": "$4,000", "deductible_out_ind": "", "deductible_out_fam": "", "oop_in_ind": "$5,500", "oop_in_fam": "$11,000", "oop_out_ind": "", "oop_out_fam": "", "coinsurance_in": "20%", "coinsurance_out": "", "preventive": "", "doctor_visit": "$0", "virtual_visit": "$0", "specialist": "$65", "xray_lab": "20%", "imaging": "20%", "urgent_care": "$75", "er": "20%", "hospital": "20%", "outpatient_surgery": "20%", "rx": "$0 / $35 / $75 / 20%", "rx_deductible": "", "rate_ee": 990.13, "rate_es": 2165.78, "rate_ec": 1634.77, "rate_ef": 2823.92, "monthly_premium": 13861.81, "rate_guarantee": "12 months (proposal expires 12/14/2026)", "notes": "Cigna PPO network with SmithRx pharmacy. Arlo includes $0 virtual care, $0 generics and $0 mental health benefits. Behavioral health visit: $20.", "include": true}, {"carrier": "Arlo", "plan_name": "Silver 2500/6000 (303.1)", "plan_type": "PPO", "funding": "Level Funded", "network": "Cigna PPO", "illustrative": true, "quote_status": "Illustrative", "quote_status_note": "Arlo requires a group medical disclosure form (and current/renewal rates) before binding; rates can be re-rated or declined if high-risk conditions are disclosed.", "hsa_eligible": false, "deductible_in_ind": "$2,500", "deductible_in_fam": "$5,000", "deductible_out_ind": "", "deductible_out_fam": "", "oop_in_ind": "$6,000", "oop_in_fam": "$12,000", "oop_out_ind": "", "oop_out_fam": "", "coinsurance_in": "20%", "coinsurance_out": "", "preventive": "", "doctor_visit": "$0", "virtual_visit": "$0", "specialist": "$65", "xray_lab": "20%", "imaging": "20%", "urgent_care": "$75", "er": "20%", "hospital": "20%", "outpatient_surgery": "20%", "rx": "$0 / $35 / $75 / 20%", "rx_deductible": "", "rate_ee": 961.49, "rate_es": 2099.75, "rate_ec": 1585.64, "rate_ef": 2737.41, "monthly_premium": 13460.85, "rate_guarantee": "12 months (proposal expires 12/14/2026)", "notes": "Cigna PPO network with SmithRx pharmacy. Arlo includes $0 virtual care, $0 generics and $0 mental health benefits. Behavioral health visit: $20.", "include": true}, {"carrier": "Arlo", "plan_name": "Silver 3000/6500 (304.1)", "plan_type": "PPO", "funding": "Level Funded", "network": "Cigna PPO", "illustrative": true, "quote_status": "Illustrative", "quote_status_note": "Arlo requires a group medical disclosure form (and current/renewal rates) before binding; rates can be re-rated or declined if high-risk conditions are disclosed.", "hsa_eligible": false, "deductible_in_ind": "$3,000", "deductible_in_fam": "$6,000", "deductible_out_ind": "", "deductible_out_fam": "", "oop_in_ind": "$6,500", "oop_in_fam": "$13,000", "oop_out_ind": "", "oop_out_fam": "", "coinsurance_in": "20%", "coinsurance_out": "", "preventive": "", "doctor_visit": "$0", "virtual_visit": "$0", "specialist": "$65", "xray_lab": "20%", "imaging": "20%", "urgent_care": "$75", "er": "20%", "hospital": "20%", "outpatient_surgery": "20%", "rx": "$0 / $35 / $75 / 20%", "rx_deductible": "", "rate_ee": 937.36, "rate_es": 2044.14, "rate_ec": 1544.26, "rate_ef": 2664.54, "monthly_premium": 13123.14, "rate_guarantee": "12 months (proposal expires 12/14/2026)", "notes": "Cigna PPO network with SmithRx pharmacy. Arlo includes $0 virtual care, $0 generics and $0 mental health benefits. Behavioral health visit: $20.", "include": true}, {"carrier": "Arlo", "plan_name": "Silver 3500/7500 (305.1)", "plan_type": "PPO", "funding": "Level Funded", "network": "Cigna PPO", "illustrative": true, "quote_status": "Illustrative", "quote_status_note": "Arlo requires a group medical disclosure form (and current/renewal rates) before binding; rates can be re-rated or declined if high-risk conditions are disclosed.", "hsa_eligible": false, "deductible_in_ind": "$3,500", "deductible_in_fam": "$7,000", "deductible_out_ind": "", "deductible_out_fam": "", "oop_in_ind": "$7,500", "oop_in_fam": "$15,000", "oop_out_ind": "", "oop_out_fam": "", "coinsurance_in": "20%", "coinsurance_out": "", "preventive": "", "doctor_visit": "$0", "virtual_visit": "$0", "specialist": "$65", "xray_lab": "20%", "imaging": "20%", "urgent_care": "$75", "er": "20%", "hospital": "20%", "outpatient_surgery": "20%", "rx": "$0 / $35 / $75 / 20%", "rx_deductible": "", "rate_ee": 901.37, "rate_es": 1961.16, "rate_ec": 1482.52, "rate_ef": 2555.81, "monthly_premium": 12619.19, "rate_guarantee": "12 months (proposal expires 12/14/2026)", "notes": "Cigna PPO network with SmithRx pharmacy. Arlo includes $0 virtual care, $0 generics and $0 mental health benefits. Behavioral health visit: $20.", "include": true}, {"carrier": "Arlo", "plan_name": "Silver 4000/8000 (306.1)", "plan_type": "PPO", "funding": "Level Funded", "network": "Cigna PPO", "illustrative": true, "quote_status": "Illustrative", "quote_status_note": "Arlo requires a group medical disclosure form (and current/renewal rates) before binding; rates can be re-rated or declined if high-risk conditions are disclosed.", "hsa_eligible": false, "deductible_in_ind": "$4,000", "deductible_in_fam": "$8,000", "deductible_out_ind": "", "deductible_out_fam": "", "oop_in_ind": "$8,000", "oop_in_fam": "$16,000", "oop_out_ind": "", "oop_out_fam": "", "coinsurance_in": "20%", "coinsurance_out": "", "preventive": "", "doctor_visit": "$0", "virtual_visit": "$0", "specialist": "$65", "xray_lab": "20%", "imaging": "20%", "urgent_care": "$75", "er": "20%", "hospital": "20%", "outpatient_surgery": "20%", "rx": "$0 / $35 / $75 / 20%", "rx_deductible": "", "rate_ee": 880.53, "rate_es": 1913.11, "rate_ec": 1446.77, "rate_ef": 2492.85, "monthly_premium": 12327.38, "rate_guarantee": "12 months (proposal expires 12/14/2026)", "notes": "Cigna PPO network with SmithRx pharmacy. Arlo includes $0 virtual care, $0 generics and $0 mental health benefits. Behavioral health visit: $20.", "include": true}, {"carrier": "Arlo", "plan_name": "Silver 5000/9000 (307.1)", "plan_type": "PPO", "funding": "Level Funded", "network": "Cigna PPO", "illustrative": true, "quote_status": "Illustrative", "quote_status_note": "Arlo requires a group medical disclosure form (and current/renewal rates) before binding; rates can be re-rated or declined if high-risk conditions are disclosed.", "hsa_eligible": false, "deductible_in_ind": "$5,000", "deductible_in_fam": "$10,000", "deductible_out_ind": "", "deductible_out_fam": "", "oop_in_ind": "$9,000", "oop_in_fam": "$18,000", "oop_out_ind": "", "oop_out_fam": "", "coinsurance_in": "20%", "coinsurance_out": "", "preventive": "", "doctor_visit": "$0", "virtual_visit": "$0", "specialist": "$65", "xray_lab": "20%", "imaging": "20%", "urgent_care": "$75", "er": "20%", "hospital": "20%", "outpatient_surgery": "20%", "rx": "$0 / $35 / $75 / 20%", "rx_deductible": "", "rate_ee": 841.35, "rate_es": 1822.8, "rate_ec": 1379.57, "rate_ef": 2374.52, "monthly_premium": 11778.93, "rate_guarantee": "12 months (proposal expires 12/14/2026)", "notes": "Cigna PPO network with SmithRx pharmacy. Arlo includes $0 virtual care, $0 generics and $0 mental health benefits. Behavioral health visit: $20.", "include": true}, {"carrier": "Arlo", "plan_name": "Silver 3400/6000 HSA (308.1)", "plan_type": "HSA-qualified PPO", "funding": "Level Funded", "network": "Cigna PPO", "illustrative": true, "quote_status": "Illustrative", "quote_status_note": "Arlo requires a group medical disclosure form (and current/renewal rates) before binding; rates can be re-rated or declined if high-risk conditions are disclosed.", "hsa_eligible": true, "deductible_in_ind": "$3,400", "deductible_in_fam": "$6,800", "deductible_out_ind": "", "deductible_out_fam": "", "oop_in_ind": "$6,000", "oop_in_fam": "$12,000", "oop_out_ind": "", "oop_out_fam": "", "coinsurance_in": "20% after deductible", "coinsurance_out": "", "preventive": "", "doctor_visit": "20% after deductible", "virtual_visit": "$0", "specialist": "20% after deductible", "xray_lab": "20% after deductible", "imaging": "20% after deductible", "urgent_care": "20% after deductible", "er": "20% after deductible", "hospital": "20% after deductible", "outpatient_surgery": "20% after deductible", "rx": "0% / 25% / 45% / 30% (after deductible)", "rx_deductible": "Combined with medical deductible (HSA plan)", "rate_ee": 939.8, "rate_es": 2049.75, "rate_ec": 1548.43, "rate_ef": 2671.88, "monthly_premium": 13157.15, "rate_guarantee": "12 months (proposal expires 12/14/2026)", "notes": "Cigna PPO network with SmithRx pharmacy. Arlo includes $0 virtual care, $0 generics and $0 mental health benefits. Behavioral health visit: 20% after deductible.", "include": true}, {"carrier": "Arlo", "plan_name": "Silver 3500/7500 HSA (309.1)", "plan_type": "HSA-qualified PPO", "funding": "Level Funded", "network": "Cigna PPO", "illustrative": true, "quote_status": "Illustrative", "quote_status_note": "Arlo requires a group medical disclosure form (and current/renewal rates) before binding; rates can be re-rated or declined if high-risk conditions are disclosed.", "hsa_eligible": true, "deductible_in_ind": "$3,500", "deductible_in_fam": "$7,000", "deductible_out_ind": "", "deductible_out_fam": "", "oop_in_ind": "$7,500", "oop_in_fam": "$15,000", "oop_out_ind": "", "oop_out_fam": "", "coinsurance_in": "20% after deductible", "coinsurance_out": "", "preventive": "", "doctor_visit": "20% after deductible", "virtual_visit": "$0", "specialist": "20% after deductible", "xray_lab": "20% after deductible", "imaging": "20% after deductible", "urgent_care": "20% after deductible", "er": "20% after deductible", "hospital": "20% after deductible", "outpatient_surgery": "20% after deductible", "rx": "0% / 25% / 45% / 30% (after deductible)", "rx_deductible": "Combined with medical deductible (HSA plan)", "rate_ee": 870.1, "rate_es": 1889.09, "rate_ec": 1428.89, "rate_ef": 2461.37, "monthly_premium": 12181.48, "rate_guarantee": "12 months (proposal expires 12/14/2026)", "notes": "Cigna PPO network with SmithRx pharmacy. Arlo includes $0 virtual care, $0 generics and $0 mental health benefits. Behavioral health visit: 20% after deductible.", "include": true}, {"carrier": "Arlo", "plan_name": "Silver 5000/5000 HSA (310.1)", "plan_type": "HSA-qualified PPO", "funding": "Level Funded", "network": "Cigna PPO", "illustrative": true, "quote_status": "Illustrative", "quote_status_note": "Arlo requires a group medical disclosure form (and current/renewal rates) before binding; rates can be re-rated or declined if high-risk conditions are disclosed.", "hsa_eligible": true, "deductible_in_ind": "$5,000", "deductible_in_fam": "$10,000", "deductible_out_ind": "", "deductible_out_fam": "", "oop_in_ind": "$5,000", "oop_in_fam": "$10,000", "oop_out_ind": "", "oop_out_fam": "", "coinsurance_in": "0% after deductible", "coinsurance_out": "", "preventive": "", "doctor_visit": "0% after deductible", "virtual_visit": "$0", "specialist": "0% after deductible", "xray_lab": "0% after deductible", "imaging": "0% after deductible", "urgent_care": "0% after deductible", "er": "0% after deductible", "hospital": "0% after deductible", "outpatient_surgery": "0% after deductible", "rx": "0% / 0% / 0% / 0% (after deductible)", "rx_deductible": "Combined with medical deductible (HSA plan)", "rate_ee": 944.65, "rate_es": 2060.93, "rate_ec": 1556.75, "rate_ef": 2686.53, "monthly_premium": 13225.05, "rate_guarantee": "12 months (proposal expires 12/14/2026)", "notes": "Cigna PPO network with SmithRx pharmacy. Arlo includes $0 virtual care, $0 generics and $0 mental health benefits. Behavioral health visit: 0% after deductible.", "include": true}, {"carrier": "Arlo", "plan_name": "Bronze 1500/7000 (401.1)", "plan_type": "PPO", "funding": "Level Funded", "network": "Cigna PPO", "illustrative": true, "quote_status": "Illustrative", "quote_status_note": "Arlo requires a group medical disclosure form (and current/renewal rates) before binding; rates can be re-rated or declined if high-risk conditions are disclosed.", "hsa_eligible": false, "deductible_in_ind": "$1,500", "deductible_in_fam": "$3,000", "deductible_out_ind": "", "deductible_out_fam": "", "oop_in_ind": "$7,000", "oop_in_fam": "$14,000", "oop_out_ind": "", "oop_out_fam": "", "coinsurance_in": "30%", "coinsurance_out": "", "preventive": "", "doctor_visit": "$0", "virtual_visit": "$0", "specialist": "$100", "xray_lab": "30%", "imaging": "30%", "urgent_care": "$85", "er": "30%", "hospital": "30%", "outpatient_surgery": "30%", "rx": "$0 / $35 / 30% / 30%", "rx_deductible": "", "rate_ee": 957.36, "rate_es": 2090.23, "rate_ec": 1578.55, "rate_ef": 2724.93, "monthly_premium": 13403.0, "rate_guarantee": "12 months (proposal expires 12/14/2026)", "notes": "Cigna PPO network with SmithRx pharmacy. Arlo includes $0 virtual care, $0 generics and $0 mental health benefits. Behavioral health visit: $40.", "include": true}, {"carrier": "Arlo", "plan_name": "Bronze 1500/9000 (402.1)", "plan_type": "PPO", "funding": "Level Funded", "network": "Cigna PPO", "illustrative": true, "quote_status": "Illustrative", "quote_status_note": "Arlo requires a group medical disclosure form (and current/renewal rates) before binding; rates can be re-rated or declined if high-risk conditions are disclosed.", "hsa_eligible": false, "deductible_in_ind": "$1,500", "deductible_in_fam": "$3,000", "deductible_out_ind": "", "deductible_out_fam": "", "oop_in_ind": "$9,000", "oop_in_fam": "$18,000", "oop_out_ind": "", "oop_out_fam": "", "coinsurance_in": "30%", "coinsurance_out": "", "preventive": "", "doctor_visit": "$0", "virtual_visit": "$0", "specialist": "$100", "xray_lab": "30%", "imaging": "30%", "urgent_care": "$85", "er": "30%", "hospital": "30%", "outpatient_surgery": "30%", "rx": "$0 / $35 / 30% / 30%", "rx_deductible": "", "rate_ee": 909.07, "rate_es": 1978.93, "rate_ec": 1495.74, "rate_ef": 2579.08, "monthly_premium": 12727.07, "rate_guarantee": "12 months (proposal expires 12/14/2026)", "notes": "Cigna PPO network with SmithRx pharmacy. Arlo includes $0 virtual care, $0 generics and $0 mental health benefits. Behavioral health visit: $40.", "include": true}, {"carrier": "Arlo", "plan_name": "Bronze 5000/9700 (403.1)", "plan_type": "PPO", "funding": "Level Funded", "network": "Cigna PPO", "illustrative": true, "quote_status": "Illustrative", "quote_status_note": "Arlo requires a group medical disclosure form (and current/renewal rates) before binding; rates can be re-rated or declined if high-risk conditions are disclosed.", "hsa_eligible": false, "deductible_in_ind": "$5,000", "deductible_in_fam": "$10,000", "deductible_out_ind": "", "deductible_out_fam": "", "oop_in_ind": "$9,700", "oop_in_fam": "$19,400", "oop_out_ind": "", "oop_out_fam": "", "coinsurance_in": "30%", "coinsurance_out": "", "preventive": "", "doctor_visit": "$0", "virtual_visit": "$0", "specialist": "$100", "xray_lab": "30%", "imaging": "30%", "urgent_care": "$85", "er": "30%", "hospital": "30%", "outpatient_surgery": "30%", "rx": "$0 / $35 / 30% / 30%", "rx_deductible": "", "rate_ee": 821.09, "rate_es": 1776.09, "rate_ec": 1344.81, "rate_ef": 2313.3, "monthly_premium": 11495.22, "rate_guarantee": "12 months (proposal expires 12/14/2026)", "notes": "Cigna PPO network with SmithRx pharmacy. Arlo includes $0 virtual care, $0 generics and $0 mental health benefits. Behavioral health visit: $40.", "include": true}, {"carrier": "Arlo", "plan_name": "Bronze 6000/8000 (404.1)", "plan_type": "PPO", "funding": "Level Funded", "network": "Cigna PPO", "illustrative": true, "quote_status": "Illustrative", "quote_status_note": "Arlo requires a group medical disclosure form (and current/renewal rates) before binding; rates can be re-rated or declined if high-risk conditions are disclosed.", "hsa_eligible": false, "deductible_in_ind": "$6,000", "deductible_in_fam": "$12,000", "deductible_out_ind": "", "deductible_out_fam": "", "oop_in_ind": "$8,000", "oop_in_fam": "$16,000", "oop_out_ind": "", "oop_out_fam": "", "coinsurance_in": "30%", "coinsurance_out": "", "preventive": "", "doctor_visit": "$0", "virtual_visit": "$0", "specialist": "$120", "xray_lab": "30%", "imaging": "30%", "urgent_care": "$100", "er": "30%", "hospital": "30%", "outpatient_surgery": "30%", "rx": "$0 / $25 / 30% / 30%", "rx_deductible": "", "rate_ee": 852.62, "rate_es": 1848.76, "rate_ec": 1398.88, "rate_ef": 2408.53, "monthly_premium": 11936.56, "rate_guarantee": "12 months (proposal expires 12/14/2026)", "notes": "Cigna PPO network with SmithRx pharmacy. Arlo includes $0 virtual care, $0 generics and $0 mental health benefits. Behavioral health visit: $40.", "include": true}, {"carrier": "Arlo", "plan_name": "Bronze 7500/10000 (405.1)", "plan_type": "PPO", "funding": "Level Funded", "network": "Cigna PPO", "illustrative": true, "quote_status": "Illustrative", "quote_status_note": "Arlo requires a group medical disclosure form (and current/renewal rates) before binding; rates can be re-rated or declined if high-risk conditions are disclosed.", "hsa_eligible": false, "deductible_in_ind": "$7,500", "deductible_in_fam": "$15,000", "deductible_out_ind": "", "deductible_out_fam": "", "oop_in_ind": "$10,000", "oop_in_fam": "$20,000", "oop_out_ind": "", "oop_out_fam": "", "coinsurance_in": "30%", "coinsurance_out": "", "preventive": "", "doctor_visit": "$0", "virtual_visit": "$0", "specialist": "$120", "xray_lab": "30%", "imaging": "30%", "urgent_care": "$100", "er": "30%", "hospital": "30%", "outpatient_surgery": "30%", "rx": "$0 / $25 / 30% / 30%", "rx_deductible": "", "rate_ee": 795.0, "rate_es": 1715.96, "rate_ec": 1300.07, "rate_ef": 2234.53, "monthly_premium": 11130.1, "rate_guarantee": "12 months (proposal expires 12/14/2026)", "notes": "Cigna PPO network with SmithRx pharmacy. Arlo includes $0 virtual care, $0 generics and $0 mental health benefits. Behavioral health visit: $40.", "include": true}, {"carrier": "Arlo", "plan_name": "Bronze 6000/8500 HSA (406.1)", "plan_type": "HSA-qualified PPO", "funding": "Level Funded", "network": "Cigna PPO", "illustrative": true, "quote_status": "Illustrative", "quote_status_note": "Arlo requires a group medical disclosure form (and current/renewal rates) before binding; rates can be re-rated or declined if high-risk conditions are disclosed.", "hsa_eligible": true, "deductible_in_ind": "$6,000", "deductible_in_fam": "$12,000", "deductible_out_ind": "", "deductible_out_fam": "", "oop_in_ind": "$8,500", "oop_in_fam": "$17,000", "oop_out_ind": "", "oop_out_fam": "", "coinsurance_in": "30% after deductible", "coinsurance_out": "", "preventive": "", "doctor_visit": "0% after deductible", "virtual_visit": "$0", "specialist": "30% after deductible", "xray_lab": "30% after deductible", "imaging": "30% after deductible", "urgent_care": "30% after deductible", "er": "30% after deductible", "hospital": "30% after deductible", "outpatient_surgery": "30% after deductible", "rx": "0% / 25% / 45% / 30% (after deductible)", "rx_deductible": "Combined with medical deductible (HSA plan)", "rate_ee": 840.54, "rate_es": 1820.94, "rate_ec": 1378.17, "rate_ef": 2372.07, "monthly_premium": 11767.58, "rate_guarantee": "12 months (proposal expires 12/14/2026)", "notes": "Cigna PPO network with SmithRx pharmacy. Arlo includes $0 virtual care, $0 generics and $0 mental health benefits. Behavioral health visit: 30% after deductible.", "include": true}, {"carrier": "Arlo", "plan_name": "Bronze 8500/8500 HSA (407.1)", "plan_type": "HSA-qualified PPO", "funding": "Level Funded", "network": "Cigna PPO", "illustrative": true, "quote_status": "Illustrative", "quote_status_note": "Arlo requires a group medical disclosure form (and current/renewal rates) before binding; rates can be re-rated or declined if high-risk conditions are disclosed.", "hsa_eligible": true, "deductible_in_ind": "$8,500", "deductible_in_fam": "$17,000", "deductible_out_ind": "", "deductible_out_fam": "", "oop_in_ind": "$8,500", "oop_in_fam": "$17,000", "oop_out_ind": "", "oop_out_fam": "", "coinsurance_in": "0% after deductible", "coinsurance_out": "", "preventive": "", "doctor_visit": "0% after deductible", "virtual_visit": "$0", "specialist": "0% after deductible", "xray_lab": "0% after deductible", "imaging": "0% after deductible", "urgent_care": "0% after deductible", "er": "0% after deductible", "hospital": "0% after deductible", "outpatient_surgery": "0% after deductible", "rx": "0% / 0% / 0% / 0% (after deductible)", "rx_deductible": "Combined with medical deductible (HSA plan)", "rate_ee": 828.6, "rate_es": 1793.41, "rate_ec": 1357.69, "rate_ef": 2336.0, "monthly_premium": 11600.41, "rate_guarantee": "12 months (proposal expires 12/14/2026)", "notes": "Cigna PPO network with SmithRx pharmacy. Arlo includes $0 virtual care, $0 generics and $0 mental health benefits. Behavioral health visit: 0% after deductible.", "include": true}],
+  dental:  [],
+  vision:  []
+};
+const selections = {medical:{},dental:{},vision:{}};
+
+function formatMoney(n){const x=Number(String(n).replace(/[^0-9.\-]/g,''));return isFinite(x)&&String(n)!==''?'$'+x.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';}
+function v(x){if(x===undefined||x===null)return 'See SBC';if(x===true)return 'Yes';if(x===false)return 'No';const s=String(x).trim();return (!s||/^see sbc$/i.test(s))?'See SBC':s.replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function isIllus(p){if(p.illustrative===true)return true;if(p.illustrative===false)return false;return /illustrat|\bimqs?\b|health questionnaire|need(s)? apps|requires? apps|indicative|not sellable/i.test([p.quote_status,p.quote_type,p.quote_status_note,p.plan_name,p.carrier].join(' '));}
+function row(label,val){return `<div class="card-detail-row"><span>${label}</span><span>${v(val)}</span></div>`;}
+function pair(a,b){const x=v(a),y=v(b);return x==='See SBC'&&y==='See SBC'?'See SBC':`${x} / ${y}`;}
+function cardShell(line,prefix,plan,idx,badges,rows){
+  const id=prefix+idx; selections[line][id]=plan.include!==false;
+  const sel=selections[line][id], ill=isIllus(plan);
+  const b=(ill?'<span class="badge badge-illus">ILLUSTRATIVE · subject to underwriting</span>':'')+badges;
+  return `<div class="plan-card ${sel?'selected':''} ${ill?'illus':''}" id="${id}" onclick="toggle('${line}','${id}')"><div class="check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div class="card-carrier">${v(plan.carrier)}</div><div class="card-name">${v(plan.plan_name)}</div><div class="card-premium">${formatMoney(plan.monthly_premium)}</div><div class="card-premium-label">total monthly cost</div><div class="card-badges">${b}</div><div class="card-details">${rows}</div></div>`;
+}
+
+function renderMedicalCard(plan,idx){
+  const badges=[plan.plan_type?`<span class="badge badge-blue">${v(plan.plan_type)}</span>`:'',plan.funding?`<span class="badge badge-green">${v(plan.funding)}</span>`:'',plan.hsa_eligible===true?`<span class="badge badge-gold">HSA eligible</span>`:''].join('');
+  return cardShell('medical','med-',plan,idx,badges,
+    row('Deductible (Ind / Fam)',pair(plan.deductible_in_ind,plan.deductible_in_fam))+
+    row('OOP max (Ind / Fam)',pair(plan.oop_in_ind,plan.oop_in_fam))+
+    row('Coinsurance',plan.coinsurance_in)+row('Doctor / specialist',pair(plan.doctor_visit,plan.specialist))+
+    row('Urgent care / ER',pair(plan.urgent_care,plan.er))+row('Rx',plan.rx)+
+    row('EE only rate',formatMoney(plan.rate_ee)+'/mo'));
+}
+
+function renderDentalCard(plan,idx){
+  const badges=plan.plan_type?`<span class="badge badge-blue">${v(plan.plan_type)}</span>`:'';
+  return cardShell('dental','den-',plan,idx,badges,
+    row('Deductible (Ind / Fam)',pair(plan.deductible_in_ind,plan.deductible_in_fam))+
+    row('Annual max',plan.annual_max_in)+row('Preventive / basic / major',[plan.preventive,plan.basic,plan.major].map(v).join(' / '))+
+    row('Endo / perio',pair(plan.endodontics,plan.periodontics))+row('Orthodontia',plan.ortho||plan.ortho_max)+
+    row('EE only rate',formatMoney(plan.rate_ee)+'/mo'));
+}
+
+function renderVisionCard(plan,idx){
+  const badges=plan.plan_type?`<span class="badge badge-blue">${v(plan.plan_type)}</span>`:'';
+  return cardShell('vision','vis-',plan,idx,badges,
+    row('Exam copay',plan.exam_copay)+row('Lenses / materials copay',plan.lenses||plan.materials_copay)+
+    row('Frame allowance',plan.frame_allowance)+row('Contact lens allowance',plan.contacts_allowance)+
+    row('Frequency (exam / lens / frame)',[plan.exam_frequency,plan.lenses_frequency,plan.frames_frequency].map(v).join(' / '))+
+    row('EE only rate',formatMoney(plan.rate_ee)+'/mo'));
+}
+
+function groupByCarrier(plans){const g={};plans.forEach((p,i)=>{if(!g[p.carrier])g[p.carrier]=[];g[p.carrier].push({plan:p,idx:i});});return g;}
+
+function renderSection(containerId,plans,renderFn){
+  const container=document.getElementById(containerId);
+  if(!plans||plans.length===0){container.innerHTML='<p style="color:#A0AEC0;font-size:13px;padding:12px 0">No plans in this category</p>';return;}
+  const groups=groupByCarrier(plans);
+  let html='';
+  for(const[carrier,items]of Object.entries(groups)){html+=`<div class="carrier-group"><div class="carrier-label">${carrier}</div><div class="cards">`;items.forEach(({plan,idx})=>{html+=renderFn(plan,idx);});html+='</div></div>';}
+  container.innerHTML=html;
+}
+
+function toggle(line,id){selections[line][id]=!selections[line][id];document.getElementById(id).classList.toggle('selected',selections[line][id]);updateCount();}
+
+function updateCount(){let total=0;['medical','dental','vision'].forEach(line=>{Object.values(selections[line]).forEach(v=>{if(v)total++;});});document.getElementById('selected-count').textContent=total;document.getElementById('submit-btn').disabled=total===0;}
+
+function getSelectedPlans(){
+  const r={medical:[],dental:[],vision:[]};
+  PLAN_DATA.medical.forEach((p,i)=>{if(selections.medical['med-'+i])r.medical.push(p.plan_name);});
+  PLAN_DATA.dental.forEach((p,i)=>{if(selections.dental['den-'+i])r.dental.push(p.plan_name);});
+  PLAN_DATA.vision.forEach((p,i)=>{if(selections.vision['vis-'+i])r.vision.push(p.plan_name);});
+  return r;
+}
+
+async function submitSelections(){
+  const btn=document.getElementById('submit-btn');
+  btn.disabled=true;btn.textContent='Submitting…';
+  const selected=getSelectedPlans();
+  const payload={
+    client:CLIENT_DATA,
+    selected_plans:selected,
+    medical_plans:selected.medical.join(','),
+    dental_plans:selected.dental.join(','),
+    vision_plans:selected.vision.join(','),
+    all_medical_json:btoa(unescape(encodeURIComponent(JSON.stringify(PLAN_DATA.medical)))),
+    all_dental_json:btoa(unescape(encodeURIComponent(JSON.stringify(PLAN_DATA.dental)))),
+    all_vision_json:btoa(unescape(encodeURIComponent(JSON.stringify(PLAN_DATA.vision)))),
+    enrolling_employees:CLIENT_DATA.enrolling_employees,
+    contributions_medical_ee:(CLIENT_DATA.contributions||{}).medical_ee||'50%',
+    contributions_medical_dep:(CLIENT_DATA.contributions||{}).medical_dep||'0%',
+    contributions_dental_ee:(CLIENT_DATA.contributions||{}).dental_ee||'0%',
+    contributions_dental_dep:(CLIENT_DATA.contributions||{}).dental_dep||'0%',
+    contributions_vision_ee:(CLIENT_DATA.contributions||{}).vision_ee||'0%',
+    contributions_vision_dep:(CLIENT_DATA.contributions||{}).vision_dep||'0%',
+    selector_url:window.location.href,
+    submitted_at:new Date().toISOString(),
+    source:'proposal-selector'
+  };
+  try{await fetch(ZAPIER_WEBHOOK,{method:'POST',headers:{'Content-Type':'application/json'},mode:'no-cors',body:JSON.stringify(payload)});}catch(e){}
+  document.getElementById('success-overlay').classList.add('show');
+}
+
+renderSection('medical-plans',PLAN_DATA.medical,renderMedicalCard);
+renderSection('dental-plans',PLAN_DATA.dental,renderDentalCard);
+renderSection('vision-plans',PLAN_DATA.vision,renderVisionCard);
+updateCount();
+</script>
+<!-- BULK SELECT CONTROLS — added 2026-10-12 -->
+<style>
+.bulk-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0 14px}
+.bulk-btn{font:600 12px/1 inherit;padding:7px 12px;border-radius:6px;border:1px solid #2F72AD;background:#2F72AD;color:#fff;cursor:pointer}
+.bulk-btn.ghost{background:transparent;color:#2F72AD}
+.bulk-btn:hover{filter:brightness(1.07)}
+.bulk-count{font-size:12px;color:#718096;margin-left:4px}
+</style>
+<script>
+(function(){
+  var LINES = [['medical','medical-plans','med-'],['dental','dental-plans','den-'],['vision','vision-plans','vis-']];
+
+  window.setAll = function(line, on){
+    var prefix = {medical:'med-',dental:'den-',vision:'vis-'}[line];
+    (PLAN_DATA[line]||[]).forEach(function(p,i){
+      var id = prefix + i;
+      selections[line][id] = on;
+      var el = document.getElementById(id);
+      if (el) el.classList.toggle('selected', on);
+    });
+    updateCount();
+  };
+
+  function lineCount(line){
+    return Object.keys(selections[line]||{}).filter(function(k){return selections[line][k];}).length;
+  }
+
+  function refreshCounts(){
+    LINES.forEach(function(entry){
+      var line = entry[0];
+      var el = document.getElementById('count-' + line);
+      if (el) el.textContent = lineCount(line) + ' of ' + ((PLAN_DATA[line]||[]).length) + ' selected';
+    });
+  }
+
+  // Keep the existing count behaviour, add the per-section counts on top of it.
+  var originalUpdateCount = updateCount;
+  updateCount = function(){ originalUpdateCount(); refreshCounts(); };
+
+  LINES.forEach(function(entry){
+    var line = entry[0], containerId = entry[1];
+    var container = document.getElementById(containerId);
+    if (!container) return;
+    var total = (PLAN_DATA[line]||[]).length;
+    if (!total) return;
+    var bar = document.createElement('div');
+    bar.className = 'bulk-bar';
+    bar.innerHTML =
+      '<button type="button" class="bulk-btn" onclick="setAll(\'' + line + '\',true)">Select all</button>' +
+      '<button type="button" class="bulk-btn ghost" onclick="setAll(\'' + line + '\',false)">Clear</button>' +
+      '<span class="bulk-count" id="count-' + line + '">0 of ' + total + ' selected</span>';
+    container.parentNode.insertBefore(bar, container);
+  });
+
+  refreshCounts();
+})();
+</script>
+
+</body>
+</html>

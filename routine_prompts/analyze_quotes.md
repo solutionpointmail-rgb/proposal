@@ -5,6 +5,20 @@ This routine runs in two modes, decided by the routine-fire-payload block.
 A. PAYLOAD NAMES A CLIENT — an on-demand run, started by someone pressing the button because new information arrived today.
    1. Process ONLY that client, in whichever pipeline it belongs to (Hot Leads / new business, or Renewals). Skip every other client in both pipelines without listing them.
    2. Bypass the DEDUPE CHECK V2 five-day cooldown for this client. The other protections still apply: do not build a second copy of an analysis that is already up to date, and never re-flag a client listed under CLIENT RESOLUTIONS.
+   2b. BUILD WITH WHAT IS IN — NO WAITING ON CARRIERS (Will, 2026-10-19). Pressing the button means Will
+       wants the comparison now, from whatever quotes are already in "2. Quotes". Skip the Step A4/B4
+       readiness check entirely: never stop or bucket the client as "Waiting on carrier(s)" because a sent
+       carrier has no response folder yet. Build the comparison and the selector page from every carrier
+       that has responded (still excluding DTQ, and labeling NOT COMP and illustrative quotes as usual).
+       In the document, the Executive Summary names each carrier that was sent a request but has not
+       responded as "Outstanding at the time of this draft", and the cover/top line reads "Interim
+       comparison — built before all carriers responded" instead of implying the market is complete.
+       File it under the normal draft name (it is replaced when the full comparison is built later).
+       If a carrier's quote lands afterward, the scheduled sweep treats the newer file as normal new
+       data, so the full comparison follows on its own once everyone is in. The receipt lists the
+       outstanding carriers under "Carriers not yet in". The only reason not to build on a button press
+       is that NO carrier has responded at all (nothing to compare) — say exactly that in the receipt.
+       The scheduled daily sweep (mode B) still waits for every required carrier, as before.
    3. Do NOT send the combined Hot Leads / Renewals exception email — that belongs to the scheduled sweep. Post the normal Asana comment, @-mentioning BOTH Will (gid 1197850067860922) and Alex Sejas (gid 1207730690627632). The RUN RECEIPT email below still goes out, as it does for every run.
 
 B. PAYLOAD IS EMPTY OR ABSENT — the scheduled daily sweep. Run the full check across both pipelines exactly as described below, including the exception email, with every dedupe rule and cooldown in force.

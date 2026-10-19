@@ -1424,6 +1424,46 @@ def dropbox_text():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/dropbox-page-image', methods=['POST'])
+def dropbox_page_image():
+    """One PDF page from Dropbox as a PNG (added 2026-10-19).
+
+    Some carrier proposals put the benefit grid in as a scanned image (One Health on Harrison Audio,
+    pages 8-9), so /dropbox-text returns nothing for those pages. The routine fetches the page as an
+    image and reads it visually instead.
+      POST {"path": "<pdf path>", "page": 8, "scale": 2}   -> image/png
+    Census files are refused.
+    """
+    if not _tbg_authorized():
+        return jsonify({'error': 'unauthorized'}), 401
+    import io
+    from flask import Response
+    data = request.get_json(force=True, silent=True) or {}
+    path = _strip_wb(data.get('path'))
+    low = path.lower()
+    if not path.startswith('/Solutionpoint Groups/') or not low.endswith('.pdf'):
+        return jsonify({'error': 'path must be a PDF under /Solutionpoint Groups/'}), 400
+    if '/1. census/' in low or 'census' in low.rsplit('/', 1)[-1]:
+        return jsonify({'error': 'census files are not read through this endpoint'}), 403
+    try:
+        page_no = int(data.get('page') or 1)
+        scale = min(max(float(data.get('scale') or 2), 1), 3)
+        _, dbx = _dropbox_client()
+        _, resp = dbx.files_download(path)
+        import pypdfium2 as pdfium
+        pdf = pdfium.PdfDocument(io.BytesIO(resp.content))
+        if page_no < 1 or page_no > len(pdf):
+            return jsonify({'error': f'page must be 1-{len(pdf)}'}), 400
+        img = pdf[page_no - 1].render(scale=scale).to_pil()
+        buf = io.BytesIO()
+        img.save(buf, format='PNG')
+        return Response(buf.getvalue(), mimetype='image/png',
+                        headers={'X-Page-Count': str(len(pdf))})
+    except Exception as e:
+        print(f"❌ dropbox-page-image error: {e}", flush=True)
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/attach-census', methods=['POST'])
 def attach_census():
     import requests as _rq

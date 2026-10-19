@@ -39,7 +39,12 @@ KNOWN ENVIRONMENT LIMITATIONS — read this once, don't rediscover it every run:
       -d '{"path": "<the file's Dropbox path, as the connector shows it>"}' -o quote.json
   (no auth header; the environment's network secret adds it). The JSON has "text" with "===== page N ====="
   markers, plus "pages" and "truncated" (pass "max_chars" to raise the 300,000 limit). If "note" says the
-  file is scanned images, say so in the receipt. Never call it on a census file — it refuses them anyway.
+  file is scanned images — or a page you need (a benefit grid) comes back empty — read those pages as
+  images instead (added 2026-10-19; One Health's benefit grid on Harrison Audio, pages 8-9, is scanned):
+    curl -sS --max-time 180 -X POST https://proposal-fgqm.onrender.com/dropbox-page-image \
+      -H "Content-Type: application/json" -d '{"path": "<pdf path>", "page": 8, "scale": 2}' -o p8.png
+  then open p8.png with the Read tool and transcribe the values. The response header X-Page-Count gives
+  the page count. Never leave a plan's OOP, coinsurance, copays or Rx blank because a page was scanned. Never call it on a census file — it refuses them anyway.
   Never write "could not be read" into a plan's notes when this route exists: use it first.
 - The GitHub push endpoint (https://proposal-fgqm.onrender.com/push-to-github, used in the selector-page steps) is blocked by this sandbox's network egress policy — POSTs to it will not succeed. This is also a confirmed, permanent limitation. Do NOT retry it or spend cycles testing it. Go straight to the fallback every time: save the HTML selector page to Dropbox (this part works fine, since HTML is a plain-text file Dropbox CAN create) and add the "⚠️ Selector page generation failed — upload manually to GitHub" warning to the Asana task description immediately, without first attempting the push.
 - Dropbox binary DOWNLOADS are also blocked (dropboxusercontent.com / www.dropbox.com are outside this sandbox's egress allowlist), so you cannot pull the logo PNG down to embed in the .docx. Do NOT retry this. Use a text wordmark — "THE BENEFITS GROUP" in navy (#1F3864) caps at the top of the cover page and in the running header. This matches the approved reference document (TennGreen v4), so it is correct output, not a degraded fallback.

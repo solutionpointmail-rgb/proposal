@@ -99,8 +99,8 @@ Read, in this order (Dropbox fetch, text):
 A. THE CARRIER COMPARISON (primary source). It already holds: every carrier requested, who quoted,
    who declined (DTQ), who was not competitive (NOT COMP), who is outstanding, the benchmark plan rows
    with monthly cost and % vs current, the current plan and renewal, carrier notes, and an early-read
-   recommendation. Most of the analysis comes from here. Treat its recommendation as Will's starting
-   point, not as the answer — you are writing the considered, client-ready version.
+   recommendation. Most of the figures come from here. Its early-read recommendation is background
+   only: the recommendation in this document always comes from the broker's selected plans (Section D).
 
 LARGE FILES: the Dropbox connector only extracts text from files up to 5 MB. For anything larger (or when
    fetch fails), POST {"path": "<Dropbox path>"} to https://proposal-fgqm.onrender.com/dropbox-text and
@@ -124,15 +124,37 @@ C. CLAIMS EXPERIENCE (renewals, if present). Look in "<Quoting>/4. Current Plan 
    deductible, aggregate corridor, large-claim and reimbursement activity, in general terms). If not
    found, omit that section.
 
-D. THE GENERATED PROPOSAL, if one exists: the newest "Proposal_<Client>_*.pdf" in "<Quoting>/3.
-   Proposal". It lists the plans the broker selected on the selector page. When it is newer than the
-   comparison, those selected plans are a strong signal of what the broker is considering: include them
-   in the Plan Design table. If a selected plan is illustrative or depends on health questionnaires,
-   leave it out of the document altogether (see ILLUSTRATIVE QUOTES ARE OUT in Step 4). If it is not
-   competitive, show it honestly as such. Either way recommend what the comparison supports, and put
-   "Needs attention: broker selected <plan>, but <reason> — analysis recommends <plan> instead" in the
-   receipt and the Asana comment. (Seen on GunnCo, Oct 2026: the proposal selected only the Great
-   American plans, which require questionnaires.)
+D. THE GENERATED PROPOSAL — THE BROKER'S SELECTION GOVERNS (rewritten 2026-10-19 per Will).
+   The plans the broker picked on the selector page are the menu this document works from. Find them:
+   1. The group's Asana card "<Client> — Review for Proposal" (project gid 1216533612775246): read its
+      comments and take the NEWEST "✅ Proposal generated!" comment's "Plans included:" lists. This is
+      the authoritative record (the PDF can be missing, renamed or in another folder).
+   2. Cross-check with the newest "Proposal_<Client>_*.pdf" in "<Quoting>/3. Proposal" when it exists.
+   3. A generation that includes more than 12 medical plans is a "select all" working run, not a
+      decision: use the newest generation with 12 or fewer medical plans, and mention it in the receipt.
+   If no proposal has been generated yet, do not guess the menu: stop, build nothing, and send the
+   receipt with "Nothing to do — generate the proposal from the selector page first, then run the
+   Client Quote Summary." (The summary explains the broker's chosen options; without a choice there is
+   nothing to explain.)
+
+   RULES FOR THE MENU:
+   - The RECOMMENDED option and the RUNNER-UP must both be medical plans in the menu (the current plan /
+     exact renewal is always available as the baseline, never as the recommendation unless the broker
+     selected it). Never recommend, or present as an alternative, a plan the broker did not select —
+     not even the comparison's early-read pick. The comparison draft's recommendation is background only.
+   - The Plan Design table shows the current plan, the exact renewal, and the selected plans — nothing else.
+   - If you believe an unselected plan is clearly better, say so ONLY in the receipt and the Asana comment
+     ("Needs attention: NAV 2000 was not selected; it would cost $X more/less with OOP $Y — reselect on
+     the selector page if you want it in the summary"). Never in the document.
+   - Choosing WITHIN the menu: if a comment on the Review card or the run payload says "lead with
+     <plan>" (or "recommend <plan>"), that plan is the recommendation. Otherwise, if an earlier Client
+     Quote Summary for this group recommended a plan that is still in the menu and no newer carrier quote
+     has arrived for it, keep that same recommendation — the summary must not change its mind from run
+     to run on the same facts. Otherwise pick the menu plan a senior broker would lead with (Step 4).
+   - A selected plan that is illustrative or needs health questionnaires stays out of the document (see
+     ILLUSTRATIVE QUOTES ARE OUT) and is flagged in the receipt. A selected plan marked not competitive is
+     shown honestly as such. (Jerry Harvey, 10/19: a comparison refresh steered to NAV 2000 and the
+     summary recommended it even though the broker had selected NAV 0 — this rule exists to stop that.)
 
 E. renewal_analysis_example.json — the worked example and schema.
 
@@ -147,8 +169,8 @@ recommendation, not in the KPI tiles, not in the Plan Design or market tables, a
 that "required individual health questionnaires before offering firm rates". If the broker selected
 such a plan on the selector page, still leave it out of the document and flag it in the receipt.
 
-Work out the recommendation like a senior broker would: lowest total cost is not automatically the
-answer. Weigh monthly cost, plan design changes the employees will feel (deductible, OOP max,
+Work out the recommendation — always from the broker's selected plans (Section D) — like a senior
+broker would: lowest total cost is not automatically the answer. Weigh monthly cost, plan design changes the employees will feel (deductible, OOP max,
 coinsurance, copays, network breadth), disruption of a carrier change, contract terms, and risk.
 Staying with the incumbent on a buy-down is often right when the group's risk is concentrated (as in
 the example); a carrier change is right when an outside option is materially cheaper at a comparable
@@ -165,10 +187,10 @@ SECTIONS — in this order, dropping any whose source is missing:
     cost (blue), Exact renewal (red), Recommended option (green), Approx. annual savings vs. exact
     renewal (gold). New business: Current cost if known (blue), Lowest quote (blue), Recommended
     option (green), Annual difference vs. current (gold).
- 2. Plan Design - What Changes — table of current / exact renewal / recommended / best outside
-    option (and any broker-selected plans), with Monthly, Deductible, OOP Max, Coinsurance,
-    PCP / Specialist. Row tones: current white, exact renewal red, recommended green, outside options
-    blue. No illustrative or questionnaire-dependent plans. Then "What it gives up" and "What it improves" paragraphs.
+ 2. Plan Design - What Changes — table of current / exact renewal / recommended / the other
+    broker-selected plans (and only those), with Monthly, Deductible, OOP Max, Coinsurance,
+    PCP / Specialist. Row tones: current white, exact renewal red, recommended green, other selected
+    plans blue. No illustrative or questionnaire-dependent plans. Then "What it gives up" and "What it improves" paragraphs.
  3. What the Market Is Telling Us — how many carriers were asked, who declined to quote (named),
     then a table of the firm, placeable options sorted by monthly cost: Carrier / Option, Monthly Cost, Approx. vs.
     Current, Read (a 2–5 word verdict). Set "last_column_left": true.

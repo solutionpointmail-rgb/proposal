@@ -16,7 +16,7 @@ You are running a recurring daily check for William Brown (Will) at The Benefits
 GOAL: Run TWO parallel pipelines and report on both in one combined run:
 - PART A — NEW BUSINESS (HOT LEADS): for every active client in the "Hot Leads" pipeline, determine whether ALL carriers that were sent a quote request have actually responded (quoted or declined) in Dropbox.
 - PART B — RENEWALS: for every current client with an active Renewal project due in the near term, determine the same thing.
-In both parts: if all required carriers have responded, and no up-to-date draft exists yet, build a full carrier comparison analysis (same format as prior manual analyses) and save it as a DRAFT for Will to review — never send it anywhere, never treat it as final. Afterward, send Will and Alex ONE combined internal exception-report email summarizing which clients (across both pipelines) are stuck waiting on a carrier, which got a new draft, and which need a manual look — but only on days something is actually outstanding, and clearly label which section each client belongs to (Hot Leads / New Business vs Renewals).
+In both parts: if all required carriers have responded, and no up-to-date draft exists yet, build a full carrier comparison analysis (same format as prior manual analyses) and save it as a DRAFT for Will to review — never send it anywhere, never treat it as final. Afterward, send Will, Alex and Lindsey ONE combined internal exception-report email summarizing which clients (across both pipelines) are stuck waiting on a carrier, which got a new draft, and which need a manual look — but only on days something is actually outstanding, and clearly label which section each client belongs to (Hot Leads / New Business vs Renewals).
 
 STEP 1 — Connect folders
 Request access to (or confirm existing access to) these folders via the cowork directory tool if not already connected:
@@ -543,7 +543,7 @@ STEP 8 — Wrap up processing for both parts
 After checking every client folder in both Part A and Part B, you should have four buckets PER PIPELINE: "Waiting on carrier(s)", "Already current" (which now includes the cooldown sub-case from DEDUPE CHECK V2 — call these out distinctly, see STEP 9), "New draft generated today", and "Skipped — needs a look" — so up to 8 buckets total (4 for Hot Leads / New Business, 4 for Renewals). Clients with nothing sent to any carrier yet (no completed subtasks at all) don't need a bucket in either pipeline — they're simply not in progress and aren't part of the exception report. Clients resolved per the CLIENT RESOLUTIONS section above (renewing with their current/incumbent carrier) also don't need a bucket — they're settled, not outstanding.
 
 ======================================================================
-STEP 9 — Send the internal exception-report email (Will + Alex only)
+STEP 9 — Send the internal exception-report email (Will, Alex and Lindsey only)
 ======================================================================
 Only send an email if at least one client across EITHER pipeline landed in "Waiting on carrier(s)", "New draft generated today", or "Skipped — needs a look". If every client in both pipelines is either not-yet-in-progress, resolved (per CLIENT RESOLUTIONS), or already-current with nothing new, skip sending entirely — a quiet day stays quiet, do not send an empty or "nothing to report" email.
 
@@ -575,7 +575,7 @@ SECTION ORDER WITHIN EACH PIPELINE — skip any bucket with nothing in it, never
 Keep every note to one or two sentences. Say the specific thing (dates, file names, carrier names, who asked what and when); never pad with generic phrasing.
 
 Send it using the Zapier Microsoft Outlook connector's "Send Email" action: call execute_zapier_write_action with selected_api "MicrosoftOutlookCLIAPI", action "send_email", and params:
-  - recipients: ["will@benefits.place", "alex@benefits.place"]
+  - recipients: ["will@benefits.place", "alex@benefits.place", "lindsey@benefits.place"]   (Lindsey added 2026-10-19)
   - subject: "Carrier Quote Status — Hot Leads & Renewals — [today's date]"
   - bodyFormat: "HTML"
   - body: the HTML report described above
@@ -584,9 +584,9 @@ Leave "sender" blank so it sends from whichever mailbox the connected Outlook ac
 
 RUN RECEIPT — SEND ONE EVERY RUN, NO EXCEPTIONS (added 2026-10-12 per Will)
 
-Will and Alex cannot see this run. So the LAST thing every run does, whether it changed anything or not, is send a short receipt email through the Zapier Microsoft Outlook connector (execute_zapier_write_action, selected_api "MicrosoftOutlookCLIAPI", action "send_email"):
+Will, Alex and Lindsey cannot see this run. So the LAST thing every run does, whether it changed anything or not, is send a short receipt email through the Zapier Microsoft Outlook connector (execute_zapier_write_action, selected_api "MicrosoftOutlookCLIAPI", action "send_email"):
 
-  recipients: ["will@benefits.place", "alex@benefits.place"]
+  recipients: ["will@benefits.place", "alex@benefits.place", "lindsey@benefits.place"]
   bodyFormat: "HTML"
   subject:  "TBG Analyze Quotes — [Group or 'all groups'] — [Ran | Nothing to do | Problem]"
   body: HTML in the TBG EMAIL STYLE below (routine name "ANALYZE QUOTES"), containing:
@@ -601,7 +601,7 @@ Will and Alex cannot see this run. So the LAST thing every run does, whether it 
       next eligible 10/17".
 
 RULES FOR THE RECEIPT
-- Send it for EVERY run, including runs where you did nothing. "Nothing to do" with a specific reason is the most useful message this automation sends — it is how Will and Alex know the request was received and judged, rather than lost.
+- Send it for EVERY run, including runs where you did nothing. "Nothing to do" with a specific reason is the most useful message this automation sends — it is how Will, Alex and Lindsey know the request was received and judged, rather than lost.
 - Lay it out with the TBG EMAIL STYLE, one fact per row. The full exception report (Step 9) is separate and only goes out on the daily sweep when something is outstanding.
 - Never say a file was saved unless the /save-file call returned success. If it failed, say so on the Outcome line and mark it "Problem".
 - Name the exact Dropbox path, not "the client's folder".
@@ -680,7 +680,7 @@ Tables of several groups (e.g. "Waiting on a carrier") use a real table: header 
 #F7F9FC, bold 13px; body cells 14px with 8px padding and a 1px #EDF2F7 bottom border.
 
 IMPORTANT GUARDRAILS
-This task NEVER sends, emails, or shares anything with a client or a carrier, in either pipeline. It only reads Dropbox/Asana, writes draft files into Dropbox's "3. Proposal" folders, and — per Step 9 — sends one internal exception-report email to Will and Alex only, and only on days something is outstanding. That internal status email is the one exception to "never send anything"; it is never sent to a client or carrier, and it never contains client-facing material, just status/exception tracking. A Renewal draft is exactly as informal/internal as a New Business draft — it is a tool for Will to decide his renewal strategy, not a client-facing renewal proposal.
+This task NEVER sends, emails, or shares anything with a client or a carrier, in either pipeline. It only reads Dropbox/Asana, writes draft files into Dropbox's "3. Proposal" folders, and — per Step 9 — sends one internal exception-report email to Will, Alex and Lindsey only, and only on days something is outstanding. That internal status email is the one exception to "never send anything"; it is never sent to a client or carrier, and it never contains client-facing material, just status/exception tracking. A Renewal draft is exactly as informal/internal as a New Business draft — it is a tool for Will to decide his renewal strategy, not a client-facing renewal proposal.
 Step 7B / B7B is a permitted exception to "writes to Dropbox only." It pushes an HTML plan selector page to TBG's own GitHub repository (solutionpointmail-rgb/proposal) and to TBG's own Render server (proposal-fgqm.onrender.com). Both are TBG-controlled infrastructure. The selector page contains only carrier-published plan rate information (plan names, deductibles, OOP maximums, premiums) — it never contains census data, employee names, SSNs, health questionnaire responses, or any PHI. This is the same category of information that appears in a standard broker proposal PDF. This step is required for the pipeline to function and must not be skipped.
 If Asana or Dropbox access isn't available/connected when this runs, stop and report that access needs to be reconnected — don't guess or skip silently in that case.
 Be conservative: if matching is ambiguous for a given client in either pipeline (e.g., can't confidently find the Asana project, can't confidently match a Dropbox folder, or carrier names don't clearly line up with folders), skip that client rather than guessing, log it in the "Needs a Manual Look" bucket for the correct pipeline, and move to the next client.

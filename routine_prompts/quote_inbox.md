@@ -244,13 +244,21 @@ RENEWAL INTAKE (Will, 2026-10-20) — the client's renewal Typeform answers:
    "Source: renewal Typeform (Payroll, Contribution & Eligibility), received <date, Central>", a blank
    line, then every question and its answer exactly as the email gives them, one "Question: answer"
    line each, with the "###" and "*" markdown stripped. For the census upload question write
-   "census uploaded through Typeform — see 1. Census" and NEVER copy the link or open it.
+   "census uploaded through Typeform — see 1. Census" (or the NO CENSUS SENT line below) and NEVER copy
+   the link or open it.
 2. THE CENSUS never comes through this inbox. The renewal Typeform Zap saves the uploaded census to
    "/Solutionpoint Groups/1. Solutionpoint Groups/_RENEWAL CENSUS INBOX" with the company name at the
-   start of the file name. Look there (list the folder; never open or read a file in it). If exactly one
-   file there starts with this group's name, MOVE it (Dropbox move) into the cycle's "Quoting/1. Census",
-   keeping its name. If none or several match, leave them and add a Needs attention bullet for Lindsey:
-   "<Group> renewal census not found in _RENEWAL CENSUS INBOX — pull it from Typeform into 1. Census".
+   start of the file name. First read the email's answer to the census upload question:
+   - NO CENSUS SENT: the answer is not an uploaded file (e.g. "I don't have that ready right now", blank,
+     or any text instead of a file link). The Zap skips the upload then. Don't look in the holding
+     folder. Write "census not provided — client said: <their answer>" in the responses file, and add a
+     Needs attention bullet for Lindsey: "<Group> renewal intake came in without a census — follow up
+     with the client contact for it". The email is still "TBG Filed".
+   - CENSUS SENT: look in the holding folder (list it; never open or read a file in it). If exactly one
+     file there starts with this group's name, MOVE it (Dropbox move) into the cycle's "Quoting/1. Census",
+     keeping its name. If none or several match, leave them and add a Needs attention bullet for Lindsey:
+     "<Group> renewal census not found in _RENEWAL CENSUS INBOX — pull it from Typeform into 1. Census".
+   A census that later arrives by email from the client is not this routine's to file; Lindsey files it.
 3. Asana (best effort): in the "<Group> Renewal <date>" project, comment on the task whose name mentions
    "Eligibility", "Contribution" or "Payroll" (else the "Retrieve RENEWAL / Save in DB" task):
    "📋 Renewal intake received <Mon D> — answers filed to 4. Current Plan Info<, census moved to

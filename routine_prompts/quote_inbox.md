@@ -138,7 +138,8 @@ Benefits" → "Optimyl"). Add "carrier not on the list" to that row in the summa
 Only a message that is plainly not a carrier, TPA, MGU or GA writing about one of our groups (a vendor
 pitch, a newsletter, a webinar invite) goes to "TBG Needs Review".
 
-GROUP — our quote requests use the subject "Encrypt - <Group> - <Carrier label> ... Quote Request",
+GROUP — our quote requests use the subject "Encrypt - <Group> - <Carrier label> ... Quote Request"
+(re-quotes say "UPDATED ... Quote Request"),
 so strip "RE:", "Re:", "FW:", "Fwd:" and read <Group> from it. If the subject doesn't carry it, read
 the group name from the subject, body and attachment names and match it against the open Asana
 projects named "<Group> Quoting ..." or "<Group> Renewal ...", and search Dropbox for the name (renewal
@@ -186,7 +187,10 @@ List the immediate children of "2. Quotes" once. A carrier's EXISTING folder is 
 contains the carrier's name or usual short form (case-insensitive): "Aetna", "Great American need IMQ",
 "One health- not competitive", "DTQ - Allstate" all count for their carrier. Folders ending "- Renewal"
 or "- CURRENT" hold the incumbent's renewal: they are the existing folder ONLY for a RENEWAL, never for
-a QUOTE, DTQ or NEEDS APPS.
+a QUOTE, DTQ or NEEDS APPS. Ignore any folder starting "_Superseded" (the previous round, retired when the
+group was re-quoted): a reply to an "UPDATED ... Quote Request" goes in a fresh carrier folder. A late
+reply to the OLD request (its subject has no "UPDATED") also goes in a fresh folder; flag it in the
+summary as "replied to the earlier request — check it's for the new date".
 
 ======================================================================
 STEP 4 — File it

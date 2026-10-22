@@ -53,7 +53,9 @@ Inc/LLC, punctuation, case, and the "Quoting <date>" suffix). If such a subtask 
 comment starting with "SENT", within the last 30 days, do NOT send: skip it and flag "possible
 duplicate — <carrier> already requested for <group> on <date> in <project>". Archived projects are
 ignored on purpose: archiving a project means it was closed out, and a fresh project for the same
-group is deliberate.
+group is deliberate. A REQUOTE subtask (name ends "(requote MM/DD)" and subject says "UPDATED") is a deliberate
+second request for the same project and is exempt from this guard; its old subtask carries a HOLD
+comment, so only the updated request goes out.
 
 STEP 2 — PARSE. The notes use literal labels, each on its own line: "AUTO-SEND READY", "TO:", "CC:",
 "SUBJECT:", "ATTACH:", then "---BODY---" followed by the email body, ended by "---END---". Required: at

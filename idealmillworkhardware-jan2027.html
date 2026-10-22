@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ideal Millwork & Hardware — Proposal Plan Selector</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #F0F4F8; min-height: 100vh; }
+  .header { background: #0D1B2A; padding: 0; }
+  .header-inner { max-width: 1100px; margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; }
+  .header-logo { display: flex; align-items: center; gap: 12px; }
+  .header-logo img { height: 42px; width: auto; display: block; }
+  .header-logo-text { color: #fff; font-size: 15px; font-weight: 600; }
+  .header-bar { height: 3px; background: #4CAF7D; }
+  .hero { background: #1B2E45; padding: 28px 24px; }
+  .hero-inner { max-width: 1100px; margin: 0 auto; }
+  .hero-label { color: #4CAF7D; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; }
+  .hero-title { color: #fff; font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .hero-meta { color: #A0AEC0; font-size: 13px; display: flex; flex-wrap: wrap; gap: 16px; margin-top: 10px; }
+  .hero-meta strong { color: #CBD5E0; }
+  .instructions { background: #EAF7F1; border-left: 3px solid #4CAF7D; max-width: 1100px; margin: 20px auto 0; padding: 12px 16px; border-radius: 0 6px 6px 0; font-size: 13px; color: #2D6A4F; }
+  .main { max-width: 1100px; margin: 20px auto; padding: 0 24px 40px; }
+  .section { margin-bottom: 28px; }
+  .section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 2px solid #E2E8F0; }
+  .section-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .icon-medical { background: #EAF7F1; }
+  .icon-dental  { background: #FFF8E8; }
+  .icon-vision  { background: #EDF4FB; }
+  .section-title { font-size: 16px; font-weight: 700; color: #0D1B2A; }
+  .section-contrib { font-size: 12px; color: #718096; margin-left: auto; background: #F7F9FC; padding: 4px 10px; border-radius: 20px; border: 1px solid #E2E8F0; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+  .plan-card { background: #fff; border: 2px solid #E2E8F0; border-radius: 10px; padding: 14px; cursor: pointer; transition: all 0.15s; position: relative; user-select: none; }
+  .plan-card:hover { border-color: #4CAF7D; box-shadow: 0 2px 8px rgba(76,175,125,0.12); }
+  .plan-card.selected { border-color: #4CAF7D; background: #EAF7F1; }
+  .check { position: absolute; top: 10px; right: 10px; width: 20px; height: 20px; background: #4CAF7D; border-radius: 50%; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.15s; }
+  .plan-card.selected .check { opacity: 1; }
+  .check svg { width: 11px; height: 11px; stroke: #fff; stroke-width: 2.5; fill: none; }
+  .card-carrier { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #718096; margin-bottom: 4px; }
+  .card-name { font-size: 13px; font-weight: 600; color: #1A202C; margin-bottom: 8px; line-height: 1.35; }
+  .card-premium { font-size: 18px; font-weight: 800; color: #4CAF7D; margin-bottom: 2px; }
+  .card-premium-label { font-size: 10px; color: #A0AEC0; margin-bottom: 8px; }
+  .card-badges { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
+  .badge { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 10px; }
+  .badge-blue { background: #EBF4FF; color: #2B6CB0; }
+  .badge-green { background: #EAF7F1; color: #276749; }
+  .badge-gold { background: #FFFFF0; color: #975A16; }
+  .badge-illus { background: #FEF3C7; color: #B45309; border: 1px solid #F59E0B; }
+  .plan-card.illus { border-style: dashed; }
+  .card-details { border-top: 1px solid #E2E8F0; padding-top: 8px; }
+  .card-detail-row { display: flex; justify-content: space-between; gap: 10px; font-size: 11px; margin-bottom: 3px; }
+  .card-detail-row span:first-child { flex: 0 0 42%; }
+  .card-detail-row span:last-child { text-align: right; }
+  .card-detail-row span:first-child { color: #718096; }
+  .card-detail-row span:last-child { color: #2D3748; font-weight: 500; }
+  .carrier-group { margin-bottom: 16px; }
+  .carrier-label { font-size: 11px; font-weight: 700; color: #4A5568; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 8px; padding: 4px 0; }
+  .submit-bar { position: sticky; bottom: 0; background: #0D1B2A; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 -4px 20px rgba(0,0,0,0.15); }
+  .submit-count { color: #A0AEC0; font-size: 13px; }
+  .submit-count strong { color: #4CAF7D; font-size: 16px; }
+  .submit-btn { background: #4CAF7D; color: #fff; border: none; padding: 12px 32px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; transition: background 0.15s; }
+  .submit-btn:hover { background: #3A8C61; }
+  .submit-btn:disabled { background: #A0AEC0; cursor: not-allowed; }
+  .success-overlay { display: none; position: fixed; inset: 0; background: rgba(13,27,42,0.92); z-index: 100; align-items: center; justify-content: center; }
+  .success-overlay.show { display: flex; }
+  .success-box { background: #fff; border-radius: 16px; padding: 40px; max-width: 440px; text-align: center; }
+  .success-icon { width: 64px; height: 64px; background: #EAF7F1; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+  .success-icon svg { width: 32px; height: 32px; stroke: #4CAF7D; stroke-width: 2.5; fill: none; }
+  .success-title { font-size: 20px; font-weight: 700; color: #0D1B2A; margin-bottom: 8px; }
+  .success-msg { font-size: 14px; color: #718096; line-height: 1.6; }
+  .success-client { color: #4CAF7D; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-inner">
+    <div class="header-logo">
+      <img src="https://solutionpointmail-rgb.github.io/proposal/tbg-logo.png" alt="The Benefits Group" style="height:42px;width:auto;display:block">
+      <div>
+        <div class="header-logo-text">The Benefits Group</div>
+      </div>
+    </div>
+    <div style="color:#A0AEC0;font-size:12px;text-align:right">
+      Proposal Plan Selector<br>
+      <span style="color:#4CAF7D">January 1, 2027</span>
+    </div>
+  </div>
+  <div class="header-bar"></div>
+</div>
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-label">Proposal plan selection</div>
+    <div class="hero-title">Ideal Millwork & Hardware</div>
+    <div class="hero-meta">
+      <span>&#128197; <strong>Effective:</strong> January 1, 2027</span>
+      <span>&#128101; <strong>Employees:</strong> 4 enrolling</span>
+    </div>
+  </div>
+</div>
+<div class="main">
+  <div class="instructions">
+    <strong>Instructions:</strong> Click each plan to toggle include/exclude. Green = included in proposal. When ready, hit <strong>Submit selections</strong> at the bottom — the proposal will generate automatically.
+  </div>
+  <div class="section" style="margin-top:20px">
+    <div class="section-header">
+      <div class="section-icon icon-medical">&#10010;</div>
+      <div class="section-title">Medical Coverage</div>
+      <div class="section-contrib">EE 50% / Dep 0%</div>
+    </div>
+    <div id="medical-plans"></div>
+  </div>
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon icon-dental">&#9673;</div>
+      <div class="section-title">Dental Coverage</div>
+      <div class="section-contrib">EE 0% / Dep 0%</div>
+    </div>
+    <div id="dental-plans"></div>
+  </div>
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon icon-vision">&#128065;</div>
+      <div class="section-title">Vision Coverage</div>
+      <div class="section-contrib">EE 0% / Dep 0%</div>
+    </div>
+    <div id="vision-plans"></div>
+  </div>
+  <div style="height:80px"></div>
+</div>
+<div class="submit-bar">
+  <div class="submit-count"><strong id="selected-count">0</strong> plans selected</div>
+  <button class="submit-btn" id="submit-btn" onclick="submitSelections()" disabled>Submit selections</button>
+</div>
+<div class="success-overlay" id="success-overlay">
+  <div class="success-box">
+    <div class="success-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <div class="success-title">Selections submitted!</div>
+    <div class="success-msg">The proposal for <span class="success-client">Ideal Millwork & Hardware</span> is now generating automatically.<br><br>You'll find the PDF and Excel files in Dropbox and the Asana task will be marked complete once ready. You can close this tab.</div>
+  </div>
+</div>
+<script>
+const ZAPIER_WEBHOOK = 'https://hooks.zapier.com/hooks/catch/5928257/4ueg7t8/';
+const CLIENT_DATA = {"schema": 2, "name": "Ideal Millwork & Hardware", "effective_date": "January 1, 2027", "address": "320 Premier Court #223", "city_state_zip": "Franklin, TN 37067", "state": "TN", "zip": "37067", "county": "Williamson", "sic_code": "2431", "quote_id": "UHC LF Case 1180214 \u00b7 Nationwide 7369407 (ID 4861591) \u00b7 Beam 882836 \u00b7 CBC Triad 08/10/2026", "total_employees": 4, "eligible_employees": 4, "enrolling_employees": 4, "waiving_employees": 0, "total_members": 8, "tier_counts": {"ee": 2, "es": 1, "ec": 0, "ef": 1}, "rate_guarantee": "12 months", "contributions": {"medical_ee": "50%", "medical_dep": "0%", "dental_ee": "0%", "dental_dep": "0%", "vision_ee": "0%", "vision_dep": "0%"}};
+const PLAN_DATA = {
+  medical: [{"carrier": "UnitedHealthcare Level Funded", "plan_name": "$3,000 Core PPO (CnP3000i80LXES22B)", "plan_type": "PPO", "funding": "Level Funded", "network": "UHC Core (TN select counties)", "illustrative": true, "quote_status": "Illustrative", "quote_status_note": "UnitedHealthcare requires employee applications before these level-funded rates are final.", "hsa_eligible": false, "deductible_in_ind": "$3,000", "deductible_in_fam": "$6,000", "deductible_out_ind": "$6,000", "deductible_out_fam": "$12,000", "oop_in_ind": "$6,500", "oop_in_fam": "$13,000", "oop_out_ind": "$12,000", "oop_out_fam": "$24,000", "coinsurance_in": "20%", "coinsurance_out": "50%", "preventive": "100%, no deductible", "doctor_visit": "$25", "virtual_visit": "", "specialist": "$75", "xray_lab": "20% after deductible", "imaging": "20% after deductible", "urgent_care": "$50", "er": "$300 copay, then 20% after deductible", "hospital": "20% after deductible", "outpatient_surgery": "20% after deductible", "rx": "$10 / $35 / $75 / $250", "rx_deductible": "None", "rate_ee": 523.12, "rate_es": 1049.04, "rate_ec": 929.51, "rate_ef": 1431.53, "monthly_premium": 3526.81, "rate_guarantee": "12 months", "notes": "Plan-year accrual. Core network is limited to listed TN counties (Williamson, Hickman and Davidson are included). Employer receives 50% of any surplus.", "include": true}, {"carrier": "UnitedHealthcare Level Funded", "plan_name": "$2,500 Core HSA (CnHP25002575i80ES25B)", "plan_type": "HSA", "funding": "Level Funded", "network": "UHC Core (TN select counties)", "illustrative": true, "quote_status": "Illustrative", "quote_status_note": "UnitedHealthcare requires employee applications before these level-funded rates are final.", "hsa_eligible": true, "deductible_in_ind": "$2,500", "deductible_in_fam": "$5,000", "deductible_out_ind": "$5,000", "deductible_out_fam": "$10,000", "oop_in_ind": "$5,000", "oop_in_fam": "$10,000", "oop_out_ind": "$10,000", "oop_out_fam": "$20,000", "coinsurance_in": "20%", "coinsurance_out": "50%", "preventive": "100%, no deductible", "doctor_visit": "$25 after deductible", "virtual_visit": "", "specialist": "$75 after deductible", "xray_lab": "20% after deductible", "imaging": "20% after deductible", "urgent_care": "$50", "er": "$300 copay, then 20% after deductible", "hospital": "20% after deductible", "outpatient_surgery": "20% after deductible", "rx": "$10 / $35 / $70 / $150 after deductible", "rx_deductible": "Combined with medical deductible (HSA)", "rate_ee": 528.27, "rate_es": 1059.88, "rate_ec": 939.07, "rate_ef": 1446.51, "monthly_premium": 3562.93, "rate_guarantee": "12 months", "notes": "HSA-qualified. Core network is limited to listed TN counties. Employer receives 50% of any surplus.", "include": true}, {"carrier": "UnitedHealthcare Level Funded", "plan_name": "$3,000 Choice Plus PPO (P3000i80YLXES26B)", "plan_type": "PPO", "funding": "Level Funded", "network": "UHC Choice Plus (national)", "illustrative": true, "quote_status": "Illustrative", "quote_status_note": "UnitedHealthcare requires employee applications before these level-funded rates are final.", "hsa_eligible": false, "deductible_in_ind": "$3,000", "deductible_in_fam": "$6,000", "deductible_out_ind": "$6,000", "deductible_out_fam": "$12,000", "oop_in_ind": "$9,000", "oop_in_fam": "$18,000", "oop_out_ind": "$18,000", "oop_out_fam": "$36,000", "coinsurance_in": "20%", "coinsurance_out": "50%", "preventive": "100%, no deductible", "doctor_visit": "$25", "virtual_visit": "", "specialist": "$75", "xray_lab": "20% after deductible", "imaging": "20% after deductible", "urgent_care": "$50", "er": "$300 copay, then 20% after deductible", "hospital": "20% after deductible", "outpatient_surgery": "20% after deductible", "rx": "$10 / $35 / $75 / $250", "rx_deductible": "None", "rate_ee": 544.43, "rate_es": 1093.8, "rate_ec": 968.94, "rate_ef": 1493.34, "monthly_premium": 3676.0, "rate_guarantee": "12 months", "notes": "Broad national Choice Plus network. Employer receives 50% of any surplus.", "include": true}, {"carrier": "Allstate (Nationwide)", "plan_name": "$3,500 PPO Copay (Plan 1)", "plan_type": "PPO", "funding": "Level Funded", "network": "Cigna LocalPlus", "illustrative": false, "quote_status": "Underwritten", "quote_status_note": "", "hsa_eligible": false, "deductible_in_ind": "$3,500", "deductible_in_fam": "$7,000", "deductible_out_ind": "$7,000", "deductible_out_fam": "$14,000", "oop_in_ind": "$9,100", "oop_in_fam": "$18,200", "oop_out_ind": "$27,300", "oop_out_fam": "$54,600", "coinsurance_in": "30%", "coinsurance_out": "60%", "preventive": "100%, no deductible", "doctor_visit": "$40", "virtual_visit": "$0 (Recuro)", "specialist": "$60", "xray_lab": "30% after deductible", "imaging": "30% after deductible", "urgent_care": "$75", "er": "$500 access fee, then 30% after deductible", "hospital": "30% after deductible", "outpatient_surgery": "30% after deductible", "rx": "$20 / $50 / $75", "rx_deductible": "None", "rate_ee": 446.7, "rate_es": 1429.39, "rate_ec": 1206.05, "rate_ef": 1786.73, "monthly_premium": 4109.52, "rate_guarantee": "", "notes": "Calendar-year accrual with deductible credit. Includes Vori Health muscle and joint care, Papa caregiver hours and Osara cancer coaching.", "include": true}, {"carrier": "Allstate (Nationwide)", "plan_name": "$2,500 PPO Copay (Plan 2)", "plan_type": "PPO", "funding": "Level Funded", "network": "Cigna LocalPlus", "illustrative": false, "quote_status": "Underwritten", "quote_status_note": "", "hsa_eligible": false, "deductible_in_ind": "$2,500", "deductible_in_fam": "$5,000", "deductible_out_ind": "$5,000", "deductible_out_fam": "$10,000", "oop_in_ind": "$7,900", "oop_in_fam": "$15,800", "oop_out_ind": "$23,700", "oop_out_fam": "$47,400", "coinsurance_in": "30%", "coinsurance_out": "60%", "preventive": "100%, no deductible", "doctor_visit": "$40", "virtual_visit": "$0 (Recuro)", "specialist": "$60", "xray_lab": "30% after deductible", "imaging": "30% after deductible", "urgent_care": "$75", "er": "$500 access fee, then 30% after deductible", "hospital": "30% after deductible", "outpatient_surgery": "30% after deductible", "rx": "$20 / $50 / $75", "rx_deductible": "None", "rate_ee": 493.85, "rate_es": 1580.27, "rate_ec": 1333.34, "rate_ef": 1975.32, "monthly_premium": 4543.29, "rate_guarantee": "", "notes": "Calendar-year accrual with deductible credit. Includes Vori Health muscle and joint care, Papa caregiver hours and Osara cancer coaching.", "include": true}, {"carrier": "Allstate (Nationwide)", "plan_name": "$3,500 HSA, $7,500 OOP (Plan 3)", "plan_type": "HSA", "funding": "Level Funded", "network": "Cigna LocalPlus", "illustrative": false, "quote_status": "Underwritten", "quote_status_note": "", "hsa_eligible": true, "deductible_in_ind": "$3,500", "deductible_in_fam": "$7,000", "deductible_out_ind": "$7,000", "deductible_out_fam": "$14,000", "oop_in_ind": "$7,500", "oop_in_fam": "$15,000", "oop_out_ind": "$22,500", "oop_out_fam": "$45,000", "coinsurance_in": "30%", "coinsurance_out": "60%", "preventive": "100%, no deductible", "doctor_visit": "30% after deductible", "virtual_visit": "$35 (Recuro)", "specialist": "30% after deductible", "xray_lab": "30% after deductible", "imaging": "30% after deductible", "urgent_care": "30% after deductible", "er": "$500 access fee, then 30% after deductible", "hospital": "30% after deductible", "outpatient_surgery": "30% after deductible", "rx": "Deductible, then 30% generic / 30% brand / 50% non-preferred", "rx_deductible": "Combined with medical deductible", "rate_ee": 406.19, "rate_es": 1299.8, "rate_ec": 1096.71, "rate_ef": 1624.74, "monthly_premium": 3736.92, "rate_guarantee": "", "notes": "HSA-qualified. Calendar-year accrual with deductible credit.", "include": true}, {"carrier": "Allstate (Nationwide)", "plan_name": "$3,500 HSA, $5,000 OOP (Plan 4)", "plan_type": "HSA", "funding": "Level Funded", "network": "Cigna LocalPlus", "illustrative": false, "quote_status": "Underwritten", "quote_status_note": "", "hsa_eligible": true, "deductible_in_ind": "$3,500", "deductible_in_fam": "$7,000", "deductible_out_ind": "$7,000", "deductible_out_fam": "$14,000", "oop_in_ind": "$5,000", "oop_in_fam": "$10,000", "oop_out_ind": "$15,000", "oop_out_fam": "$30,000", "coinsurance_in": "30%", "coinsurance_out": "60%", "preventive": "100%, no deductible", "doctor_visit": "30% after deductible", "virtual_visit": "$35 (Recuro)", "specialist": "30% after deductible", "xray_lab": "30% after deductible", "imaging": "30% after deductible", "urgent_care": "30% after deductible", "er": "$500 access fee, then 30% after deductible", "hospital": "30% after deductible", "outpatient_surgery": "30% after deductible", "rx": "Deductible, then 30% generic / 30% brand / 50% non-preferred", "rx_deductible": "Combined with medical deductible", "rate_ee": 457.6, "rate_es": 1464.26, "rate_ec": 1235.48, "rate_ef": 1830.33, "monthly_premium": 4209.79, "rate_guarantee": "", "notes": "HSA-qualified. Calendar-year accrual with deductible credit.", "include": true}, {"carrier": "CBC Triad", "plan_name": "$1,000 Classic (CIGNA)", "plan_type": "PPO", "funding": "Level Funded", "network": "Cigna", "illustrative": false, "quote_status": "Quoted", "quote_status_note": "", "hsa_eligible": false, "deductible_in_ind": "$1,000", "deductible_in_fam": "$2,000", "deductible_out_ind": "$2,000", "deductible_out_fam": "$4,000", "oop_in_ind": "$5,000", "oop_in_fam": "$10,000", "oop_out_ind": "$10,000", "oop_out_fam": "$20,000", "coinsurance_in": "20%", "coinsurance_out": "40% after out-of-network deductible", "preventive": "100%, no deductible", "doctor_visit": "$20", "virtual_visit": "$0 (Fabric)", "specialist": "$40", "xray_lab": "20% after deductible", "imaging": "20% after deductible", "urgent_care": "$40", "er": "20% after deductible", "hospital": "20% after deductible", "outpatient_surgery": "20% after deductible", "rx": "$15 / $45 / $85 / 50% specialty", "rx_deductible": "None", "rate_ee": 884.12, "rate_es": 1720.67, "rate_ec": 1553.36, "rate_ef": 2557.23, "monthly_premium": 6046.13, "rate_guarantee": "Quote valid 60 days past the 08/10/2026 quote date", "notes": "Same plan design is quoted on both the Cigna and PHCS / RBP networks. Fabric telemedicine at $0; $20 chiropractic copay.", "include": true}, {"carrier": "CBC Triad", "plan_name": "$1,000 Classic (PHCS/RBP)", "plan_type": "PPO", "funding": "Level Funded", "network": "PHCS / RBP", "illustrative": false, "quote_status": "Quoted", "quote_status_note": "", "hsa_eligible": false, "deductible_in_ind": "$1,000", "deductible_in_fam": "$2,000", "deductible_out_ind": "$2,000", "deductible_out_fam": "$4,000", "oop_in_ind": "$5,000", "oop_in_fam": "$10,000", "oop_out_ind": "$10,000", "oop_out_fam": "$20,000", "coinsurance_in": "20%", "coinsurance_out": "40% after out-of-network deductible", "preventive": "100%, no deductible", "doctor_visit": "$20", "virtual_visit": "$0 (Fabric)", "specialist": "$40", "xray_lab": "20% after deductible", "imaging": "20% after deductible", "urgent_care": "$40", "er": "20% after deductible", "hospital": "20% after deductible", "outpatient_surgery": "20% after deductible", "rx": "$15 / $45 / $85 / 50% specialty", "rx_deductible": "None", "rate_ee": 739.95, "rate_es": 1432.75, "rate_ec": 1294.19, "rate_ef": 2125.55, "monthly_premium": 5038.21, "rate_guarantee": "Quote valid 60 days past the 08/10/2026 quote date", "notes": "Same plan design is quoted on both the Cigna and PHCS / RBP networks. Fabric telemedicine at $0; $20 chiropractic copay. Reference-based pricing: providers may balance-bill above the plan allowance.", "include": true}, {"carrier": "CBC Triad", "plan_name": "$1,500 Classic (CIGNA)", "plan_type": "PPO", "funding": "Level Funded", "network": "Cigna", "illustrative": false, "quote_status": "Quoted", "quote_status_note": "", "hsa_eligible": false, "deductible_in_ind": "$1,500", "deductible_in_fam": "$3,000", "deductible_out_ind": "$3,000", "deductible_out_fam": "$6,000", "oop_in_ind": "$7,350", "oop_in_fam": "$14,700", "oop_out_ind": "$14,700", "oop_out_fam": "$29,400", "coinsurance_in": "20%", "coinsurance_out": "40% after out-of-network deductible", "preventive": "100%, no deductible", "doctor_visit": "$30", "virtual_visit": "$0 (Fabric)", "specialist": "$60", "xray_lab": "20% after deductible", "imaging": "20% after deductible", "urgent_care": "$60", "er": "20% after deductible", "hospital": "20% after deductible", "outpatient_surgery": "20% after deductible", "rx": "$15 / $45 / $85 / 50% specialty", "rx_deductible": "None", "rate_ee": 827.75, "rate_es": 1609.57, "rate_ec": 1453.2, "rate_ef": 2391.4, "monthly_premium": 5656.47, "rate_guarantee": "Quote valid 60 days past the 08/10/2026 quote date", "notes": "Same plan design is quoted on both the Cigna and PHCS / RBP networks. Fabric telemedicine at $0; $20 chiropractic copay.", "include": true}, {"carrier": "CBC Triad", "plan_name": "$1,500 Classic (PHCS/RBP)", "plan_type": "PPO", "funding": "Level Funded", "network": "PHCS / RBP", "illustrative": false, "quote_status": "Quoted", "quote_status_note": "", "hsa_eligible": false, "deductible_in_ind": "$1,500", "deductible_in_fam": "$3,000", "deductible_out_ind": "$3,000", "deductible_out_fam": "$6,000", "oop_in_ind": "$7,350", "oop_in_fam": "$14,700", "oop_out_ind": "$14,700", "oop_out_fam": "$29,400", "coinsurance_in": "20%", "coinsurance_out": "40% after out-of-network deductible", "preventive": "100%, no deductible", "doctor_visit": "$30", "virtual_visit": "$0 (Fabric)", "specialist": "$60", "xray_lab": "20% after deductible", "imaging": "20% after deductible", "urgent_care": "$60", "er": "20% after deductible", "hospital": "20% after deductible", "outpatient_surgery": "20% after deductible", "rx": "$15 / $45 / $85 / 50% specialty", "rx_deductible": "None", "rate_ee": 693.07, "rate_es": 1340.54, "rate_ec": 1211.04, "rate_ef": 1988.02, "monthly_premium": 4714.69, "rate_guarantee": "Quote valid 60 days past the 08/10/2026 quote date", "notes": "Same plan design is quoted on both the Cigna and PHCS / RBP networks. Fabric telemedicine at $0; $20 chiropractic copay. Reference-based pricing: providers may balance-bill above the plan allowance.", "include": true}, {"carrier": "CBC Triad", "plan_name": "$2,500 Classic (CIGNA)", "plan_type": "PPO", "funding": "Level Funded", "network": "Cigna", "illustrative": false, "quote_status": "Quoted", "quote_status_note": "", "hsa_eligible": false, "deductible_in_ind": "$2,500", "deductible_in_fam": "$5,000", "deductible_out_ind": "$5,000", "deductible_out_fam": "$10,000", "oop_in_ind": "$7,350", "oop_in_fam": "$14,700", "oop_out_ind": "$14,700", "oop_out_fam": "$29,400", "coinsurance_in": "20%", "coinsurance_out": "40% after out-of-network deductible", "preventive": "100%, no deductible", "doctor_visit": "$30", "virtual_visit": "$0 (Fabric)", "specialist": "$60", "xray_lab": "20% after deductible", "imaging": "20% after deductible", "urgent_care": "$60", "er": "20% after deductible", "hospital": "20% after deductible", "outpatient_surgery": "20% after deductible", "rx": "$15 / $45 / $85 / 50% specialty", "rx_deductible": "None", "rate_ee": 775.07, "rate_es": 1505.74, "rate_ec": 1359.6, "rate_ef": 2236.43, "monthly_premium": 5292.3, "rate_guarantee": "Quote valid 60 days past the 08/10/2026 quote date", "notes": "Same plan design is quoted on both the Cigna and PHCS / RBP networks. Fabric telemedicine at $0; $20 chiropractic copay.", "include": true}, {"carrier": "CBC Triad", "plan_name": "$2,500 Classic (PHCS/RBP)", "plan_type": "PPO", "funding": "Level Funded", "network": "PHCS / RBP", "illustrative": false, "quote_status": "Quoted", "quote_status_note": "", "hsa_eligible": false, "deductible_in_ind": "$2,500", "deductible_in_fam": "$5,000", "deductible_out_ind": "$5,000", "deductible_out_fam": "$10,000", "oop_in_ind": "$7,350", "oop_in_fam": "$14,700", "oop_out_ind": "$14,700", "oop_out_fam": "$29,400", "coinsurance_in": "20%", "coinsurance_out": "40% after out-of-network deductible", "preventive": "100%, no deductible", "doctor_visit": "$30", "virtual_visit": "$0 (Fabric)", "specialist": "$60", "xray_lab": "20% after deductible", "imaging": "20% after deductible", "urgent_care": "$60", "er": "20% after deductible", "hospital": "20% after deductible", "outpatient_surgery": "20% after deductible", "rx": "$15 / $45 / $85 / 50% specialty", "rx_deductible": "None", "rate_ee": 649.25, "rate_es": 1254.36, "rate_ec": 1133.34, "rate_ef": 1859.48, "monthly_premium": 4412.34, "rate_guarantee": "Quote valid 60 days past the 08/10/2026 quote date", "notes": "Same plan design is quoted on both the Cigna and PHCS / RBP networks. Fabric telemedicine at $0; $20 chiropractic copay. Reference-based pricing: providers may balance-bill above the plan allowance.", "include": true}, {"carrier": "CBC Triad", "plan_name": "$3,500 Classic (CIGNA)", "plan_type": "PPO", "funding": "Level Funded", "network": "Cigna", "illustrative": false, "quote_status": "Quoted", "quote_status_note": "", "hsa_eligible": false, "deductible_in_ind": "$3,500", "deductible_in_fam": "$7,000", "deductible_out_ind": "$7,000", "deductible_out_fam": "$14,000", "oop_in_ind": "$7,350", "oop_in_fam": "$14,700", "oop_out_ind": "$14,700", "oop_out_fam": "$29,400", "coinsurance_in": "20%", "coinsurance_out": "40% after out-of-network deductible", "preventive": "100%, no deductible", "doctor_visit": "$45", "virtual_visit": "$0 (Fabric)", "specialist": "$90", "xray_lab": "20% after deductible", "imaging": "20% after deductible", "urgent_care": "$90", "er": "20% after deductible", "hospital": "20% after deductible", "outpatient_surgery": "20% after deductible", "rx": "$15 / $65 / $100 / 50% specialty", "rx_deductible": "None", "rate_ee": 725.83, "rate_es": 1408.7, "rate_ec": 1272.13, "rate_ef": 2091.59, "monthly_premium": 4951.95, "rate_guarantee": "Quote valid 60 days past the 08/10/2026 quote date", "notes": "Same plan design is quoted on both the Cigna and PHCS / RBP networks. Fabric telemedicine at $0; $20 chiropractic copay.", "include": true}, {"carrier": "CBC Triad", "plan_name": "$3,500 Classic (PHCS/RBP)", "plan_type": "PPO", "funding": "Level Funded", "network": "PHCS / RBP", "illustrative": false, "quote_status": "Quoted", "quote_status_note": "", "hsa_eligible": false, "deductible_in_ind": "$3,500", "deductible_in_fam": "$7,000", "deductible_out_ind": "$7,000", "deductible_out_fam": "$14,000", "oop_in_ind": "$7,350", "oop_in_fam": "$14,700", "oop_out_ind": "$14,700", "oop_out_fam": "$29,400", "coinsurance_in": "20%", "coinsurance_out": "40% after out-of-network deductible", "preventive": "100%, no deductible", "doctor_visit": "$45", "virtual_visit": "$0 (Fabric)", "specialist": "$90", "xray_lab": "20% after deductible", "imaging": "20% after deductible", "urgent_care": "$90", "er": "20% after deductible", "hospital": "20% after deductible", "outpatient_surgery": "20% after deductible", "rx": "$15 / $65 / $100 / 50% specialty", "rx_deductible": "None", "rate_ee": 608.29, "rate_es": 1173.82, "rate_ec": 1060.71, "rate_ef": 1739.36, "monthly_premium": 4129.76, "rate_guarantee": "Quote valid 60 days past the 08/10/2026 quote date", "notes": "Same plan design is quoted on both the Cigna and PHCS / RBP networks. Fabric telemedicine at $0; $20 chiropractic copay. Reference-based pricing: providers may balance-bill above the plan allowance.", "include": true}, {"carrier": "CBC Triad", "plan_name": "$5,000 Classic (CIGNA)", "plan_type": "PPO", "funding": "Level Funded", "network": "Cigna", "illustrative": false, "quote_status": "Quoted", "quote_status_note": "", "hsa_eligible": false, "deductible_in_ind": "$5,000", "deductible_in_fam": "$10,000", "deductible_out_ind": "$10,000", "deductible_out_fam": "$20,000", "oop_in_ind": "$7,350", "oop_in_fam": "$14,700", "oop_out_ind": "$14,700", "oop_out_fam": "$29,400", "coinsurance_in": "20%", "coinsurance_out": "40% after out-of-network deductible", "preventive": "100%, no deductible", "doctor_visit": "$45", "virtual_visit": "$0 (Fabric)", "specialist": "$90", "xray_lab": "20% after deductible", "imaging": "20% after deductible", "urgent_care": "$90", "er": "20% after deductible", "hospital": "20% after deductible", "outpatient_surgery": "20% after deductible", "rx": "$15 / $65 / $100 / 50% specialty", "rx_deductible": "None", "rate_ee": 679.82, "rate_es": 1318.01, "rate_ec": 1190.37, "rate_ef": 1956.22, "monthly_premium": 4633.87, "rate_guarantee": "Quote valid 60 days past the 08/10/2026 quote date", "notes": "Same plan design is quoted on both the Cigna and PHCS / RBP networks. Fabric telemedicine at $0; $20 chiropractic copay.", "include": true}, {"carrier": "CBC Triad", "plan_name": "$5,000 Classic (PHCS/RBP)", "plan_type": "PPO", "funding": "Level Funded", "network": "PHCS / RBP", "illustrative": false, "quote_status": "Quoted", "quote_status_note": "", "hsa_eligible": false, "deductible_in_ind": "$5,000", "deductible_in_fam": "$10,000", "deductible_out_ind": "$10,000", "deductible_out_fam": "$20,000", "oop_in_ind": "$7,350", "oop_in_fam": "$14,700", "oop_out_ind": "$14,700", "oop_out_fam": "$29,400", "coinsurance_in": "20%", "coinsurance_out": "40% after out-of-network deductible", "preventive": "100%, no deductible", "doctor_visit": "$45", "virtual_visit": "$0 (Fabric)", "specialist": "$90", "xray_lab": "20% after deductible", "imaging": "20% after deductible", "urgent_care": "$90", "er": "20% after deductible", "hospital": "20% after deductible", "outpatient_surgery": "20% after deductible", "rx": "$15 / $65 / $100 / 50% specialty", "rx_deductible": "None", "rate_ee": 570.02, "rate_es": 1098.55, "rate_ec": 992.84, "rate_ef": 1627.09, "monthly_premium": 3865.68, "rate_guarantee": "Quote valid 60 days past the 08/10/2026 quote date", "notes": "Same plan design is quoted on both the Cigna and PHCS / RBP networks. Fabric telemedicine at $0; $20 chiropractic copay. Reference-based pricing: providers may balance-bill above the plan allowance.", "include": true}, {"carrier": "CBC Triad", "plan_name": "$7,350 Value (CIGNA)", "plan_type": "PPO", "funding": "Level Funded", "network": "Cigna", "illustrative": false, "quote_status": "Quoted", "quote_status_note": "", "hsa_eligible": false, "deductible_in_ind": "$7,350", "deductible_in_fam": "$14,700", "deductible_out_ind": "$14,700", "deductible_out_fam": "$29,400", "oop_in_ind": "$7,350", "oop_in_fam": "$14,700", "oop_out_ind": "$14,700", "oop_out_fam": "$29,400", "coinsurance_in": "0% (plan pays 100% after deductible)", "coinsurance_out": "40% after out-of-network deductible", "preventive": "100%, no deductible", "doctor_visit": "$50", "virtual_visit": "$0 (Fabric)", "specialist": "$100", "xray_lab": "Plan pays 100% after deductible", "imaging": "Plan pays 100% after deductible", "urgent_care": "$100", "er": "Plan pays 100% after deductible", "hospital": "Plan pays 100% after deductible", "outpatient_surgery": "Plan pays 100% after deductible", "rx": "$15 / $65 / $100 / 50% specialty", "rx_deductible": "None", "rate_ee": 590.31, "rate_es": 1141.61, "rate_ec": 1031.35, "rate_ef": 1692.92, "monthly_premium": 4015.15, "rate_guarantee": "Quote valid 60 days past the 08/10/2026 quote date", "notes": "Same plan design is quoted on both the Cigna and PHCS / RBP networks. Fabric telemedicine at $0; $20 chiropractic copay.", "include": true}, {"carrier": "CBC Triad", "plan_name": "$7,350 Value (PHCS/RBP)", "plan_type": "PPO", "funding": "Level Funded", "network": "PHCS / RBP", "illustrative": false, "quote_status": "Quoted", "quote_status_note": "", "hsa_eligible": false, "deductible_in_ind": "$7,350", "deductible_in_fam": "$14,700", "deductible_out_ind": "$14,700", "deductible_out_fam": "$29,400", "oop_in_ind": "$7,350", "oop_in_fam": "$14,700", "oop_out_ind": "$14,700", "oop_out_fam": "$29,400", "coinsurance_in": "0% (plan pays 100% after deductible)", "coinsurance_out": "40% after out-of-network deductible", "preventive": "100%, no deductible", "doctor_visit": "$50", "virtual_visit": "$0 (Fabric)", "specialist": "$100", "xray_lab": "Plan pays 100% after deductible", "imaging": "Plan pays 100% after deductible", "urgent_care": "$100", "er": "Plan pays 100% after deductible", "hospital": "Plan pays 100% after deductible", "outpatient_surgery": "Plan pays 100% after deductible", "rx": "$15 / $65 / $100 / 50% specialty", "rx_deductible": "None", "rate_ee": 495.57, "rate_es": 952.13, "rate_ec": 860.82, "rate_ef": 1408.7, "monthly_premium": 3351.98, "rate_guarantee": "Quote valid 60 days past the 08/10/2026 quote date", "notes": "Same plan design is quoted on both the Cigna and PHCS / RBP networks. Fabric telemedicine at $0; $20 chiropractic copay. Reference-based pricing: providers may balance-bill above the plan allowance.", "include": true}, {"carrier": "CBC Triad", "plan_name": "$3,500 HSA (CIGNA)", "plan_type": "HSA", "funding": "Level Funded", "network": "Cigna", "illustrative": false, "quote_status": "Quoted", "quote_status_note": "", "hsa_eligible": true, "deductible_in_ind": "$3,500", "deductible_in_fam": "$7,000", "deductible_out_ind": "$7,000", "deductible_out_fam": "$14,000", "oop_in_ind": "$6,550", "oop_in_fam": "$13,100", "oop_out_ind": "$13,100", "oop_out_fam": "$26,200", "coinsurance_in": "20%", "coinsurance_out": "40% after out-of-network deductible", "preventive": "100%, no deductible", "doctor_visit": "20% after deductible", "virtual_visit": "$0 (Fabric)", "specialist": "20% after deductible", "xray_lab": "20% after deductible", "imaging": "20% after deductible", "urgent_care": "20% after deductible", "er": "20% after deductible", "hospital": "20% after deductible", "outpatient_surgery": "20% after deductible", "rx": "Deductible, then $15 / $65 / $100; specialty 50% after deductible", "rx_deductible": "Combined with medical deductible", "rate_ee": 648.51, "rate_es": 1256.32, "rate_ec": 1134.76, "rate_ef": 1864.14, "monthly_premium": 4417.49, "rate_guarantee": "Quote valid 60 days past the 08/10/2026 quote date", "notes": "Same plan design is quoted on both the Cigna and PHCS / RBP networks. Fabric telemedicine at $0; $20 chiropractic copay.", "include": true}, {"carrier": "CBC Triad", "plan_name": "$3,500 HSA (PHCS/RBP)", "plan_type": "HSA", "funding": "Level Funded", "network": "PHCS / RBP", "illustrative": false, "quote_status": "Quoted", "quote_status_note": "", "hsa_eligible": true, "deductible_in_ind": "$3,500", "deductible_in_fam": "$7,000", "deductible_out_ind": "$7,000", "deductible_out_fam": "$14,000", "oop_in_ind": "$6,550", "oop_in_fam": "$13,100", "oop_out_ind": "$13,100", "oop_out_fam": "$26,200", "coinsurance_in": "20%", "coinsurance_out": "40% after out-of-network deductible", "preventive": "100%, no deductible", "doctor_visit": "20% after deductible", "virtual_visit": "$0 (Fabric)", "specialist": "20% after deductible", "xray_lab": "20% after deductible", "imaging": "20% after deductible", "urgent_care": "20% after deductible", "er": "20% after deductible", "hospital": "20% after deductible", "outpatient_surgery": "20% after deductible", "rx": "Deductible, then $15 / $65 / $100; specialty 50% after deductible", "rx_deductible": "Combined with medical deductible", "rate_ee": 543.98, "rate_es": 1047.34, "rate_ec": 946.67, "rate_ef": 1550.71, "monthly_premium": 3686.03, "rate_guarantee": "Quote valid 60 days past the 08/10/2026 quote date", "notes": "Same plan design is quoted on both the Cigna and PHCS / RBP networks. Fabric telemedicine at $0; $20 chiropractic copay. Reference-based pricing: providers may balance-bill above the plan allowance.", "include": true}, {"carrier": "CBC Triad", "plan_name": "$5,000 HSA (CIGNA)", "plan_type": "HSA", "funding": "Level Funded", "network": "Cigna", "illustrative": false, "quote_status": "Quoted", "quote_status_note": "", "hsa_eligible": true, "deductible_in_ind": "$5,000", "deductible_in_fam": "$10,000", "deductible_out_ind": "$10,000", "deductible_out_fam": "$20,000", "oop_in_ind": "$6,550", "oop_in_fam": "$13,100", "oop_out_ind": "$13,100", "oop_out_fam": "$26,200", "coinsurance_in": "20%", "coinsurance_out": "40% after out-of-network deductible", "preventive": "100%, no deductible", "doctor_visit": "20% after deductible", "virtual_visit": "$0 (Fabric)", "specialist": "20% after deductible", "xray_lab": "20% after deductible", "imaging": "20% after deductible", "urgent_care": "20% after deductible", "er": "20% after deductible", "hospital": "20% after deductible", "outpatient_surgery": "20% after deductible", "rx": "Deductible, then $15 / $65 / $100; specialty 50% after deductible", "rx_deductible": "Combined with medical deductible", "rate_ee": 618.7, "rate_es": 1197.57, "rate_ec": 1081.79, "rate_ef": 1776.44, "monthly_premium": 4211.41, "rate_guarantee": "Quote valid 60 days past the 08/10/2026 quote date", "notes": "Same plan design is quoted on both the Cigna and PHCS / RBP networks. Fabric telemedicine at $0; $20 chiropractic copay.", "include": true}, {"carrier": "CBC Triad", "plan_name": "$5,000 HSA (PHCS/RBP)", "plan_type": "HSA", "funding": "Level Funded", "network": "PHCS / RBP", "illustrative": false, "quote_status": "Quoted", "quote_status_note": "", "hsa_eligible": true, "deductible_in_ind": "$5,000", "deductible_in_fam": "$10,000", "deductible_out_ind": "$10,000", "deductible_out_fam": "$20,000", "oop_in_ind": "$6,550", "oop_in_fam": "$13,100", "oop_out_ind": "$13,100", "oop_out_fam": "$26,200", "coinsurance_in": "20%", "coinsurance_out": "40% after out-of-network deductible", "preventive": "100%, no deductible", "doctor_visit": "20% after deductible", "virtual_visit": "$0 (Fabric)", "specialist": "20% after deductible", "xray_lab": "20% after deductible", "imaging": "20% after deductible", "urgent_care": "20% after deductible", "er": "20% after deductible", "hospital": "20% after deductible", "outpatient_surgery": "20% after deductible", "rx": "Deductible, then $15 / $65 / $100; specialty 50% after deductible", "rx_deductible": "Combined with medical deductible", "rate_ee": 519.19, "rate_es": 998.58, "rate_ec": 902.7, "rate_ef": 1477.98, "monthly_premium": 3514.93, "rate_guarantee": "Quote valid 60 days past the 08/10/2026 quote date", "notes": "Same plan design is quoted on both the Cigna and PHCS / RBP networks. Fabric telemedicine at $0; $20 chiropractic copay. Reference-based pricing: providers may balance-bill above the plan allowance.", "include": true}],
+  dental:  [{"carrier": "Beam", "plan_name": "SmartPremium Plus 100/80/50-1000", "plan_type": "PPO", "funding": "Fully Insured", "network": "Beam PPO (DBP, Careington, DenteMax Plus and partner networks)", "illustrative": false, "quote_status": "Quoted", "quote_status_note": "", "deductible_in_ind": "$50", "deductible_in_fam": "$150", "deductible_out_ind": "$50", "deductible_out_fam": "$150", "deductible_waived_preventive": "Yes", "annual_max_in": "$1,000", "annual_max_out": "$1,000", "rollover": "", "preventive": "100%", "basic": "80%", "major": "50%", "endodontics": "80%", "periodontics": "80%", "oral_surgery": "80%", "implants": "50%", "ortho": "Not covered", "ortho_max": "", "ortho_age": "", "waiting_periods": "", "oon_reimbursement": "90th percentile UCR", "rate_ee": 28.92, "rate_es": 57.85, "rate_ec": 71.92, "rate_ef": 100.84, "monthly_premium": 216.53, "rate_guarantee": "12 months", "notes": "Policy-year maximum. Out-of-network paid at the same percentages (90th percentile UCR).", "include": true}, {"carrier": "Beam", "plan_name": "SmartPremium Select 100/90/60-2000", "plan_type": "PPO", "funding": "Fully Insured", "network": "Beam PPO (DBP, Careington, DenteMax Plus and partner networks)", "illustrative": false, "quote_status": "Quoted", "quote_status_note": "", "deductible_in_ind": "$50", "deductible_in_fam": "$150", "deductible_out_ind": "$50", "deductible_out_fam": "$150", "deductible_waived_preventive": "Yes", "annual_max_in": "$2,000", "annual_max_out": "$2,000", "rollover": "", "preventive": "100%", "basic": "90%", "major": "60%", "endodontics": "90%", "periodontics": "90%", "oral_surgery": "90%", "implants": "60%", "ortho": "Not covered", "ortho_max": "", "ortho_age": "", "waiting_periods": "", "oon_reimbursement": "90th percentile UCR", "rate_ee": 37.94, "rate_es": 75.88, "rate_ec": 88.08, "rate_ef": 126.02, "monthly_premium": 277.78, "rate_guarantee": "12 months", "notes": "Policy-year maximum. Out-of-network: 100% / 80% / 50% at 90th percentile UCR.", "include": true}, {"carrier": "Beam", "plan_name": "SmartPremium Ultra 100/100/60-5000", "plan_type": "PPO", "funding": "Fully Insured", "network": "Beam PPO (DBP, Careington, DenteMax Plus and partner networks)", "illustrative": false, "quote_status": "Quoted", "quote_status_note": "", "deductible_in_ind": "$25", "deductible_in_fam": "$75", "deductible_out_ind": "$25", "deductible_out_fam": "$75", "deductible_waived_preventive": "Yes", "annual_max_in": "$5,000", "annual_max_out": "$5,000", "rollover": "", "preventive": "100%", "basic": "100%", "major": "60%", "endodontics": "100%", "periodontics": "100%", "oral_surgery": "100%", "implants": "60%", "ortho": "Not covered", "ortho_max": "", "ortho_age": "", "waiting_periods": "", "oon_reimbursement": "90th percentile UCR", "rate_ee": 44.82, "rate_es": 89.65, "rate_ec": 99.73, "rate_ef": 144.56, "monthly_premium": 323.85, "rate_guarantee": "12 months", "notes": "Policy-year maximum. Out-of-network: 100% / 80% / 50% at 90th percentile UCR.", "include": true}, {"carrier": "Allstate (Nationwide)", "plan_name": "Value Plan", "plan_type": "PPO", "funding": "Self-Funded (with Nationwide medical only)", "network": "Cigna Dental PPO", "illustrative": false, "quote_status": "Underwritten", "quote_status_note": "", "deductible_in_ind": "$100", "deductible_in_fam": "", "deductible_out_ind": "$100", "deductible_out_fam": "", "deductible_waived_preventive": "Yes", "annual_max_in": "$1,500", "annual_max_out": "$1,500", "rollover": "", "preventive": "100% (OON 60%)", "basic": "80% (OON 50%)", "major": "Not covered", "endodontics": "", "periodontics": "", "oral_surgery": "", "implants": "", "ortho": "Not covered", "ortho_max": "", "ortho_age": "", "waiting_periods": "None", "oon_reimbursement": "", "rate_ee": 30.31, "rate_es": 96.96, "rate_ec": 81.81, "rate_ef": 121.19, "monthly_premium": 278.77, "rate_guarantee": "", "notes": "Self-funded dental is only available alongside the Nationwide medical plan (Allied TPA).", "include": true}, {"carrier": "Allstate (Nationwide)", "plan_name": "Select Plan", "plan_type": "PPO", "funding": "Self-Funded (with Nationwide medical only)", "network": "Cigna Dental PPO", "illustrative": false, "quote_status": "Underwritten", "quote_status_note": "", "deductible_in_ind": "$100", "deductible_in_fam": "", "deductible_out_ind": "$100", "deductible_out_fam": "", "deductible_waived_preventive": "Yes", "annual_max_in": "$1,500", "annual_max_out": "$1,500", "rollover": "", "preventive": "100% (OON 70%)", "basic": "80% (OON 60%)", "major": "50% (OON 40%)", "endodontics": "", "periodontics": "", "oral_surgery": "", "implants": "", "ortho": "Not covered", "ortho_max": "", "ortho_age": "", "waiting_periods": "None", "oon_reimbursement": "", "rate_ee": 40.2, "rate_es": 128.66, "rate_ec": 108.55, "rate_ef": 160.8, "monthly_premium": 369.86, "rate_guarantee": "", "notes": "Self-funded dental is only available alongside the Nationwide medical plan (Allied TPA).", "include": true}, {"carrier": "Allstate (Nationwide)", "plan_name": "Premier Plan", "plan_type": "PPO", "funding": "Self-Funded (with Nationwide medical only)", "network": "Cigna Dental PPO", "illustrative": false, "quote_status": "Underwritten", "quote_status_note": "", "deductible_in_ind": "$50", "deductible_in_fam": "", "deductible_out_ind": "$50", "deductible_out_fam": "", "deductible_waived_preventive": "Yes", "annual_max_in": "$1,500", "annual_max_out": "$1,500", "rollover": "", "preventive": "100% (OON 70%)", "basic": "90% (OON 70%)", "major": "50% (OON 40%)", "endodontics": "", "periodontics": "", "oral_surgery": "", "implants": "", "ortho": "Not covered", "ortho_max": "", "ortho_age": "", "waiting_periods": "None", "oon_reimbursement": "", "rate_ee": 45.21, "rate_es": 144.62, "rate_ec": 122.03, "rate_ef": 180.77, "monthly_premium": 415.81, "rate_guarantee": "", "notes": "Self-funded dental is only available alongside the Nationwide medical plan (Allied TPA).", "include": true}],
+  vision:  [{"carrier": "Beam", "plan_name": "VSP Choice Plan #2", "plan_type": "Vision", "funding": "Fully Insured", "network": "VSP Choice", "illustrative": false, "quote_status": "Quoted", "quote_status_note": "", "exam_copay": "$10", "materials_copay": "$10", "lenses": "$10", "frame_allowance": "$150", "contacts_allowance": "$150", "lasik": "15% average discount", "exam_frequency": "Every 12 months", "lenses_frequency": "Every 12 months", "frames_frequency": "Every 12 months", "contacts_frequency": "Every 12 months", "oon_reimbursement": "Exam up to $45; single vision lenses up to $30; frames up to $70; elective contacts up to $105", "rate_ee": 7.16, "rate_es": 14.54, "rate_ec": 15.31, "rate_ef": 25.07, "monthly_premium": 53.93, "rate_guarantee": "24 months", "notes": "20% off amount over the frame allowance. Polycarbonate lenses covered for children.", "include": true}, {"carrier": "Beam", "plan_name": "VSP Choice Plan #3", "plan_type": "Vision", "funding": "Fully Insured", "network": "VSP Choice", "illustrative": false, "quote_status": "Quoted", "quote_status_note": "", "exam_copay": "$10", "materials_copay": "$10", "lenses": "$10", "frame_allowance": "$200", "contacts_allowance": "$200", "lasik": "15% average discount", "exam_frequency": "Every 12 months", "lenses_frequency": "Every 12 months", "frames_frequency": "Every 12 months", "contacts_frequency": "Every 12 months", "oon_reimbursement": "Exam up to $45; single vision lenses up to $30; frames up to $70; elective contacts up to $105", "rate_ee": 8.35, "rate_es": 17.02, "rate_ec": 17.77, "rate_ef": 29.16, "monthly_premium": 62.88, "rate_guarantee": "24 months", "notes": "20% off amount over the frame allowance. Polycarbonate lenses covered for children.", "include": true}, {"carrier": "Beam", "plan_name": "VSP Choice Plan #4", "plan_type": "Vision", "funding": "Fully Insured", "network": "VSP Choice", "illustrative": false, "quote_status": "Quoted", "quote_status_note": "", "exam_copay": "$10", "materials_copay": "$10", "lenses": "$10", "frame_allowance": "$175", "contacts_allowance": "$175", "lasik": "15% average discount", "exam_frequency": "Every 12 months", "lenses_frequency": "Every 12 months", "frames_frequency": "Every 12 months", "contacts_frequency": "Every 12 months", "oon_reimbursement": "Exam up to $45; single vision lenses up to $30; frames up to $70; elective contacts up to $105", "rate_ee": 9.76, "rate_es": 19.86, "rate_ec": 21.11, "rate_ef": 34.5, "monthly_premium": 73.88, "rate_guarantee": "24 months", "notes": "Anti-reflective and scratch coatings covered; polycarbonate for children.", "include": true}]
+};
+const selections = {medical:{},dental:{},vision:{}};
+
+function formatMoney(n){const x=Number(String(n).replace(/[^0-9.\-]/g,''));return isFinite(x)&&String(n)!==''?'$'+x.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';}
+function v(x){if(x===undefined||x===null)return 'See SBC';if(x===true)return 'Yes';if(x===false)return 'No';const s=String(x).trim();return (!s||/^see sbc$/i.test(s))?'See SBC':s.replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function isIllus(p){if(p.illustrative===true)return true;if(p.illustrative===false)return false;return /illustrat|\bimqs?\b|health questionnaire|need(s)? apps|requires? apps|indicative|not sellable/i.test([p.quote_status,p.quote_type,p.quote_status_note,p.plan_name,p.carrier].join(' '));}
+function row(label,val){return `<div class="card-detail-row"><span>${label}</span><span>${v(val)}</span></div>`;}
+function pair(a,b){const x=v(a),y=v(b);return x==='See SBC'&&y==='See SBC'?'See SBC':`${x} / ${y}`;}
+function cardShell(line,prefix,plan,idx,badges,rows){
+  const id=prefix+idx; selections[line][id]=plan.include!==false;
+  const sel=selections[line][id], ill=isIllus(plan);
+  const b=(ill?'<span class="badge badge-illus">ILLUSTRATIVE · subject to underwriting</span>':'')+badges;
+  return `<div class="plan-card ${sel?'selected':''} ${ill?'illus':''}" id="${id}" onclick="toggle('${line}','${id}')"><div class="check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div class="card-carrier">${v(plan.carrier)}</div><div class="card-name">${v(plan.plan_name)}</div><div class="card-premium">${formatMoney(plan.monthly_premium)}</div><div class="card-premium-label">total monthly cost</div><div class="card-badges">${b}</div><div class="card-details">${rows}</div></div>`;
+}
+
+function renderMedicalCard(plan,idx){
+  const badges=[plan.plan_type?`<span class="badge badge-blue">${v(plan.plan_type)}</span>`:'',plan.funding?`<span class="badge badge-green">${v(plan.funding)}</span>`:'',plan.hsa_eligible===true?`<span class="badge badge-gold">HSA eligible</span>`:''].join('');
+  return cardShell('medical','med-',plan,idx,badges,
+    row('Deductible (Ind / Fam)',pair(plan.deductible_in_ind,plan.deductible_in_fam))+
+    row('OOP max (Ind / Fam)',pair(plan.oop_in_ind,plan.oop_in_fam))+
+    row('Coinsurance',plan.coinsurance_in)+row('Doctor / specialist',pair(plan.doctor_visit,plan.specialist))+
+    row('Urgent care / ER',pair(plan.urgent_care,plan.er))+row('Rx',plan.rx)+
+    row('EE only rate',formatMoney(plan.rate_ee)+'/mo'));
+}
+
+function renderDentalCard(plan,idx){
+  const badges=plan.plan_type?`<span class="badge badge-blue">${v(plan.plan_type)}</span>`:'';
+  return cardShell('dental','den-',plan,idx,badges,
+    row('Deductible (Ind / Fam)',pair(plan.deductible_in_ind,plan.deductible_in_fam))+
+    row('Annual max',plan.annual_max_in)+row('Preventive / basic / major',[plan.preventive,plan.basic,plan.major].map(v).join(' / '))+
+    row('Endo / perio',pair(plan.endodontics,plan.periodontics))+row('Orthodontia',plan.ortho||plan.ortho_max)+
+    row('EE only rate',formatMoney(plan.rate_ee)+'/mo'));
+}
+
+function renderVisionCard(plan,idx){
+  const badges=plan.plan_type?`<span class="badge badge-blue">${v(plan.plan_type)}</span>`:'';
+  return cardShell('vision','vis-',plan,idx,badges,
+    row('Exam copay',plan.exam_copay)+row('Lenses / materials copay',plan.lenses||plan.materials_copay)+
+    row('Frame allowance',plan.frame_allowance)+row('Contact lens allowance',plan.contacts_allowance)+
+    row('Frequency (exam / lens / frame)',[plan.exam_frequency,plan.lenses_frequency,plan.frames_frequency].map(v).join(' / '))+
+    row('EE only rate',formatMoney(plan.rate_ee)+'/mo'));
+}
+
+function groupByCarrier(plans){const g={};plans.forEach((p,i)=>{if(!g[p.carrier])g[p.carrier]=[];g[p.carrier].push({plan:p,idx:i});});return g;}
+
+function renderSection(containerId,plans,renderFn){
+  const container=document.getElementById(containerId);
+  if(!plans||plans.length===0){container.innerHTML='<p style="color:#A0AEC0;font-size:13px;padding:12px 0">No plans in this category</p>';return;}
+  const groups=groupByCarrier(plans);
+  let html='';
+  for(const[carrier,items]of Object.entries(groups)){html+=`<div class="carrier-group"><div class="carrier-label">${carrier}</div><div class="cards">`;items.forEach(({plan,idx})=>{html+=renderFn(plan,idx);});html+='</div></div>';}
+  container.innerHTML=html;
+}
+
+function toggle(line,id){selections[line][id]=!selections[line][id];document.getElementById(id).classList.toggle('selected',selections[line][id]);updateCount();}
+
+function updateCount(){let total=0;['medical','dental','vision'].forEach(line=>{Object.values(selections[line]).forEach(v=>{if(v)total++;});});document.getElementById('selected-count').textContent=total;document.getElementById('submit-btn').disabled=total===0;}
+
+function getSelectedPlans(){
+  const r={medical:[],dental:[],vision:[]};
+  PLAN_DATA.medical.forEach((p,i)=>{if(selections.medical['med-'+i])r.medical.push(p.plan_name);});
+  PLAN_DATA.dental.forEach((p,i)=>{if(selections.dental['den-'+i])r.dental.push(p.plan_name);});
+  PLAN_DATA.vision.forEach((p,i)=>{if(selections.vision['vis-'+i])r.vision.push(p.plan_name);});
+  return r;
+}
+
+async function submitSelections(){
+  const btn=document.getElementById('submit-btn');
+  btn.disabled=true;btn.textContent='Submitting…';
+  const selected=getSelectedPlans();
+  const payload={
+    client:CLIENT_DATA,
+    selected_plans:selected,
+    medical_plans:selected.medical.join(','),
+    dental_plans:selected.dental.join(','),
+    vision_plans:selected.vision.join(','),
+    all_medical_json:btoa(unescape(encodeURIComponent(JSON.stringify(PLAN_DATA.medical)))),
+    all_dental_json:btoa(unescape(encodeURIComponent(JSON.stringify(PLAN_DATA.dental)))),
+    all_vision_json:btoa(unescape(encodeURIComponent(JSON.stringify(PLAN_DATA.vision)))),
+    enrolling_employees:CLIENT_DATA.enrolling_employees,
+    contributions_medical_ee:(CLIENT_DATA.contributions||{}).medical_ee||'50%',
+    contributions_medical_dep:(CLIENT_DATA.contributions||{}).medical_dep||'0%',
+    contributions_dental_ee:(CLIENT_DATA.contributions||{}).dental_ee||'0%',
+    contributions_dental_dep:(CLIENT_DATA.contributions||{}).dental_dep||'0%',
+    contributions_vision_ee:(CLIENT_DATA.contributions||{}).vision_ee||'0%',
+    contributions_vision_dep:(CLIENT_DATA.contributions||{}).vision_dep||'0%',
+    selector_url:window.location.href,
+    submitted_at:new Date().toISOString(),
+    source:'proposal-selector'
+  };
+  try{await fetch(ZAPIER_WEBHOOK,{method:'POST',headers:{'Content-Type':'application/json'},mode:'no-cors',body:JSON.stringify(payload)});}catch(e){}
+  document.getElementById('success-overlay').classList.add('show');
+}
+
+renderSection('medical-plans',PLAN_DATA.medical,renderMedicalCard);
+renderSection('dental-plans',PLAN_DATA.dental,renderDentalCard);
+renderSection('vision-plans',PLAN_DATA.vision,renderVisionCard);
+updateCount();
+</script>
+<!-- BULK SELECT CONTROLS — added 2026-10-12 -->
+<style>
+.bulk-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0 14px}
+.bulk-btn{font:600 12px/1 inherit;padding:7px 12px;border-radius:6px;border:1px solid #2F72AD;background:#2F72AD;color:#fff;cursor:pointer}
+.bulk-btn.ghost{background:transparent;color:#2F72AD}
+.bulk-btn:hover{filter:brightness(1.07)}
+.bulk-count{font-size:12px;color:#718096;margin-left:4px}
+</style>
+<script>
+(function(){
+  var LINES = [['medical','medical-plans','med-'],['dental','dental-plans','den-'],['vision','vision-plans','vis-']];
+
+  window.setAll = function(line, on){
+    var prefix = {medical:'med-',dental:'den-',vision:'vis-'}[line];
+    (PLAN_DATA[line]||[]).forEach(function(p,i){
+      var id = prefix + i;
+      selections[line][id] = on;
+      var el = document.getElementById(id);
+      if (el) el.classList.toggle('selected', on);
+    });
+    updateCount();
+  };
+
+  function lineCount(line){
+    return Object.keys(selections[line]||{}).filter(function(k){return selections[line][k];}).length;
+  }
+
+  function refreshCounts(){
+    LINES.forEach(function(entry){
+      var line = entry[0];
+      var el = document.getElementById('count-' + line);
+      if (el) el.textContent = lineCount(line) + ' of ' + ((PLAN_DATA[line]||[]).length) + ' selected';
+    });
+  }
+
+  // Keep the existing count behaviour, add the per-section counts on top of it.
+  var originalUpdateCount = updateCount;
+  updateCount = function(){ originalUpdateCount(); refreshCounts(); };
+
+  LINES.forEach(function(entry){
+    var line = entry[0], containerId = entry[1];
+    var container = document.getElementById(containerId);
+    if (!container) return;
+    var total = (PLAN_DATA[line]||[]).length;
+    if (!total) return;
+    var bar = document.createElement('div');
+    bar.className = 'bulk-bar';
+    bar.innerHTML =
+      '<button type="button" class="bulk-btn" onclick="setAll(\'' + line + '\',true)">Select all</button>' +
+      '<button type="button" class="bulk-btn ghost" onclick="setAll(\'' + line + '\',false)">Clear</button>' +
+      '<span class="bulk-count" id="count-' + line + '">0 of ' + total + ' selected</span>';
+    container.parentNode.insertBefore(bar, container);
+  });
+
+  refreshCounts();
+})();
+</script>
+
+</body>
+</html>

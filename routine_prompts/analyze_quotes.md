@@ -121,7 +121,14 @@ KNOWN RESOLVED CLIENTS (as of 2026-09-28, per Will directly — do not re-flag a
 - Southeastern Technology Automation, LLC (Renewal) — dental only; resolved, moving forward with current carrier renewal.
 - Syndicate Investments (Renewal) — resolved: moving forward with current carrier renewal.
 - Nashville Opera (Renewal) — resolved: moving forward with current carrier renewal.
-These 9 should no longer appear in either the "Waiting on a Carrier" or "Needs a Manual Look" buckets in future runs. If Will later says any of these clients is shopping again, remove that specific client from this resolved list and evaluate it fresh under the normal Part B rules.
+- Legacy Law Group PLLC (Renewal, 11/01) — resolved 2026-10-24 per Will: moving to Angle (waiting on final enrollments). No comparison needed.
+- CASA Child Advocates of Montgomery County (Renewal, 11/01) — resolved 2026-10-24 per Will: moving to ABA (waiting on final enrollments). No comparison needed.
+- Dendy Law (Renewal, 10/01) — resolved 2026-10-24 per Will: moved to Angle.
+- Green & Little (Renewal, 10/01) — resolved 2026-10-24 per Will: moved to Angle.
+- Creative Nation (Renewal, 10/01) — resolved 2026-10-24 per Will: moved to Angle.
+- Guardian Management (Renewal, 10/01) — resolved 2026-10-24 per Will: stayed with incumbent UHC (every shopped carrier declined).
+RESOLVED BY SWITCHING (added 2026-10-24): a client that has already chosen a NEW carrier (Asana shows "SWITCHING FROM ...", "MOVING TO ...", or OE done with the new carrier) is resolved the same way as one renewing with its incumbent. Drop it from the report and don't build a comparison.
+These 15 should no longer appear in either the "Waiting on a Carrier" or "Needs a Manual Look" buckets in future runs. If Will later says any of these clients is shopping again, remove that specific client from this resolved list and evaluate it fresh under the normal Part B rules.
 
 ======================================================================
 FILING EVERY DELIVERABLE — DROPBOX IS THE ONE PLACE (REWRITTEN 2026-10-12)

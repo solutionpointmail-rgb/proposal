@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Legacy Law Group PLLC — Proposal Plan Selector</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #F0F4F8; min-height: 100vh; }
+  .header { background: #0D1B2A; padding: 0; }
+  .header-inner { max-width: 1100px; margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; }
+  .header-logo { display: flex; align-items: center; gap: 12px; }
+  .header-logo img { height: 42px; width: auto; display: block; }
+  .header-logo-text { color: #fff; font-size: 15px; font-weight: 600; }
+  .header-bar { height: 3px; background: #4CAF7D; }
+  .hero { background: #1B2E45; padding: 28px 24px; }
+  .hero-inner { max-width: 1100px; margin: 0 auto; }
+  .hero-label { color: #4CAF7D; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; }
+  .hero-title { color: #fff; font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .hero-meta { color: #A0AEC0; font-size: 13px; display: flex; flex-wrap: wrap; gap: 16px; margin-top: 10px; }
+  .hero-meta strong { color: #CBD5E0; }
+  .instructions { background: #EAF7F1; border-left: 3px solid #4CAF7D; max-width: 1100px; margin: 20px auto 0; padding: 12px 16px; border-radius: 0 6px 6px 0; font-size: 13px; color: #2D6A4F; }
+  .main { max-width: 1100px; margin: 20px auto; padding: 0 24px 40px; }
+  .section { margin-bottom: 28px; }
+  .section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 2px solid #E2E8F0; }
+  .section-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .icon-medical { background: #EAF7F1; }
+  .icon-dental  { background: #FFF8E8; }
+  .icon-vision  { background: #EDF4FB; }
+  .section-title { font-size: 16px; font-weight: 700; color: #0D1B2A; }
+  .section-contrib { font-size: 12px; color: #718096; margin-left: auto; background: #F7F9FC; padding: 4px 10px; border-radius: 20px; border: 1px solid #E2E8F0; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+  .plan-card { background: #fff; border: 2px solid #E2E8F0; border-radius: 10px; padding: 14px; cursor: pointer; transition: all 0.15s; position: relative; user-select: none; }
+  .plan-card:hover { border-color: #4CAF7D; box-shadow: 0 2px 8px rgba(76,175,125,0.12); }
+  .plan-card.selected { border-color: #4CAF7D; background: #EAF7F1; }
+  .check { position: absolute; top: 10px; right: 10px; width: 20px; height: 20px; background: #4CAF7D; border-radius: 50%; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.15s; }
+  .plan-card.selected .check { opacity: 1; }
+  .check svg { width: 11px; height: 11px; stroke: #fff; stroke-width: 2.5; fill: none; }
+  .card-carrier { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #718096; margin-bottom: 4px; }
+  .card-name { font-size: 13px; font-weight: 600; color: #1A202C; margin-bottom: 8px; line-height: 1.35; }
+  .card-premium { font-size: 18px; font-weight: 800; color: #4CAF7D; margin-bottom: 2px; }
+  .card-premium-label { font-size: 10px; color: #A0AEC0; margin-bottom: 8px; }
+  .card-badges { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
+  .badge { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 10px; }
+  .badge-blue { background: #EBF4FF; color: #2B6CB0; }
+  .badge-green { background: #EAF7F1; color: #276749; }
+  .badge-gold { background: #FFFFF0; color: #975A16; }
+  .badge-illus { background: #FEF3C7; color: #B45309; border: 1px solid #F59E0B; }
+  .plan-card.illus { border-style: dashed; }
+  .card-details { border-top: 1px solid #E2E8F0; padding-top: 8px; }
+  .card-detail-row { display: flex; justify-content: space-between; gap: 10px; font-size: 11px; margin-bottom: 3px; }
+  .card-detail-row span:first-child { flex: 0 0 42%; }
+  .card-detail-row span:last-child { text-align: right; }
+  .card-detail-row span:first-child { color: #718096; }
+  .card-detail-row span:last-child { color: #2D3748; font-weight: 500; }
+  .carrier-group { margin-bottom: 16px; }
+  .carrier-label { font-size: 11px; font-weight: 700; color: #4A5568; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 8px; padding: 4px 0; }
+  .submit-bar { position: sticky; bottom: 0; background: #0D1B2A; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 -4px 20px rgba(0,0,0,0.15); }
+  .submit-count { color: #A0AEC0; font-size: 13px; }
+  .submit-count strong { color: #4CAF7D; font-size: 16px; }
+  .submit-btn { background: #4CAF7D; color: #fff; border: none; padding: 12px 32px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; transition: background 0.15s; }
+  .submit-btn:hover { background: #3A8C61; }
+  .submit-btn:disabled { background: #A0AEC0; cursor: not-allowed; }
+  .success-overlay { display: none; position: fixed; inset: 0; background: rgba(13,27,42,0.92); z-index: 100; align-items: center; justify-content: center; }
+  .success-overlay.show { display: flex; }
+  .success-box { background: #fff; border-radius: 16px; padding: 40px; max-width: 440px; text-align: center; }
+  .success-icon { width: 64px; height: 64px; background: #EAF7F1; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+  .success-icon svg { width: 32px; height: 32px; stroke: #4CAF7D; stroke-width: 2.5; fill: none; }
+  .success-title { font-size: 20px; font-weight: 700; color: #0D1B2A; margin-bottom: 8px; }
+  .success-msg { font-size: 14px; color: #718096; line-height: 1.6; }
+  .success-client { color: #4CAF7D; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-inner">
+    <div class="header-logo">
+      <img src="https://solutionpointmail-rgb.github.io/proposal/tbg-logo.png" alt="The Benefits Group" style="height:42px;width:auto;display:block">
+      <div>
+        <div class="header-logo-text">The Benefits Group</div>
+      </div>
+    </div>
+    <div style="color:#A0AEC0;font-size:12px;text-align:right">
+      Proposal Plan Selector<br>
+      <span style="color:#4CAF7D">November 1, 2026</span>
+    </div>
+  </div>
+  <div class="header-bar"></div>
+</div>
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-label">Proposal plan selection</div>
+    <div class="hero-title">Legacy Law Group PLLC</div>
+    <div class="hero-meta">
+      <span>&#128197; <strong>Effective:</strong> November 1, 2026</span>
+      <span>&#128101; <strong>Employees:</strong> 3 enrolling</span>
+    </div>
+  </div>
+</div>
+<div class="main">
+  <div class="instructions">
+    <strong>Instructions:</strong> Click each plan to toggle include/exclude. Green = included in proposal. When ready, hit <strong>Submit selections</strong> at the bottom — the proposal will generate automatically.
+  </div>
+  <div class="section" style="margin-top:20px">
+    <div class="section-header">
+      <div class="section-icon icon-medical">&#10010;</div>
+      <div class="section-title">Medical Coverage</div>
+      <div class="section-contrib">EE 50% / Dep 0%</div>
+    </div>
+    <div id="medical-plans"></div>
+  </div>
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon icon-dental">&#9673;</div>
+      <div class="section-title">Dental Coverage</div>
+      <div class="section-contrib">EE 0% / Dep 0%</div>
+    </div>
+    <div id="dental-plans"></div>
+  </div>
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon icon-vision">&#128065;</div>
+      <div class="section-title">Vision Coverage</div>
+      <div class="section-contrib">EE 0% / Dep 0%</div>
+    </div>
+    <div id="vision-plans"></div>
+  </div>
+  <div style="height:80px"></div>
+</div>
+<div class="submit-bar">
+  <div class="submit-count"><strong id="selected-count">0</strong> plans selected</div>
+  <button class="submit-btn" id="submit-btn" onclick="submitSelections()" disabled>Submit selections</button>
+</div>
+<div class="success-overlay" id="success-overlay">
+  <div class="success-box">
+    <div class="success-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <div class="success-title">Selections submitted!</div>
+    <div class="success-msg">The proposal for <span class="success-client">Legacy Law Group PLLC</span> is now generating automatically.<br><br>You'll find the PDF and Excel files in Dropbox and the Asana task will be marked complete once ready. You can close this tab.</div>
+  </div>
+</div>
+<script>
+const ZAPIER_WEBHOOK = 'https://hooks.zapier.com/hooks/catch/5928257/4ueg7t8/';
+const CLIENT_DATA = {"schema": 2, "name": "Legacy Law Group PLLC", "effective_date": "November 1, 2026", "address": "216 Centerview Drive, Suite 140", "city_state_zip": "Brentwood, TN 37027", "state": "TN", "zip": "37027", "county": "Williamson", "sic_code": "8111", "quote_id": "UHC 1762995 · Angle 416624 · Great American 42983", "total_employees": 8, "eligible_employees": 8, "enrolling_employees": 3, "waiving_employees": 5, "total_members": 9, "tier_counts": {"ee": 1, "es": 0, "ec": 1, "ef": 1}, "rate_guarantee": "12 months", "contributions": {"medical_ee": "50%", "medical_dep": "0%", "dental_ee": "0%", "dental_dep": "0%", "vision_ee": "0%", "vision_dep": "0%"}};
+const PLAN_DATA = {
+  medical: [{"carrier": "UnitedHealthcare Level Funded (Current Plan Renewal)", "plan_name": "$1,700 HSA Renewal (CnHP1700i80ES26B)", "plan_type": "HDHP (Open Access)", "funding": "Level Funded", "network": "UHC Core network", "illustrative": false, "quote_status": "Underwritten", "quote_status_note": "", "hsa_eligible": true, "deductible_in_ind": "$1,700", "deductible_in_fam": "$3,400", "deductible_out_ind": "$3,400", "deductible_out_fam": "$6,800", "oop_in_ind": "$3,400", "oop_in_fam": "$6,800", "oop_out_ind": "$6,800", "oop_out_fam": "$13,600", "coinsurance_in": "20%", "coinsurance_out": "50%", "preventive": "100%, no deductible", "doctor_visit": "20% after deductible", "virtual_visit": "", "specialist": "20% after deductible", "xray_lab": "No charge after deductible", "imaging": "20% after deductible", "urgent_care": "20% after deductible", "er": "20% after deductible", "hospital": "20% after deductible", "outpatient_surgery": "20% after deductible", "rx": "20% after deductible (Essential PDL)", "rx_deductible": "Integrated with medical deductible", "rate_ee": 696.64, "rate_es": 1421.15, "rate_ec": 1256.49, "rate_ef": 1948.06, "monthly_premium": 3901.19, "rate_guarantee": "12 months", "notes": "UHC's standard renewal of the current $1,650 HSA plan. Essential prescription drug list, National Broad pharmacy network; 24/7 Virtual Visits, Real Appeal, UHC Rewards and Mineral HR included.", "include": true}, {"carrier": "UnitedHealthcare Level Funded (Incumbent Alternate)", "plan_name": "$2,000 HSA Rx Copay (CnHP2000Rx10i80ES25B)", "plan_type": "HDHP (Open Access)", "funding": "Level Funded", "network": "UHC Core network", "illustrative": false, "quote_status": "Underwritten", "quote_status_note": "", "hsa_eligible": true, "deductible_in_ind": "$2,000", "deductible_in_fam": "$4,000", "deductible_out_ind": "$4,000", "deductible_out_fam": "$8,000", "oop_in_ind": "$6,550", "oop_in_fam": "$13,100", "oop_out_ind": "$8,000", "oop_out_fam": "$16,000", "coinsurance_in": "20%", "coinsurance_out": "50%", "preventive": "100%, no deductible", "doctor_visit": "20% after deductible", "virtual_visit": "", "specialist": "20% after deductible", "xray_lab": "20% after deductible", "imaging": "20% after deductible", "urgent_care": "20% after deductible", "er": "20% after deductible", "hospital": "20% after deductible", "outpatient_surgery": "20% after deductible", "rx": "$10 / $35 / $70 / $150 after deductible", "rx_deductible": "Integrated with medical deductible", "rate_ee": 622.28, "rate_es": 1264.98, "rate_ec": 1118.91, "rate_ef": 1732.41, "monthly_premium": 3473.6, "rate_guarantee": "12 months", "notes": "Incumbent alternate from UHC's 9/18/2026 quote. HSA-qualified; Rx copays apply after the deductible. Essential prescription drug list.", "include": true}, {"carrier": "UnitedHealthcare Level Funded (Incumbent Alternate)", "plan_name": "$2,000 HSA Copay (CnHP20002575i80ES25B)", "plan_type": "HDHP (Open Access)", "funding": "Level Funded", "network": "UHC Core network", "illustrative": false, "quote_status": "Underwritten", "quote_status_note": "", "hsa_eligible": true, "deductible_in_ind": "$2,000", "deductible_in_fam": "$4,000", "deductible_out_ind": "$4,500", "deductible_out_fam": "$9,000", "oop_in_ind": "$6,900", "oop_in_fam": "$13,800", "oop_out_ind": "$13,800", "oop_out_fam": "$27,600", "coinsurance_in": "20%", "coinsurance_out": "50%", "preventive": "100%, no deductible", "doctor_visit": "$25 copay after deductible", "virtual_visit": "", "specialist": "$75 copay after deductible", "xray_lab": "20% after deductible", "imaging": "20% after deductible", "urgent_care": "$50 copay after deductible", "er": "$300 copay + 20% after deductible", "hospital": "20% after deductible", "outpatient_surgery": "20% after deductible", "rx": "$10 / $35 / $70 / $150 after deductible", "rx_deductible": "Integrated with medical deductible", "rate_ee": 598.99, "rate_es": 1216.07, "rate_ec": 1075.82, "rate_ef": 1664.86, "monthly_premium": 3339.67, "rate_guarantee": "12 months", "notes": "Incumbent alternate from UHC's 9/18/2026 quote and the lowest-cost UHC HSA option. Office copays apply once the deductible is met. Essential prescription drug list.", "include": true}, {"carrier": "UnitedHealthcare Level Funded (Incumbent Alternate)", "plan_name": "$2,000 HSA (CnHP2000ES25B)", "plan_type": "HDHP (Open Access)", "funding": "Level Funded", "network": "UHC Core network", "illustrative": false, "quote_status": "Underwritten", "quote_status_note": "", "hsa_eligible": true, "deductible_in_ind": "$2,000", "deductible_in_fam": "$4,000", "deductible_out_ind": "$4,000", "deductible_out_fam": "$8,000", "oop_in_ind": "$6,550", "oop_in_fam": "$8,000", "oop_out_ind": "$8,000", "oop_out_fam": "$16,000", "coinsurance_in": "20%", "coinsurance_out": "50%", "preventive": "100%, no deductible", "doctor_visit": "20% after deductible", "virtual_visit": "", "specialist": "20% after deductible", "xray_lab": "No charge after deductible", "imaging": "20% after deductible", "urgent_care": "20% after deductible", "er": "20% after deductible", "hospital": "20% after deductible", "outpatient_surgery": "20% after deductible", "rx": "20% after deductible (Essential PDL)", "rx_deductible": "Integrated with medical deductible", "rate_ee": 647.64, "rate_es": 1318.25, "rate_ec": 1165.84, "rate_ef": 1805.96, "monthly_premium": 3619.44, "rate_guarantee": "12 months", "notes": "Incumbent alternate (also listed in the renewal kit). HSA-qualified; Essential prescription drug list.", "include": true}, {"carrier": "UnitedHealthcare Level Funded (Incumbent Alternate)", "plan_name": "Primary Focus $2,000 (CnFocus P2000i8021B)", "plan_type": "PPO (Primary Focus)", "funding": "Level Funded", "network": "UHC Core network", "illustrative": false, "quote_status": "Underwritten", "quote_status_note": "", "hsa_eligible": false, "deductible_in_ind": "$2,000", "deductible_in_fam": "$4,000", "deductible_out_ind": "$5,000", "deductible_out_fam": "$10,000", "oop_in_ind": "$8,150", "oop_in_fam": "$16,300", "oop_out_ind": "$16,300", "oop_out_fam": "$32,600", "coinsurance_in": "20%", "coinsurance_out": "50%", "preventive": "100%, no deductible", "doctor_visit": "$0", "virtual_visit": "", "specialist": "$100 copay", "xray_lab": "20% after deductible", "imaging": "20% after deductible", "urgent_care": "$50 copay", "er": "$250 copay + 20% after deductible", "hospital": "20% after deductible", "outpatient_surgery": "20% after deductible", "rx": "$5 / $50 / $100 / $250", "rx_deductible": "$250", "rate_ee": 640.71, "rate_es": 1303.68, "rate_ec": 1153.0, "rate_ef": 1785.83, "monthly_premium": 3579.54, "rate_guarantee": "12 months", "notes": "Incumbent alternate from UHC's 9/18/2026 quote. Not HSA-qualified. $0 primary care; separate $250 Rx deductible.", "include": true}, {"carrier": "UnitedHealthcare Level Funded (Incumbent Alternate)", "plan_name": "Primary Focus $1,000 (CnFocus P1000i8021B)", "plan_type": "PPO (Primary Focus)", "funding": "Level Funded", "network": "UHC Core network", "illustrative": false, "quote_status": "Underwritten", "quote_status_note": "", "hsa_eligible": false, "deductible_in_ind": "$1,000", "deductible_in_fam": "$2,000", "deductible_out_ind": "$5,000", "deductible_out_fam": "$10,000", "oop_in_ind": "$8,150", "oop_in_fam": "$16,300", "oop_out_ind": "$16,300", "oop_out_fam": "$32,600", "coinsurance_in": "20%", "coinsurance_out": "50%", "preventive": "100%, no deductible", "doctor_visit": "$0", "virtual_visit": "", "specialist": "$100 copay", "xray_lab": "20% after deductible", "imaging": "20% after deductible", "urgent_care": "$50 copay", "er": "$250 copay + 20% after deductible", "hospital": "20% after deductible", "outpatient_surgery": "20% after deductible", "rx": "$5 / $50 / $100 / $250", "rx_deductible": "$250", "rate_ee": 679.18, "rate_es": 1384.47, "rate_ec": 1224.18, "rate_ef": 1897.41, "monthly_premium": 3800.77, "rate_guarantee": "12 months", "notes": "Incumbent alternate from UHC's 9/18/2026 quote. Not HSA-qualified. $0 primary care; separate $250 Rx deductible.", "include": true}, {"carrier": "Angle Health", "plan_name": "Traditional $500 Ded / $1,500 OOP", "plan_type": "PPO", "funding": "Level Funded", "network": "Cigna PPO (national)", "illustrative": false, "quote_status": "Underwritten", "quote_status_note": "", "hsa_eligible": false, "deductible_in_ind": "$500", "deductible_in_fam": "$1,000", "deductible_out_ind": "$5,000", "deductible_out_fam": "$10,000", "oop_in_ind": "$1,500", "oop_in_fam": "$3,000", "oop_out_ind": "$10,000", "oop_out_fam": "$20,000", "coinsurance_in": "20%", "coinsurance_out": "50%", "preventive": "100%, no deductible", "doctor_visit": "$10 copay", "virtual_visit": "$0", "specialist": "$30 copay", "xray_lab": "20% after deductible; independent lab $10 copay", "imaging": "20% after deductible", "urgent_care": "$50 copay", "er": "$200 copay after deductible", "hospital": "20% after deductible", "outpatient_surgery": "20% after deductible", "rx": "$10 / $30 / $60 / 20% after deductible", "rx_deductible": "None (specialty after deductible)", "rate_ee": 705.88, "rate_es": 1428.53, "rate_ec": 1264.65, "rate_ef": 1955.04, "monthly_premium": 3925.57, "rate_guarantee": "12 months", "notes": "Calendar-year accumulation, embedded deductible. Cigna network with Doctors on Demand virtual care; no surplus return under Angle's level-funded arrangement.", "include": true}, {"carrier": "Angle Health", "plan_name": "Traditional $1,000 Ded / $2,000 OOP", "plan_type": "PPO", "funding": "Level Funded", "network": "Cigna PPO (national)", "illustrative": false, "quote_status": "Underwritten", "quote_status_note": "", "hsa_eligible": false, "deductible_in_ind": "$1,000", "deductible_in_fam": "$2,000", "deductible_out_ind": "$5,000", "deductible_out_fam": "$10,000", "oop_in_ind": "$2,000", "oop_in_fam": "$4,000", "oop_out_ind": "$10,000", "oop_out_fam": "$20,000", "coinsurance_in": "20%", "coinsurance_out": "50%", "preventive": "100%, no deductible", "doctor_visit": "$10 copay", "virtual_visit": "$0", "specialist": "$30 copay", "xray_lab": "20% after deductible; independent lab $10 copay", "imaging": "20% after deductible", "urgent_care": "$50 copay", "er": "$200 copay after deductible", "hospital": "20% after deductible", "outpatient_surgery": "20% after deductible", "rx": "$10 / $30 / $60 / 20% after deductible", "rx_deductible": "None (specialty after deductible)", "rate_ee": 680.89, "rate_es": 1377.97, "rate_ec": 1219.88, "rate_ef": 1885.84, "monthly_premium": 3786.61, "rate_guarantee": "12 months", "notes": "Calendar-year accumulation, embedded deductible. Cigna network with Doctors on Demand virtual care; no surplus return under Angle's level-funded arrangement.", "include": true}, {"carrier": "Angle Health", "plan_name": "HDHP $1,700 Ded / $1,700 OOP", "plan_type": "HDHP (PPO)", "funding": "Level Funded", "network": "Cigna PPO (national)", "illustrative": false, "quote_status": "Underwritten", "quote_status_note": "", "hsa_eligible": true, "deductible_in_ind": "$1,700", "deductible_in_fam": "$3,400", "deductible_out_ind": "$5,000", "deductible_out_fam": "$10,000", "oop_in_ind": "$1,700", "oop_in_fam": "$3,400", "oop_out_ind": "$10,000", "oop_out_fam": "$20,000", "coinsurance_in": "0%", "coinsurance_out": "50%", "preventive": "100%, no deductible", "doctor_visit": "No charge after deductible", "virtual_visit": "$0", "specialist": "No charge after deductible", "xray_lab": "No charge after deductible", "imaging": "No charge after deductible", "urgent_care": "No charge after deductible", "er": "No charge after deductible", "hospital": "No charge after deductible", "outpatient_surgery": "No charge after deductible", "rx": "No charge after deductible (all tiers)", "rx_deductible": "Integrated with medical deductible", "rate_ee": 668.68, "rate_es": 1353.25, "rate_ec": 1198.0, "rate_ef": 1852.02, "monthly_premium": 3718.7, "rate_guarantee": "12 months", "notes": "HSA-qualified high-deductible design. Calendar-year accumulation, embedded deductible. Cigna network with Doctors on Demand virtual care; no surplus return under Angle's level-funded arrangement.", "include": true}, {"carrier": "Angle Health", "plan_name": "Traditional $2,000 Ded / $4,000 OOP", "plan_type": "PPO", "funding": "Level Funded", "network": "Cigna PPO (national)", "illustrative": false, "quote_status": "Underwritten", "quote_status_note": "", "hsa_eligible": false, "deductible_in_ind": "$2,000", "deductible_in_fam": "$4,000", "deductible_out_ind": "$5,000", "deductible_out_fam": "$10,000", "oop_in_ind": "$4,000", "oop_in_fam": "$8,000", "oop_out_ind": "$10,000", "oop_out_fam": "$20,000", "coinsurance_in": "20%", "coinsurance_out": "50%", "preventive": "100%, no deductible", "doctor_visit": "$20 copay", "virtual_visit": "$0", "specialist": "$50 copay", "xray_lab": "20% after deductible; independent lab $20 copay", "imaging": "20% after deductible", "urgent_care": "$75 copay", "er": "$250 copay after deductible", "hospital": "20% after deductible", "outpatient_surgery": "20% after deductible", "rx": "$20 / $60 / $85 / 20% after deductible", "rx_deductible": "None (specialty after deductible)", "rate_ee": 610.75, "rate_es": 1236.02, "rate_ec": 1094.22, "rate_ef": 1691.58, "monthly_premium": 3396.55, "rate_guarantee": "12 months", "notes": "Calendar-year accumulation, embedded deductible. Cigna network with Doctors on Demand virtual care; no surplus return under Angle's level-funded arrangement.", "include": true}, {"carrier": "Angle Health", "plan_name": "Value $5,000 Ded", "plan_type": "PPO", "funding": "Level Funded", "network": "Cigna PPO (national)", "illustrative": false, "quote_status": "Underwritten", "quote_status_note": "", "hsa_eligible": false, "deductible_in_ind": "$5,000", "deductible_in_fam": "$10,000", "deductible_out_ind": "$10,000", "deductible_out_fam": "$20,000", "oop_in_ind": "$5,000", "oop_in_fam": "$10,000", "oop_out_ind": "$11,000", "oop_out_fam": "$22,000", "coinsurance_in": "0%", "coinsurance_out": "50%", "preventive": "100%, no deductible", "doctor_visit": "$25 copay", "virtual_visit": "$0", "specialist": "$50 copay", "xray_lab": "No charge after deductible", "imaging": "No charge after deductible", "urgent_care": "$50 copay", "er": "No charge after deductible", "hospital": "No charge after deductible", "outpatient_surgery": "No charge after deductible", "rx": "$10 / $40 / No charge after deductible / No charge after deductible", "rx_deductible": "Tiers 1-2 copay, no deductible; tiers 3-4 after deductible", "rate_ee": 590.57, "rate_es": 1195.17, "rate_ec": 1058.06, "rate_ef": 1635.67, "monthly_premium": 3284.3, "rate_guarantee": "12 months", "notes": "Calendar-year accumulation, embedded deductible. Cigna network with Doctors on Demand virtual care; no surplus return under Angle's level-funded arrangement.", "include": true}, {"carrier": "Angle Health", "plan_name": "HDHP $3,400 Ded / $3,400 OOP", "plan_type": "HDHP (PPO)", "funding": "Level Funded", "network": "Cigna PPO (national)", "illustrative": false, "quote_status": "Underwritten", "quote_status_note": "", "hsa_eligible": true, "deductible_in_ind": "$3,400", "deductible_in_fam": "$6,800", "deductible_out_ind": "$6,600", "deductible_out_fam": "$13,200", "oop_in_ind": "$3,400", "oop_in_fam": "$6,800", "oop_out_ind": "$10,000", "oop_out_fam": "$20,000", "coinsurance_in": "0%", "coinsurance_out": "50%", "preventive": "100%, no deductible", "doctor_visit": "No charge after deductible", "virtual_visit": "$0", "specialist": "No charge after deductible", "xray_lab": "No charge after deductible", "imaging": "No charge after deductible", "urgent_care": "No charge after deductible", "er": "No charge after deductible", "hospital": "No charge after deductible", "outpatient_surgery": "No charge after deductible", "rx": "No charge after deductible (all tiers)", "rx_deductible": "Integrated with medical deductible", "rate_ee": 590.52, "rate_es": 1195.07, "rate_ec": 1057.96, "rate_ef": 1635.53, "monthly_premium": 3284.01, "rate_guarantee": "12 months", "notes": "HSA-qualified high-deductible design. Calendar-year accumulation, embedded deductible. Cigna network with Doctors on Demand virtual care; no surplus return under Angle's level-funded arrangement.", "include": true}, {"carrier": "Angle Health", "plan_name": "Traditional $3,000 Ded / $5,000 OOP", "plan_type": "PPO", "funding": "Level Funded", "network": "Cigna PPO (national)", "illustrative": false, "quote_status": "Underwritten", "quote_status_note": "", "hsa_eligible": false, "deductible_in_ind": "$3,000", "deductible_in_fam": "$6,000", "deductible_out_ind": "$6,000", "deductible_out_fam": "$12,000", "oop_in_ind": "$5,000", "oop_in_fam": "$10,000", "oop_out_ind": "$10,000", "oop_out_fam": "$20,000", "coinsurance_in": "20%", "coinsurance_out": "50%", "preventive": "100%, no deductible", "doctor_visit": "$20 copay", "virtual_visit": "$0", "specialist": "$50 copay", "xray_lab": "20% after deductible; independent lab $20 copay", "imaging": "20% after deductible", "urgent_care": "$75 copay", "er": "$250 copay after deductible", "hospital": "20% after deductible", "outpatient_surgery": "20% after deductible", "rx": "$20 / $60 / $85 / 20% after deductible", "rx_deductible": "None (specialty after deductible)", "rate_ee": 588.34, "rate_es": 1190.66, "rate_ec": 1054.06, "rate_ef": 1629.49, "monthly_premium": 3271.89, "rate_guarantee": "12 months", "notes": "Calendar-year accumulation, embedded deductible. Cigna network with Doctors on Demand virtual care; no surplus return under Angle's level-funded arrangement.", "include": true}, {"carrier": "Angle Health", "plan_name": "Traditional $4,000 Ded / $6,000 OOP", "plan_type": "PPO", "funding": "Level Funded", "network": "Cigna PPO (national)", "illustrative": false, "quote_status": "Underwritten", "quote_status_note": "", "hsa_eligible": false, "deductible_in_ind": "$4,000", "deductible_in_fam": "$8,000", "deductible_out_ind": "$8,000", "deductible_out_fam": "$16,000", "oop_in_ind": "$6,000", "oop_in_fam": "$12,000", "oop_out_ind": "$12,000", "oop_out_fam": "$24,000", "coinsurance_in": "20%", "coinsurance_out": "50%", "preventive": "100%, no deductible", "doctor_visit": "$25 copay", "virtual_visit": "$0", "specialist": "$75 copay", "xray_lab": "20% after deductible; independent lab $25 copay", "imaging": "20% after deductible", "urgent_care": "$85 copay", "er": "$300 copay after deductible", "hospital": "20% after deductible", "outpatient_surgery": "20% after deductible", "rx": "$20 / $60 / $85 / 20% after deductible", "rx_deductible": "None (specialty after deductible)", "rate_ee": 563.1, "rate_es": 1139.58, "rate_ec": 1008.85, "rate_ef": 1559.59, "monthly_premium": 3131.54, "rate_guarantee": "12 months", "notes": "Calendar-year accumulation, embedded deductible. Cigna network with Doctors on Demand virtual care; no surplus return under Angle's level-funded arrangement.", "include": true}, {"carrier": "Angle Health", "plan_name": "Value $7,500 Ded", "plan_type": "PPO", "funding": "Level Funded", "network": "Cigna PPO (national)", "illustrative": false, "quote_status": "Underwritten", "quote_status_note": "", "hsa_eligible": false, "deductible_in_ind": "$7,500", "deductible_in_fam": "$15,000", "deductible_out_ind": "$15,000", "deductible_out_fam": "$30,000", "oop_in_ind": "$7,500", "oop_in_fam": "$15,000", "oop_out_ind": "$16,500", "oop_out_fam": "$33,000", "coinsurance_in": "0%", "coinsurance_out": "50%", "preventive": "100%, no deductible", "doctor_visit": "$25 copay", "virtual_visit": "$0", "specialist": "$50 copay", "xray_lab": "No charge after deductible", "imaging": "No charge after deductible", "urgent_care": "$50 copay", "er": "No charge after deductible", "hospital": "No charge after deductible", "outpatient_surgery": "No charge after deductible", "rx": "$10 / $40 / No charge after deductible / No charge after deductible", "rx_deductible": "Tiers 1-2 copay, no deductible; tiers 3-4 after deductible", "rate_ee": 550.32, "rate_es": 1113.73, "rate_ec": 985.96, "rate_ef": 1524.21, "monthly_premium": 3060.49, "rate_guarantee": "12 months", "notes": "Calendar-year accumulation, embedded deductible. Cigna network with Doctors on Demand virtual care; no surplus return under Angle's level-funded arrangement.", "include": true}, {"carrier": "Angle Health", "plan_name": "Traditional $5,000 Ded / $7,000 OOP", "plan_type": "PPO", "funding": "Level Funded", "network": "Cigna PPO (national)", "illustrative": false, "quote_status": "Underwritten", "quote_status_note": "", "hsa_eligible": false, "deductible_in_ind": "$5,000", "deductible_in_fam": "$10,000", "deductible_out_ind": "$10,000", "deductible_out_fam": "$20,000", "oop_in_ind": "$7,000", "oop_in_fam": "$14,000", "oop_out_ind": "$14,000", "oop_out_fam": "$28,000", "coinsurance_in": "20%", "coinsurance_out": "50%", "preventive": "100%, no deductible", "doctor_visit": "$25 copay", "virtual_visit": "$0", "specialist": "$75 copay", "xray_lab": "20% after deductible; independent lab $25 copay", "imaging": "20% after deductible", "urgent_care": "$85 copay", "er": "$300 copay after deductible", "hospital": "20% after deductible", "outpatient_surgery": "20% after deductible", "rx": "$20 / $60 / $85 / 20% after deductible", "rx_deductible": "None (specialty after deductible)", "rate_ee": 546.12, "rate_es": 1105.22, "rate_ec": 978.42, "rate_ef": 1512.56, "monthly_premium": 3037.1, "rate_guarantee": "12 months", "notes": "Calendar-year accumulation, embedded deductible. Cigna network with Doctors on Demand virtual care; no surplus return under Angle's level-funded arrangement.", "include": true}, {"carrier": "Angle Health", "plan_name": "HDHP $3,400 Ded / $5,000 OOP", "plan_type": "HDHP (PPO)", "funding": "Level Funded", "network": "Cigna PPO (national)", "illustrative": false, "quote_status": "Underwritten", "quote_status_note": "", "hsa_eligible": true, "deductible_in_ind": "$3,400", "deductible_in_fam": "$6,800", "deductible_out_ind": "$6,600", "deductible_out_fam": "$13,200", "oop_in_ind": "$5,000", "oop_in_fam": "$10,000", "oop_out_ind": "$10,000", "oop_out_fam": "$20,000", "coinsurance_in": "20%", "coinsurance_out": "50%", "preventive": "100%, no deductible", "doctor_visit": "20% after deductible", "virtual_visit": "$0", "specialist": "20% after deductible", "xray_lab": "20% after deductible", "imaging": "20% after deductible", "urgent_care": "20% after deductible", "er": "20% after deductible", "hospital": "20% after deductible", "outpatient_surgery": "20% after deductible", "rx": "20% after deductible (all tiers)", "rx_deductible": "Integrated with medical deductible", "rate_ee": 542.08, "rate_es": 1097.05, "rate_ec": 971.19, "rate_ef": 1501.38, "monthly_premium": 3014.65, "rate_guarantee": "12 months", "notes": "HSA-qualified high-deductible design. Calendar-year accumulation, embedded deductible. Cigna network with Doctors on Demand virtual care; no surplus return under Angle's level-funded arrangement.", "include": true}, {"carrier": "Angle Health", "plan_name": "Value $9,200 Ded", "plan_type": "PPO", "funding": "Level Funded", "network": "Cigna PPO (national)", "illustrative": false, "quote_status": "Underwritten", "quote_status_note": "", "hsa_eligible": false, "deductible_in_ind": "$9,200", "deductible_in_fam": "$18,400", "deductible_out_ind": "$18,400", "deductible_out_fam": "$36,800", "oop_in_ind": "$9,200", "oop_in_fam": "$18,400", "oop_out_ind": "$20,240", "oop_out_fam": "$40,480", "coinsurance_in": "0%", "coinsurance_out": "50%", "preventive": "100%, no deductible", "doctor_visit": "$25 copay", "virtual_visit": "$0", "specialist": "$50 copay", "xray_lab": "No charge after deductible", "imaging": "No charge after deductible", "urgent_care": "$50 copay", "er": "No charge after deductible", "hospital": "No charge after deductible", "outpatient_surgery": "No charge after deductible", "rx": "$10 / $40 / No charge after deductible / No charge after deductible", "rx_deductible": "Tiers 1-2 copay, no deductible; tiers 3-4 after deductible", "rate_ee": 528.04, "rate_es": 1068.62, "rate_ec": 946.03, "rate_ef": 1462.48, "monthly_premium": 2936.55, "rate_guarantee": "12 months", "notes": "Calendar-year accumulation, embedded deductible. Cigna network with Doctors on Demand virtual care; no surplus return under Angle's level-funded arrangement.", "include": true}, {"carrier": "Angle Health", "plan_name": "HDHP $5,000 Ded / $5,000 OOP", "plan_type": "HDHP (PPO)", "funding": "Level Funded", "network": "Cigna PPO (national)", "illustrative": false, "quote_status": "Underwritten", "quote_status_note": "", "hsa_eligible": true, "deductible_in_ind": "$5,000", "deductible_in_fam": "$10,000", "deductible_out_ind": "$10,000", "deductible_out_fam": "$20,000", "oop_in_ind": "$5,000", "oop_in_fam": "$10,000", "oop_out_ind": "$11,000", "oop_out_fam": "$22,000", "coinsurance_in": "0%", "coinsurance_out": "50%", "preventive": "100%, no deductible", "doctor_visit": "No charge after deductible", "virtual_visit": "$0", "specialist": "No charge after deductible", "xray_lab": "No charge after deductible", "imaging": "No charge after deductible", "urgent_care": "No charge after deductible", "er": "No charge after deductible", "hospital": "No charge after deductible", "outpatient_surgery": "No charge after deductible", "rx": "No charge after deductible (all tiers)", "rx_deductible": "Integrated with medical deductible", "rate_ee": 527.61, "rate_es": 1067.76, "rate_ec": 945.26, "rate_ef": 1461.3, "monthly_premium": 2934.17, "rate_guarantee": "12 months", "notes": "HSA-qualified high-deductible design. Calendar-year accumulation, embedded deductible. Cigna network with Doctors on Demand virtual care; no surplus return under Angle's level-funded arrangement.", "include": true}, {"carrier": "Angle Health", "plan_name": "Traditional $7,000 Ded / $9,200 OOP", "plan_type": "PPO", "funding": "Level Funded", "network": "Cigna PPO (national)", "illustrative": false, "quote_status": "Underwritten", "quote_status_note": "", "hsa_eligible": false, "deductible_in_ind": "$7,000", "deductible_in_fam": "$14,000", "deductible_out_ind": "$14,000", "deductible_out_fam": "$28,000", "oop_in_ind": "$9,200", "oop_in_fam": "$18,400", "oop_out_ind": "$18,400", "oop_out_fam": "$36,800", "coinsurance_in": "30%", "coinsurance_out": "50%", "preventive": "100%, no deductible", "doctor_visit": "$25 copay", "virtual_visit": "$0", "specialist": "$75 copay", "xray_lab": "30% after deductible; independent lab $25 copay", "imaging": "30% after deductible", "urgent_care": "$75 copay", "er": "30% after deductible", "hospital": "30% after deductible", "outpatient_surgery": "30% after deductible", "rx": "$20 / $60 / $85 / 30% after deductible", "rx_deductible": "None (specialty after deductible)", "rate_ee": 518.71, "rate_es": 1049.76, "rate_ec": 929.32, "rate_ef": 1436.66, "monthly_premium": 2884.69, "rate_guarantee": "12 months", "notes": "Calendar-year accumulation, embedded deductible. Cigna network with Doctors on Demand virtual care; no surplus return under Angle's level-funded arrangement.", "include": true}, {"carrier": "Angle Health", "plan_name": "Traditional $8,000 Ded / $9,200 OOP", "plan_type": "PPO", "funding": "Level Funded", "network": "Cigna PPO (national)", "illustrative": false, "quote_status": "Underwritten", "quote_status_note": "", "hsa_eligible": false, "deductible_in_ind": "$8,000", "deductible_in_fam": "$16,000", "deductible_out_ind": "$16,000", "deductible_out_fam": "$32,000", "oop_in_ind": "$9,200", "oop_in_fam": "$18,400", "oop_out_ind": "$18,400", "oop_out_fam": "$36,800", "coinsurance_in": "20%", "coinsurance_out": "50%", "preventive": "100%, no deductible", "doctor_visit": "$25 copay", "virtual_visit": "$0", "specialist": "$75 copay", "xray_lab": "20% after deductible; independent lab $25 copay", "imaging": "20% after deductible", "urgent_care": "$75 copay", "er": "20% after deductible", "hospital": "20% after deductible", "outpatient_surgery": "20% after deductible", "rx": "$20 / $60 / $85 / 20% after deductible", "rx_deductible": "None (specialty after deductible)", "rate_ee": 518.27, "rate_es": 1048.86, "rate_ec": 928.53, "rate_ef": 1435.43, "monthly_premium": 2882.23, "rate_guarantee": "12 months", "notes": "Calendar-year accumulation, embedded deductible. Cigna network with Doctors on Demand virtual care; no surplus return under Angle's level-funded arrangement.", "include": true}, {"carrier": "Angle Health", "plan_name": "Traditional $9,200 Ded / $9,200 OOP", "plan_type": "PPO", "funding": "Level Funded", "network": "Cigna PPO (national)", "illustrative": false, "quote_status": "Underwritten", "quote_status_note": "", "hsa_eligible": false, "deductible_in_ind": "$9,200", "deductible_in_fam": "$18,400", "deductible_out_ind": "$18,400", "deductible_out_fam": "$36,800", "oop_in_ind": "$9,200", "oop_in_fam": "$18,400", "oop_out_ind": "$20,240", "oop_out_fam": "$40,480", "coinsurance_in": "0%", "coinsurance_out": "50%", "preventive": "100%, no deductible", "doctor_visit": "$25 copay", "virtual_visit": "$0", "specialist": "$75 copay", "xray_lab": "No charge after deductible; independent lab $25 copay", "imaging": "No charge after deductible", "urgent_care": "$75 copay", "er": "No charge after deductible", "hospital": "No charge after deductible", "outpatient_surgery": "No charge after deductible", "rx": "$20 / $60 / $85 / No charge after deductible", "rx_deductible": "None (specialty after deductible)", "rate_ee": 518.11, "rate_es": 1048.54, "rate_ec": 928.24, "rate_ef": 1434.99, "monthly_premium": 2881.34, "rate_guarantee": "12 months", "notes": "Calendar-year accumulation, embedded deductible. Cigna network with Doctors on Demand virtual care; no surplus return under Angle's level-funded arrangement.", "include": true}, {"carrier": "Angle Health", "plan_name": "HDHP $4,000 Ded / $7,000 OOP", "plan_type": "HDHP (PPO)", "funding": "Level Funded", "network": "Cigna PPO (national)", "illustrative": false, "quote_status": "Underwritten", "quote_status_note": "", "hsa_eligible": true, "deductible_in_ind": "$4,000", "deductible_in_fam": "$8,000", "deductible_out_ind": "$8,000", "deductible_out_fam": "$16,000", "oop_in_ind": "$7,000", "oop_in_fam": "$14,000", "oop_out_ind": "$14,000", "oop_out_fam": "$28,000", "coinsurance_in": "20%", "coinsurance_out": "50%", "preventive": "100%, no deductible", "doctor_visit": "20% after deductible", "virtual_visit": "$0", "specialist": "20% after deductible", "xray_lab": "20% after deductible", "imaging": "20% after deductible", "urgent_care": "20% after deductible", "er": "20% after deductible", "hospital": "20% after deductible", "outpatient_surgery": "20% after deductible", "rx": "20% after deductible (all tiers)", "rx_deductible": "Integrated with medical deductible", "rate_ee": 498.79, "rate_es": 1009.44, "rate_ec": 893.63, "rate_ef": 1381.48, "monthly_premium": 2773.9, "rate_guarantee": "12 months", "notes": "HSA-qualified high-deductible design. Calendar-year accumulation, embedded deductible. Cigna network with Doctors on Demand virtual care; no surplus return under Angle's level-funded arrangement.", "include": true}, {"carrier": "Angle Health", "plan_name": "HDHP $7,000 Ded / $7,000 OOP", "plan_type": "HDHP (PPO)", "funding": "Level Funded", "network": "Cigna PPO (national)", "illustrative": false, "quote_status": "Underwritten", "quote_status_note": "", "hsa_eligible": true, "deductible_in_ind": "$7,000", "deductible_in_fam": "$14,000", "deductible_out_ind": "$14,000", "deductible_out_fam": "$28,000", "oop_in_ind": "$7,000", "oop_in_fam": "$14,000", "oop_out_ind": "$15,400", "oop_out_fam": "$30,800", "coinsurance_in": "0%", "coinsurance_out": "50%", "preventive": "100%, no deductible", "doctor_visit": "No charge after deductible", "virtual_visit": "$0", "specialist": "No charge after deductible", "xray_lab": "No charge after deductible", "imaging": "No charge after deductible", "urgent_care": "No charge after deductible", "er": "No charge after deductible", "hospital": "No charge after deductible", "outpatient_surgery": "No charge after deductible", "rx": "No charge after deductible (all tiers)", "rx_deductible": "Integrated with medical deductible", "rate_ee": 478.71, "rate_es": 968.8, "rate_ec": 857.65, "rate_ef": 1325.86, "monthly_premium": 2662.22, "rate_guarantee": "12 months", "notes": "HSA-qualified high-deductible design. Calendar-year accumulation, embedded deductible. Cigna network with Doctors on Demand virtual care; no surplus return under Angle's level-funded arrangement.", "include": true}, {"carrier": "Angle Health", "plan_name": "HDHP $8,000 Ded / $8,000 OOP", "plan_type": "HDHP (PPO)", "funding": "Level Funded", "network": "Cigna PPO (national)", "illustrative": false, "quote_status": "Underwritten", "quote_status_note": "", "hsa_eligible": true, "deductible_in_ind": "$8,000", "deductible_in_fam": "$16,000", "deductible_out_ind": "$16,000", "deductible_out_fam": "$32,000", "oop_in_ind": "$8,000", "oop_in_fam": "$16,000", "oop_out_ind": "$17,600", "oop_out_fam": "$35,200", "coinsurance_in": "0%", "coinsurance_out": "50%", "preventive": "100%, no deductible", "doctor_visit": "No charge after deductible", "virtual_visit": "$0", "specialist": "No charge after deductible", "xray_lab": "No charge after deductible", "imaging": "No charge after deductible", "urgent_care": "No charge after deductible", "er": "No charge after deductible", "hospital": "No charge after deductible", "outpatient_surgery": "No charge after deductible", "rx": "No charge after deductible (all tiers)", "rx_deductible": "Integrated with medical deductible", "rate_ee": 458.14, "rate_es": 927.17, "rate_ec": 820.8, "rate_ef": 1268.89, "monthly_premium": 2547.83, "rate_guarantee": "12 months", "notes": "HSA-qualified high-deductible design. Calendar-year accumulation, embedded deductible. Cigna network with Doctors on Demand virtual care; no surplus return under Angle's level-funded arrangement.", "include": true}, {"carrier": "Great American", "plan_name": "1700/80%/3500 PPO-INO HDHP", "plan_type": "HDHP (PPO, in-network only)", "funding": "Level Funded", "network": "Cigna Healthcare OAP (in-network only)", "illustrative": true, "quote_status": "Illustrative", "quote_status_note": "Great American's rates are illustrative and require medical disclosure/health questionnaires before they are final.", "hsa_eligible": true, "deductible_in_ind": "$1,700", "deductible_in_fam": "$3,400", "deductible_out_ind": "Not covered", "deductible_out_fam": "Not covered", "oop_in_ind": "$3,500", "oop_in_fam": "$7,000", "oop_out_ind": "Not covered", "oop_out_fam": "Not covered", "coinsurance_in": "20%", "coinsurance_out": "Not covered", "preventive": "100%, no deductible", "doctor_visit": "20% after deductible", "virtual_visit": "$0 (designated virtual provider)", "specialist": "20% after deductible", "xray_lab": "20% after deductible", "imaging": "20% after deductible", "urgent_care": "20% after deductible", "er": "20% after deductible", "hospital": "20% after deductible", "outpatient_surgery": "20% after deductible", "rx": "20% after deductible (all tiers)", "rx_deductible": "Integrated with medical deductible", "rate_ee": 670.36, "rate_es": 1647.44, "rate_ec": 1269.22, "rate_ef": 2120.21, "monthly_premium": 4059.79, "rate_guarantee": "", "notes": "Calendar-year, embedded deductible; in-network only on Cigna OAP with Cigna pharmacy. Allied Benefit Systems administers; $0 virtual urgent care, behavioral health and muscle/joint care.", "include": true}],
+  dental:  [{"carrier": "UnitedHealthcare (Optional Dental Add-On)", "plan_name": "100/80/50 PPO $1,000 Max (A25431)", "plan_type": "PPO (passive)", "funding": "Fully Insured", "network": "UnitedHealthcare Dental PPO (passive — in/out same)", "illustrative": false, "quote_status": "Quoted", "quote_status_note": "", "deductible_in_ind": "$50", "deductible_in_fam": "$150", "deductible_out_ind": "$50", "deductible_out_fam": "$150", "deductible_waived_preventive": "", "annual_max_in": "$1,000", "annual_max_out": "$1,000", "rollover": "Consumer Max Multiplier available (ask UHC)", "preventive": "100%", "basic": "80%", "major": "50%", "endodontics": "50%", "periodontics": "50%", "oral_surgery": "50%", "implants": "", "ortho": "Not covered", "ortho_max": "", "ortho_age": "", "waiting_periods": "None", "oon_reimbursement": "", "rate_ee": 32.97, "rate_es": 65.94, "rate_ec": 80.41, "rate_ef": 119.7, "monthly_premium": 233.08, "rate_guarantee": "12 months", "notes": "Offered in UHC's renewal kit as an add-on; the group has no dental plan today. Adding UHC dental can earn a Packaged Savings credit on the level-funded medical plan.", "include": true}, {"carrier": "UnitedHealthcare (Optional Dental Add-On)", "plan_name": "100/80/50 PPO $1,000 Max (12-mo major wait) (P33651)", "plan_type": "PPO (passive)", "funding": "Fully Insured", "network": "UnitedHealthcare Dental PPO (passive — in/out same)", "illustrative": false, "quote_status": "Quoted", "quote_status_note": "", "deductible_in_ind": "$50", "deductible_in_fam": "$150", "deductible_out_ind": "$50", "deductible_out_fam": "$150", "deductible_waived_preventive": "", "annual_max_in": "$1,000", "annual_max_out": "$1,000", "rollover": "Consumer Max Multiplier available (ask UHC)", "preventive": "100%", "basic": "80%", "major": "50%", "endodontics": "50%", "periodontics": "50%", "oral_surgery": "50%", "implants": "", "ortho": "Not covered", "ortho_max": "", "ortho_age": "", "waiting_periods": "12 months on major services", "oon_reimbursement": "", "rate_ee": 36.68, "rate_es": 73.36, "rate_ec": 89.8, "rate_ef": 133.56, "monthly_premium": 260.04, "rate_guarantee": "12 months", "notes": "Offered in UHC's renewal kit as an add-on; the group has no dental plan today. Adding UHC dental can earn a Packaged Savings credit on the level-funded medical plan.", "include": true}, {"carrier": "UnitedHealthcare (Optional Dental Add-On)", "plan_name": "100/80/50/50 PPO $1,500 Max w/ Child Ortho (X48841)", "plan_type": "PPO (passive)", "funding": "Fully Insured", "network": "UnitedHealthcare Dental PPO (passive — in/out same)", "illustrative": false, "quote_status": "Quoted", "quote_status_note": "", "deductible_in_ind": "$50", "deductible_in_fam": "$150", "deductible_out_ind": "$50", "deductible_out_fam": "$150", "deductible_waived_preventive": "", "annual_max_in": "$1,500", "annual_max_out": "$1,500", "rollover": "Consumer Max Multiplier available (ask UHC)", "preventive": "100%", "basic": "80%", "major": "50%", "endodontics": "80%", "periodontics": "80%", "oral_surgery": "80%", "implants": "", "ortho": "Child only, 50%", "ortho_max": "$1,500", "ortho_age": "Child only", "waiting_periods": "None", "oon_reimbursement": "", "rate_ee": 49.58, "rate_es": 99.17, "rate_ec": 123.42, "rate_ef": 182.85, "monthly_premium": 355.85, "rate_guarantee": "12 months", "notes": "Offered in UHC's renewal kit as an add-on; the group has no dental plan today. Adding UHC dental can earn a Packaged Savings credit on the level-funded medical plan.", "include": true}],
+  vision:  []
+};
+const selections = {medical:{},dental:{},vision:{}};
+
+function formatMoney(n){const x=Number(String(n).replace(/[^0-9.\-]/g,''));return isFinite(x)&&String(n)!==''?'$'+x.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';}
+function v(x){if(x===undefined||x===null)return 'See SBC';if(x===true)return 'Yes';if(x===false)return 'No';const s=String(x).trim();return (!s||/^see sbc$/i.test(s))?'See SBC':s.replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function isIllus(p){if(p.illustrative===true)return true;if(p.illustrative===false)return false;return /illustrat|\bimqs?\b|health questionnaire|need(s)? apps|requires? apps|indicative|not sellable/i.test([p.quote_status,p.quote_type,p.quote_status_note,p.plan_name,p.carrier].join(' '));}
+function row(label,val){return `<div class="card-detail-row"><span>${label}</span><span>${v(val)}</span></div>`;}
+function pair(a,b){const x=v(a),y=v(b);return x==='See SBC'&&y==='See SBC'?'See SBC':`${x} / ${y}`;}
+function cardShell(line,prefix,plan,idx,badges,rows){
+  const id=prefix+idx; selections[line][id]=plan.include!==false;
+  const sel=selections[line][id], ill=isIllus(plan);
+  const b=(ill?'<span class="badge badge-illus">ILLUSTRATIVE · subject to underwriting</span>':'')+badges;
+  return `<div class="plan-card ${sel?'selected':''} ${ill?'illus':''}" id="${id}" onclick="toggle('${line}','${id}')"><div class="check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div class="card-carrier">${v(plan.carrier)}</div><div class="card-name">${v(plan.plan_name)}</div><div class="card-premium">${formatMoney(plan.monthly_premium)}</div><div class="card-premium-label">total monthly cost</div><div class="card-badges">${b}</div><div class="card-details">${rows}</div></div>`;
+}
+
+function renderMedicalCard(plan,idx){
+  const badges=[plan.plan_type?`<span class="badge badge-blue">${v(plan.plan_type)}</span>`:'',plan.funding?`<span class="badge badge-green">${v(plan.funding)}</span>`:'',plan.hsa_eligible===true?`<span class="badge badge-gold">HSA eligible</span>`:''].join('');
+  return cardShell('medical','med-',plan,idx,badges,
+    row('Deductible (Ind / Fam)',pair(plan.deductible_in_ind,plan.deductible_in_fam))+
+    row('OOP max (Ind / Fam)',pair(plan.oop_in_ind,plan.oop_in_fam))+
+    row('Coinsurance',plan.coinsurance_in)+row('Doctor / specialist',pair(plan.doctor_visit,plan.specialist))+
+    row('Urgent care / ER',pair(plan.urgent_care,plan.er))+row('Rx',plan.rx)+
+    row('EE only rate',formatMoney(plan.rate_ee)+'/mo'));
+}
+
+function renderDentalCard(plan,idx){
+  const badges=plan.plan_type?`<span class="badge badge-blue">${v(plan.plan_type)}</span>`:'';
+  return cardShell('dental','den-',plan,idx,badges,
+    row('Deductible (Ind / Fam)',pair(plan.deductible_in_ind,plan.deductible_in_fam))+
+    row('Annual max',plan.annual_max_in)+row('Preventive / basic / major',[plan.preventive,plan.basic,plan.major].map(v).join(' / '))+
+    row('Endo / perio',pair(plan.endodontics,plan.periodontics))+row('Orthodontia',plan.ortho||plan.ortho_max)+
+    row('EE only rate',formatMoney(plan.rate_ee)+'/mo'));
+}
+
+function renderVisionCard(plan,idx){
+  const badges=plan.plan_type?`<span class="badge badge-blue">${v(plan.plan_type)}</span>`:'';
+  return cardShell('vision','vis-',plan,idx,badges,
+    row('Exam copay',plan.exam_copay)+row('Lenses / materials copay',plan.lenses||plan.materials_copay)+
+    row('Frame allowance',plan.frame_allowance)+row('Contact lens allowance',plan.contacts_allowance)+
+    row('Frequency (exam / lens / frame)',[plan.exam_frequency,plan.lenses_frequency,plan.frames_frequency].map(v).join(' / '))+
+    row('EE only rate',formatMoney(plan.rate_ee)+'/mo'));
+}
+
+function groupByCarrier(plans){const g={};plans.forEach((p,i)=>{if(!g[p.carrier])g[p.carrier]=[];g[p.carrier].push({plan:p,idx:i});});return g;}
+
+function renderSection(containerId,plans,renderFn){
+  const container=document.getElementById(containerId);
+  if(!plans||plans.length===0){container.innerHTML='<p style="color:#A0AEC0;font-size:13px;padding:12px 0">No plans in this category</p>';return;}
+  const groups=groupByCarrier(plans);
+  let html='';
+  for(const[carrier,items]of Object.entries(groups)){html+=`<div class="carrier-group"><div class="carrier-label">${carrier}</div><div class="cards">`;items.forEach(({plan,idx})=>{html+=renderFn(plan,idx);});html+='</div></div>';}
+  container.innerHTML=html;
+}
+
+function toggle(line,id){selections[line][id]=!selections[line][id];document.getElementById(id).classList.toggle('selected',selections[line][id]);updateCount();}
+
+function updateCount(){let total=0;['medical','dental','vision'].forEach(line=>{Object.values(selections[line]).forEach(v=>{if(v)total++;});});document.getElementById('selected-count').textContent=total;document.getElementById('submit-btn').disabled=total===0;}
+
+function getSelectedPlans(){
+  const r={medical:[],dental:[],vision:[]};
+  PLAN_DATA.medical.forEach((p,i)=>{if(selections.medical['med-'+i])r.medical.push(p.plan_name);});
+  PLAN_DATA.dental.forEach((p,i)=>{if(selections.dental['den-'+i])r.dental.push(p.plan_name);});
+  PLAN_DATA.vision.forEach((p,i)=>{if(selections.vision['vis-'+i])r.vision.push(p.plan_name);});
+  return r;
+}
+
+async function submitSelections(){
+  const btn=document.getElementById('submit-btn');
+  btn.disabled=true;btn.textContent='Submitting…';
+  const selected=getSelectedPlans();
+  const payload={
+    client:CLIENT_DATA,
+    selected_plans:selected,
+    medical_plans:selected.medical.join(','),
+    dental_plans:selected.dental.join(','),
+    vision_plans:selected.vision.join(','),
+    all_medical_json:btoa(unescape(encodeURIComponent(JSON.stringify(PLAN_DATA.medical)))),
+    all_dental_json:btoa(unescape(encodeURIComponent(JSON.stringify(PLAN_DATA.dental)))),
+    all_vision_json:btoa(unescape(encodeURIComponent(JSON.stringify(PLAN_DATA.vision)))),
+    enrolling_employees:CLIENT_DATA.enrolling_employees,
+    contributions_medical_ee:(CLIENT_DATA.contributions||{}).medical_ee||'50%',
+    contributions_medical_dep:(CLIENT_DATA.contributions||{}).medical_dep||'0%',
+    contributions_dental_ee:(CLIENT_DATA.contributions||{}).dental_ee||'0%',
+    contributions_dental_dep:(CLIENT_DATA.contributions||{}).dental_dep||'0%',
+    contributions_vision_ee:(CLIENT_DATA.contributions||{}).vision_ee||'0%',
+    contributions_vision_dep:(CLIENT_DATA.contributions||{}).vision_dep||'0%',
+    selector_url:window.location.href,
+    submitted_at:new Date().toISOString(),
+    source:'proposal-selector'
+  };
+  try{await fetch(ZAPIER_WEBHOOK,{method:'POST',headers:{'Content-Type':'application/json'},mode:'no-cors',body:JSON.stringify(payload)});}catch(e){}
+  document.getElementById('success-overlay').classList.add('show');
+}
+
+renderSection('medical-plans',PLAN_DATA.medical,renderMedicalCard);
+renderSection('dental-plans',PLAN_DATA.dental,renderDentalCard);
+renderSection('vision-plans',PLAN_DATA.vision,renderVisionCard);
+updateCount();
+</script>
+<!-- BULK SELECT CONTROLS — added 2026-10-12 -->
+<style>
+.bulk-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0 14px}
+.bulk-btn{font:600 12px/1 inherit;padding:7px 12px;border-radius:6px;border:1px solid #2F72AD;background:#2F72AD;color:#fff;cursor:pointer}
+.bulk-btn.ghost{background:transparent;color:#2F72AD}
+.bulk-btn:hover{filter:brightness(1.07)}
+.bulk-count{font-size:12px;color:#718096;margin-left:4px}
+</style>
+<script>
+(function(){
+  var LINES = [['medical','medical-plans','med-'],['dental','dental-plans','den-'],['vision','vision-plans','vis-']];
+
+  window.setAll = function(line, on){
+    var prefix = {medical:'med-',dental:'den-',vision:'vis-'}[line];
+    (PLAN_DATA[line]||[]).forEach(function(p,i){
+      var id = prefix + i;
+      selections[line][id] = on;
+      var el = document.getElementById(id);
+      if (el) el.classList.toggle('selected', on);
+    });
+    updateCount();
+  };
+
+  function lineCount(line){
+    return Object.keys(selections[line]||{}).filter(function(k){return selections[line][k];}).length;
+  }
+
+  function refreshCounts(){
+    LINES.forEach(function(entry){
+      var line = entry[0];
+      var el = document.getElementById('count-' + line);
+      if (el) el.textContent = lineCount(line) + ' of ' + ((PLAN_DATA[line]||[]).length) + ' selected';
+    });
+  }
+
+  // Keep the existing count behaviour, add the per-section counts on top of it.
+  var originalUpdateCount = updateCount;
+  updateCount = function(){ originalUpdateCount(); refreshCounts(); };
+
+  LINES.forEach(function(entry){
+    var line = entry[0], containerId = entry[1];
+    var container = document.getElementById(containerId);
+    if (!container) return;
+    var total = (PLAN_DATA[line]||[]).length;
+    if (!total) return;
+    var bar = document.createElement('div');
+    bar.className = 'bulk-bar';
+    bar.innerHTML =
+      '<button type="button" class="bulk-btn" onclick="setAll(\'' + line + '\',true)">Select all</button>' +
+      '<button type="button" class="bulk-btn ghost" onclick="setAll(\'' + line + '\',false)">Clear</button>' +
+      '<span class="bulk-count" id="count-' + line + '">0 of ' + total + ' selected</span>';
+    container.parentNode.insertBefore(bar, container);
+  });
+
+  refreshCounts();
+})();
+</script>
+
+</body>
+</html>

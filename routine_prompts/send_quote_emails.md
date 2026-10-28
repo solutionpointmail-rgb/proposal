@@ -53,7 +53,7 @@ Inc/LLC, punctuation, case, and the "Quoting <date>" suffix). If such a subtask 
 comment starting with "SENT", within the last 30 days, do NOT send: skip it and flag "possible
 duplicate — <carrier> already requested for <group> on <date> in <project>". Archived projects are
 ignored on purpose: archiving a project means it was closed out, and a fresh project for the same
-group is deliberate. A REQUOTE subtask (name ends "(requote MM/DD)" and subject says "UPDATED") is a deliberate
+group is deliberate. A REQUOTE or RESEND subtask (name ends "(requote MM/DD)" or "(resend MM/DD)") is a deliberate
 second request for the same project and is exempt from this guard; its old subtask carries a HOLD
 comment, so only the updated request goes out.
 
@@ -244,7 +244,8 @@ anything that lacks the "AUTO-SEND READY" marker or still carries an open questi
 subtask with a SENT, HOLD, or SEND FAILED comment, or already complete, is untouchable, and the Step 1B
 duplicate guard applies across projects. Never edit the drafted subtask description. Never email
 addresses outside the allowlist. Never attach files from anywhere other than the group's own Asana
-attachments named on the ATTACH line (census, current plan info, claims). Never fabricate or substitute a census. Do not email Kamryn Testa or send a
-separate Cigna Direct email (Cigna goes through Cason Group). Never send test or summary emails to
+attachments named on the ATTACH line (census, current plan info, claims). Never fabricate or substitute a census. Never email Kamryn Testa or any
+@cignahealthcare.com address, and never send a separate Cigna Direct email: Cigna is requested only
+through Cason Group, in the Cason email that names the carriers to quote (Will, 2026-10-28). Never send test or summary emails to
 carriers. If something conflicts with what you find live in Asana, skip it and flag it rather than
 deciding silently.

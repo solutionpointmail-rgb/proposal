@@ -119,7 +119,11 @@ STEP 2 — Which carrier, which group, what kind of reply
 ======================================================================
 CARRIER — from the sender's domain, then confirmed by the subject and body:
   beambenefits.com → Beam                     deltadentaltn.com → Delta Dental
-  thecasongroup.com → Aetna (or Cigna when the reply is the Cigna Direct quote)
+  thecasongroup.com → Aetna or Cigna (Cason Group submits both). Decide per attachment: an Aetna AFA
+    quote → Aetna; a Cigna quote → Cigna; one reply with both → two carriers, two folders ("Aetna",
+    "Cigna"). A Cason reply that covers only one of the two we asked for (the subject says "Aetna AFA /
+    Cigna") gets a Needs attention bullet for Lindsey: "Cason sent <Aetna|Cigna> only for <Group> —
+    still need <the other>". A Cason decline that doesn't say which carrier → Needs attention.
   gaig.com → Great American                    gravie.com → Gravie
   edisonehs.com → Edison                       crumdalespecialty.com → Crumdale
   onehealthplus.com → One Health               levelhealthplans.com → Simpara (Level Health)

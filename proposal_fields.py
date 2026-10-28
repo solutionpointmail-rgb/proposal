@@ -187,18 +187,25 @@ def money(v, blank=MISSING):
 
 # ── ILLUSTRATIVE ──────────────────────────────────────────────────────────────
 _ILLUS = re.compile(r"illustrat|\bimqs?\b|health questionnaire|medical questionnaire|need(s)? apps|"
-                    r"requires? apps|apps required|indicative|not sellable|subject to (medical )?underwriting and imq",
+                    r"requires? apps|apps required|health apps|medical apps|\bmuw\b|indicative|not sellable|"
+                    r"subject to (medical )?underwriting and imq",
                     re.I)
 
 
+_NOT_ILLUS = re.compile(r"\b(no|without|not requir\w*|not needed)\b[^.;]{0,25}\b(imqs?|questionnaires?|apps)\b|"
+                        r"\b(imqs?|questionnaires?|apps)\b[^.;]{0,15}\bnot (required|needed)\b", re.I)
+
+
 def is_illustrative(plan):
+    """True when the plan is flagged illustrative OR its own text says IMQs / health apps / illustrative.
+    A text signal wins over an explicit false, so a quote whose note says "IMQs required to get
+    competitive" is never shown as final (Will, 2026-10-28). "No IMQs required" does not count."""
     flag = plan.get("illustrative")
-    if isinstance(flag, bool):
-        return flag
-    if isinstance(flag, str) and flag.strip().lower() in ("true", "yes", "1"):
+    if flag is True or (isinstance(flag, str) and flag.strip().lower() in ("true", "yes", "1")):
         return True
     hay = " ".join(str(plan.get(k) or "") for k in
-                   ("quote_status", "quote_type", "quote_status_note", "plan_name", "carrier"))
+                   ("quote_status", "quote_type", "quote_status_note", "plan_name", "carrier", "notes"))
+    hay = _NOT_ILLUS.sub(" ", hay)
     return bool(_ILLUS.search(hay))
 
 

@@ -161,6 +161,10 @@ KIND OF REPLY — decide from the body and the attachments:
   "will pass", the group is "too small" / "outside our appetite" / "doesn't meet participation", or
   writes "DTQ". Angle and Navigation Health declines come with a risk scorecard PDF attached — still DTQ.
 - NEEDS APPS: the carrier wants IMQs / health questionnaires / employee apps before it will quote.
+- QUOTE NEEDING IMQs (Will, 2026-10-28): the carrier sent rates BUT says IMQs / health questionnaires /
+  health apps are required before they're final or to get competitive ("IMQs required to get
+  competitive", "rates subject to IMQs", "illustrative"). File it as a QUOTE and mark it ILLUSTRATIVE
+  (see Step 4) so Analyze Quotes and the proposal label it.
 - QUESTION: the carrier asks us for something (missing info, a corrected census, a confirmation).
 - ACK: a plain "received, working on it" with nothing attached.
 A reply can be more than one (a quote for one plan plus a decline for another): handle each part.
@@ -205,6 +209,8 @@ FOLDER NAME RULES (Will, 2026-10-16; RENEWAL added 2026-10-20):
   is EMPTY, rename it to "<Carrier> - DTQ" (Dropbox move). If the existing folder already holds quote
   files, do not rename it; file the decline record there and flag "declined after quoting" for a person.
 - NEEDS APPS → "<Carrier> need IMQ" (matches the existing convention), unless a folder exists.
+- QUOTE NEEDING IMQs → the carrier's existing folder if there is one; otherwise create
+  "<Carrier> - Illustrative (IMQs required)". Either way the email record's first line marks it (below).
 - QUESTION / ACK → no folder. A question goes in the summary's Needs attention; an ACK is just noted.
 - RENEWAL INTAKE → no new folder; see RENEWAL INTAKE below.
 Create folders with the Dropbox connector (create_folder). Use plain ASCII hyphens in names.
@@ -238,6 +244,10 @@ WHAT TO SAVE into that folder (for a RENEWAL: into "2. Quotes/<Carrier> - Renewa
      <blank line>
      <the body text, down to the signature; leave out the quoted earlier thread>
    Rate tables in the body go in as plain text rows. End with a line listing the attachments saved.
+   For a QUOTE NEEDING IMQs, put this as the record's FIRST line, above "From:":
+     ILLUSTRATIVE — IMQs / health apps required: <the carrier's own words, one sentence>
+   and use the Asana comment "📥 Quote received <Mon D> (ILLUSTRATIVE — IMQs required) — filed to …".
+   In the summary, its Reply cell reads "Quote (illustrative — IMQs required)".
    This is the record Analyze Quotes, the renewal routines and people read later, so keep the carrier's
    words exactly. (The Dropbox record keeps the carrier's full text; the privacy rule in Step 6 applies
    to the summary email and Asana only.)

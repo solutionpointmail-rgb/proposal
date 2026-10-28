@@ -150,7 +150,7 @@ const selections = {medical:{},dental:{},vision:{}};
 
 function formatMoney(n){const x=Number(String(n).replace(/[^0-9.\-]/g,''));return isFinite(x)&&String(n)!==''?'$'+x.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';}
 function v(x){if(x===undefined||x===null)return 'See SBC';if(x===true)return 'Yes';if(x===false)return 'No';const s=String(x).trim();return (!s||/^see sbc$/i.test(s))?'See SBC':s.replace(/&/g,'&amp;').replace(/</g,'&lt;');}
-function isIllus(p){if(p.illustrative===true)return true;if(p.illustrative===false)return false;return /illustrat|\bimqs?\b|health questionnaire|need(s)? apps|requires? apps|indicative|not sellable/i.test([p.quote_status,p.quote_type,p.quote_status_note,p.plan_name,p.carrier].join(' '));}
+function isIllus(p){if(p.illustrative===true)return true;var t=[p.quote_status,p.quote_type,p.quote_status_note,p.plan_name,p.carrier,p.notes].join(' ').replace(/\b(no|without|not requir\w*|not needed)\b[^.;]{0,25}\b(imqs?|questionnaires?|apps)\b|\b(imqs?|questionnaires?|apps)\b[^.;]{0,15}\bnot (required|needed)\b/ig,' ');return /illustrat|\bimqs?\b|health questionnaire|medical questionnaire|need(s)? apps|requires? apps|apps required|health apps|medical apps|\bmuw\b|indicative|not sellable/i.test(t);}
 function row(label,val){return `<div class="card-detail-row"><span>${label}</span><span>${v(val)}</span></div>`;}
 function pair(a,b){const x=v(a),y=v(b);return x==='See SBC'&&y==='See SBC'?'See SBC':`${x} / ${y}`;}
 function cardShell(line,prefix,plan,idx,badges,rows){

@@ -407,6 +407,26 @@ Set "illustrative": true when ANY of these is true for that carrier's quote:
     rates are final (a "need IMQ", "Need Apps" or "asking for apps" folder or subtask counts, even
     when the PDF itself says "Underwritten Proposal" — Great American on GunnCo was exactly this);
   - the Asana subtask or folder note says the rates are subject to IMQs.
+  WHERE TO LOOK (Will, 2026-10-28) — check ALL of these for every carrier, not just the quote PDF:
+    1. The carrier's FOLDER NAME in 2. Quotes, e.g. "Great American need IMQ", "Edison - IMQs or Health
+       Apps required", "<Carrier> - Illustrative (IMQs required)".
+    2. The Quote Inbox's email record in that folder ("<Carrier> email YYYY-MM-DD.txt") and any saved
+       email text. Its first line may already read "ILLUSTRATIVE — IMQs / health apps required".
+    3. The quote PDF/xlsx itself, including footnotes and cover letters.
+    4. The carrier's Asana subtask notes and comments (including the Quote Inbox's "📝 Wants health
+       questionnaires" comment).
+  Wording that counts (any case): IMQ(s), individual / medical / health questionnaire(s), health apps,
+  medical apps, employee apps, apps required, MUW, medical underwriting required, "subject to IMQs",
+  "pending IMQs", "IMQs required to get competitive", "final rates after IMQs/underwriting",
+  "rates may change after IMQs". This includes IMQs described as needed to IMPROVE or FINALIZE the
+  rates: if the carrier says the numbers can change once IMQs come back, the quote is illustrative.
+  Wording that does NOT count: "no IMQs required", "without IMQs", "IMQs not needed", "census-based /
+  no medical underwriting".
+  When the signals conflict or you're unsure, mark it ILLUSTRATIVE — showing a final-looking rate that
+  isn't final is the mistake that hurts the client relationship — and say why in quote_status_note.
+  The flag is per CARRIER QUOTE: every plan from that quote carries it. Set quote_status_note to the
+  carrier's condition in its own words where possible, e.g. "Edison: IMQs required to get competitive
+  rates."
 Otherwise false. Never fold it into plan_name only ("(illustrative, subject to IMQs)" in the name is
 no longer how it is shown — the flag drives the amber ILLUSTRATIVE ribbon, watermark, cover count
 and disclaimer on the proposal). The selector page, the comparison doc and the Asana description

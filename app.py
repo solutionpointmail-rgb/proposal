@@ -981,6 +981,20 @@ def _group_name_from_project(project_name):
     return name, kind
 
 
+def _renewal_team_group_name(project_name):
+    """'Home Furnishings Resource Group, Inc. Client 01/01/2027' -> 'Home Furnishings Resource Group, Inc.'
+    Used only for projects in the Group Renewals team. The name must end in an effective date."""
+    import re as _re
+    m = _re.match(r'^(.*?)[\s,\-–—:]*(?:\b(?:client|renewal|quoting)\b)?[\s,\-–—:]*'
+                  r'\(?\d{1,2}[/\-.]\d{1,2}(?:[/\-.]\d{2,4})?\)?\s*$', project_name.strip(), flags=_re.I)
+    if not m:
+        return None
+    name = _re.sub(r'[\s,\-–—:]+$', '', m.group(1)).strip()
+    if len(name) < 3 or name.count('(') != name.count(')'):
+        return None
+    return name
+
+
 def _match_selector(name, index):
     """Find this group's selector page. File names drop suffixes like Inc/LLC, so match loosely."""
     import re as _re
@@ -1018,7 +1032,7 @@ def clients():
 
         projects, offset = [], None
         while True:
-            params = {'workspace': ws, 'archived': 'false', 'limit': 100, 'opt_fields': 'name'}
+            params = {'workspace': ws, 'archived': 'false', 'limit': 100, 'opt_fields': 'name,team.name'}
             if offset:
                 params['offset'] = offset
             page = _asana_get('projects', params)
@@ -1035,6 +1049,15 @@ def clients():
             if any(w in low for w in _SKIP_WORDS):
                 continue
             name, kind = _group_name_from_project(raw)
+            team = ((p.get('team') or {}).get('name') or '').lower()
+            if not name and 'renewal' in team:
+                # A renewal board named "<Group> Client 01/01/2027" (Home Furnishings, Oct 2026)
+                # never matched "renewal"/"quoting" and fell out of the picker. Anything in the
+                # Group Renewals team that ends in an effective date is a renewal.
+                name = _renewal_team_group_name(raw)
+                kind = 'renewal' if name else None
+                if name:
+                    print(f'/clients: renewal-team project without "Renewal" in its name: {raw}', flush=True)
             if not name or name.lower() in seen:
                 continue
             seen.add(name.lower())

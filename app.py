@@ -1089,7 +1089,7 @@ def clients():
 # The Client Quote Summary routine downloads the document generator from here
 # when its own repo checkout is missing. Only the files named below are served.
 # ============================================================
-_TOOL_FILES = {'renewal_analysis.py', 'renewal_analysis_example.json',
+_TOOL_FILES = {'oe_timeline.py', 'renewal_analysis.py', 'renewal_analysis_example.json',
                'pipeline_report.py', 'pipeline_report_example.json'}
 _TOOL_BINARIES = {'tbg-logo.png': 'image/png'}
 _FONT_FILES = {'SourceSerif4_600SemiBold.ttf', 'PublicSans_400Regular.ttf', 'PublicSans_400Regular_Italic.ttf',
@@ -1540,6 +1540,106 @@ def attach_census():
     print(f"✅ attach-census: {meta.name} ({len(content)} bytes) → task {task}", flush=True)
     return jsonify({'status': 'success', 'name': meta.name, 'bytes': len(content),
                     'attachment_gid': att.get('gid'), 'task': task}), 200
+
+
+# ============================================================
+# OE TIMELINE — added 2026-11-01
+# Action Center tool: renewal / new-group dates -> branded 3-page PDF + editable Word file,
+# filed in the group's Dropbox folder and handed back to the page for download.
+#
+#   POST /oe-timeline?t=<TBG_TIMELINE_TOKEN>
+#   Body: JSON. Send it as text/plain from the browser — that avoids a CORS preflight.
+#   {
+#     "client": "ABC Company", "type": "renewal" | "new", "project": "<Asana project name>",
+#     "effective": "2027-01-01", "quotes_expected": "...", "quotes_back": "...", "decision": "...",
+#     "build": "...", "oe_start": "...", "oe_end": "...", "submission": "...",
+#     "milestones": [{"label": "Employee meeting", "date": "2026-11-23", "owner": "TBG"}],
+#     "suggest_milestones": true,
+#     "intake": "<optional: the pasted short-form text; used INSTEAD of the fields above>",
+#     "save": true
+#   }
+#   -> {"status":"success","summary","warnings":[...],"suggested":[...],"folder",
+#       "files":[{"name","dropbox_path","link","data_url"}]}
+#
+# Needs: oe_timeline.py next to app.py, fonts/Poppins-*.ttf, python-docx in requirements.txt,
+#        and TBG_TIMELINE_TOKEN set in Render (its own random string — not the read token,
+#        because this endpoint writes to Dropbox).
+# Paste this whole block ABOVE  `if __name__ == '__main__':`
+# ============================================================
+TBG_TIMELINE_TOKEN = os.environ.get('TBG_TIMELINE_TOKEN', '')
+OE_FALLBACK_FOLDER = "/Solutionpoint Groups/1. Solutionpoint Groups/OE Timelines"
+
+
+def _oe_cors(resp, code=200):
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    resp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    resp.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+    return resp, code
+
+
+@app.route('/oe-timeline', methods=['POST', 'OPTIONS'])
+def oe_timeline_route():
+    from flask import make_response
+    import base64
+    import oe_timeline as oet
+
+    if request.method == 'OPTIONS':
+        return _oe_cors(make_response('', 204), 204)
+    supplied = request.args.get('t', '') or request.headers.get('X-TBG-Timeline', '')
+    if not TBG_TIMELINE_TOKEN or supplied != TBG_TIMELINE_TOKEN:
+        return _oe_cors(jsonify({'error': 'unauthorized'}), 401)
+
+    try:
+        body = json.loads(request.get_data(as_text=True) or '{}')
+    except ValueError:
+        return _oe_cors(jsonify({'error': 'Body must be JSON.'}), 400)
+
+    if (body.get('intake') or '').strip():
+        raw = oet.parse_intake(body['intake'])
+    else:
+        raw = {k: v for k, v in body.items()
+               if k not in ('intake', 'save', 'project') and v not in (None, '', [])}
+    raw['client'] = scrub_name(raw.get('client') or body.get('client') or '')
+
+    try:
+        plan = oet.build_plan(raw)
+    except ValueError as e:
+        return _oe_cors(jsonify({'error': str(e)}), 400)
+
+    stem = oet.file_stem(plan)
+    blobs = [(stem + '.pdf', oet.render_pdf(plan), 'application/pdf'),
+             (stem + '.docx', oet.render_docx(plan),
+              'application/vnd.openxmlformats-officedocument.wordprocessingml.document')]
+    out = {'status': 'success', 'summary': oet.summary(plan), 'warnings': plan.warnings,
+           'suggested': plan.suggested, 'folder': None, 'files': []}
+
+    folder, links = None, {}
+    if body.get('save', True):
+        try:
+            dbx_module, dbx = _dropbox_client()
+            # Clean group name (+ " Renewal" so renewal folders are searched first). The Asana
+            # project name is not used here: "<Group> Quoting 02/01/2027" would miss the folder.
+            lookup = plan.client + (' Renewal' if plan.kind == 'renewal' else '')
+            folder = find_client_dropbox_folder(lookup, dbx, '', oet.fmt_mdy(plan.effective)) \
+                or OE_FALLBACK_FOLDER
+            for name, data, _ctype in blobs:
+                path = f"{folder}/{name}"
+                dbx.files_upload(data, path, mode=dbx_module.files.WriteMode.overwrite)
+                try:
+                    links[name] = (path, dbx.files_get_temporary_link(path).link)
+                except Exception:
+                    links[name] = (path, None)
+            out['folder'] = folder
+            print(f'/oe-timeline: {plan.client} -> {folder}', flush=True)
+        except Exception as e:
+            print(f'/oe-timeline Dropbox save failed: {e}', flush=True)
+            out['save_error'] = str(e)
+
+    for name, data, ctype in blobs:
+        path, link = links.get(name, (None, None))
+        out['files'].append({'name': name, 'dropbox_path': path, 'link': link,
+                             'data_url': f'data:{ctype};base64,' + base64.b64encode(data).decode()})
+    return _oe_cors(jsonify(out), 200)
 
 
 if __name__ == '__main__':

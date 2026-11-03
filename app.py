@@ -1642,6 +1642,255 @@ def oe_timeline_route():
     return _oe_cors(jsonify(out), 200)
 
 
+
+# ============================================================
+# OE TIMELINE — FINALIZE (added 2026-11-03)
+# The "Finalize" button in the Action Center timeline window. Rebuilds the same timeline
+# from the same fields, then:
+#   1. saves the PDF + Word to Dropbox (as /oe-timeline does)
+#   2. attaches the PDF to the group's "Send OE timeline to client" subtask in Asana
+#      (under "Broker & Client Q&A/GBR Notes"), replacing an older copy, and comments
+#   3. calls the Zapier workflow "OE Timeline — Finalize" (env ZAPIER_OE_FINALIZE_HOOK),
+#      which replaces the group's events on the TBG Enrollment Timelines calendar and
+#      puts an Outlook draft (PDF attached) in Will's Drafts. Nothing is sent.
+#
+#   POST /oe-timeline/finalize?t=<TBG_TIMELINE_TOKEN>
+#   Body: the same JSON as /oe-timeline, plus
+#     "to": ["client@x.com"], "cc": ["lindsey@benefits.place", ...], "greeting": "Jane"
+# ============================================================
+OE_DEFAULT_CC = ['lindsey@benefits.place', 'amber@benefits.place', 'carla@benefits.place',
+                 'alex@benefits.place']
+_OE_SUBTASK_PARENT = 'broker & client q&a'
+_OE_SUBTASK_PREFIX = 'send oe timeline'
+
+
+def _oe_asana(method, path, **kw):
+    import requests as _rq
+    r = _rq.request(method, f'https://app.asana.com/api/1.0/{path}',
+                    headers={'Authorization': f"Bearer {os.environ['ASANA_TOKEN']}"},
+                    timeout=kw.pop('timeout', 30), **kw)
+    r.raise_for_status()
+    return r.json() if r.content else {}
+
+
+def _oe_find_project(project_name, client, kind):
+    """The group's Asana project: exact name from the picker first, then a name search."""
+    ws = _oe_asana('GET', 'workspaces')['data'][0]['gid']
+    queries = [q for q in (project_name, group_name(client)) if q]
+    for q in queries:
+        res = _oe_asana('GET', f'workspaces/{ws}/typeahead',
+                        params={'resource_type': 'project', 'query': q[:100], 'count': 20,
+                                'opt_fields': 'name,archived'})['data']
+        live = [p for p in res if not p.get('archived')]
+        exact = [p for p in live if (p.get('name') or '').strip().lower() == (project_name or '').strip().lower()]
+        if exact:
+            return exact[0]
+        want = 'renewal' if kind == 'renewal' else 'quot'
+        norm = _norm_folder(group_name(client))
+        for p in live:
+            n = (p.get('name') or '')
+            if norm and norm in _norm_folder(group_name(n)) and want in n.lower():
+                return p
+    return None
+
+
+def _oe_find_subtask(project_gid):
+    """'Send OE timeline to client…' under 'Broker & Client Q&A/GBR Notes'. Falls back to the
+    parent task itself when the subtask is missing (older boards, new-group boards)."""
+    tasks = _oe_asana('GET', f'projects/{project_gid}/tasks',
+                      params={'opt_fields': 'name,completed', 'limit': 100})['data']
+    parent = next((t for t in tasks if (t.get('name') or '').lower().startswith(_OE_SUBTASK_PARENT)), None)
+    if not parent:
+        return None, None
+    subs = _oe_asana('GET', f"tasks/{parent['gid']}/subtasks", params={'opt_fields': 'name'})['data']
+    sub = next((s for s in subs if (s.get('name') or '').lower().startswith(_OE_SUBTASK_PREFIX)), None)
+    return (sub or parent), ('subtask' if sub else 'parent task')
+
+
+def _oe_attach(task_gid, name, data):
+    old = _oe_asana('GET', 'attachments', params={'parent': task_gid, 'opt_fields': 'name'})['data']
+    for a in old:
+        if a.get('name') == name:
+            try:
+                _oe_asana('DELETE', f"attachments/{a['gid']}")
+            except Exception as e:
+                print(f'/oe-timeline/finalize: could not remove old attachment: {e}', flush=True)
+    return _oe_asana('POST', 'attachments', data={'parent': task_gid},
+                     files={'file': (name, data, 'application/pdf')}, timeout=60)['data']
+
+
+def _oe_sig(path, exp):
+    import hmac, hashlib
+    return hmac.new(TBG_TIMELINE_TOKEN.encode(), f'{path}|{exp}'.encode(), hashlib.sha256).hexdigest()[:32]
+
+
+def _oe_signed_link(dropbox_path, ttl=2 * 3600):
+    """A link Zapier can fetch (and retry) for two hours. Render streams the file from Dropbox."""
+    import time as _t, urllib.parse as _up
+    exp = int(_t.time()) + ttl
+    name = dropbox_path.rsplit('/', 1)[-1]
+    base = os.environ.get('RENDER_EXTERNAL_URL', 'https://proposal-fgqm.onrender.com').rstrip('/')
+    return (f"{base}/oe-timeline/file/{exp}/{_oe_sig(dropbox_path, exp)}/{_up.quote(name)}"
+            f"?p={_up.quote(dropbox_path)}")
+
+
+@app.route('/oe-timeline/file/<int:exp>/<sig>/<path:name>', methods=['GET', 'HEAD'])
+def oe_timeline_file(exp, sig, name):
+    import hmac, time as _t
+    from flask import Response
+    path = request.args.get('p', '')
+    if (not TBG_TIMELINE_TOKEN or _t.time() > exp or not path.lower().endswith('.pdf')
+            or not hmac.compare_digest(sig, _oe_sig(path, exp))):
+        return jsonify({'error': 'link expired or invalid'}), 403
+    try:
+        _, dbx = _dropbox_client()
+        _meta, resp = dbx.files_download(path)
+    except Exception as e:
+        return jsonify({'error': f'file not found: {e}'}), 404
+    return Response(resp.content, mimetype='application/pdf',
+                    headers={'Content-Disposition': f'attachment; filename="{name}"'})
+
+
+def _oe_events(oet, plan):
+    from datetime import timedelta as _td
+    tag = 'OE-ID:' + re.sub(r'[^a-z0-9]+', '-', plan.client.lower()).strip('-') + f'-{plan.year}'
+    evs = []
+    for dt, title, body, chip, owner in oet.steps(plan):
+        evs.append({'summary': f'{plan.client} — {title}',
+                    'description': f'{body}\nOwner: {owner}',
+                    'start': dt.isoformat(), 'end': (dt + _td(days=1)).isoformat()})
+    s, e = plan.dates['oe_start'], plan.dates['oe_end']
+    evs.append({'summary': f'{plan.client} — Open enrollment window',
+                'description': f'Open enrollment {oet.fmt_md(s)}–{oet.fmt_md(e)}.',
+                'start': s.isoformat(), 'end': (e + _td(days=1)).isoformat()})
+    return tag, evs
+
+
+def _oe_email_html(oet, plan, greeting):
+    d = plan.dates
+    def row(label, dt):
+        return (f'<tr><td style="padding:3px 14px 3px 0;color:#5B6878">{label}</td>'
+                f'<td style="padding:3px 0;font-weight:600">{dt.strftime("%A")}, {oet.fmt_long(dt)}</td></tr>')
+    kind = 'implementation' if plan.is_new else 'renewal'
+    hello = f'Hi {greeting},' if greeting else 'Hello,'
+    return (
+        '<div style="font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#1E2B3A">'
+        f'<p>{hello}</p>'
+        f'<p>Attached is the {plan.year} benefits {kind} and open enrollment timeline for '
+        f'{plan.client}. It lays out each step from final quotes through your '
+        f'{oet.fmt_long(plan.effective)} effective date, along with a short checklist of the '
+        'notices and details we will help you keep on track.</p>'
+        '<p style="margin-bottom:4px"><strong>Key dates</strong></p>'
+        '<table style="border-collapse:collapse;font-size:11pt">'
+        + row('Plan decision', d['decision'])
+        + row('Open enrollment opens', d['oe_start'])
+        + row('Open enrollment closes', d['oe_end'])
+        + row('Carrier submission', d['submission'])
+        + row('Coverage effective', plan.effective)
+        + '</table>'
+        '<p>Please take a look and let us know if any of these dates need to move. '
+        'We will keep you updated at each step.</p>'
+        '<p>Thank you,</p>'
+        '<p style="margin:0"><b><i>William G. Brown, CPA | Principal Member</i></b><br>'
+        'The Benefits Group<br>3401 Mallory Lane, STE 100, Franklin, TN 37067<br>'
+        'Tel: 615.250.3334 | Cell: 615.785.9793 | Fax: 615.346.4023<br>'
+        '<a href="mailto:will@benefits.place">will@benefits.place</a> | '
+        '<a href="https://thebenefits.group/">thebenefits.group</a></p></div>')
+
+
+@app.route('/oe-timeline/finalize', methods=['POST', 'OPTIONS'])
+def oe_timeline_finalize():
+    from flask import make_response
+    import requests as _rq
+    import oe_timeline as oet
+
+    if request.method == 'OPTIONS':
+        return _oe_cors(make_response('', 204), 204)
+    supplied = request.args.get('t', '') or request.headers.get('X-TBG-Timeline', '')
+    if not TBG_TIMELINE_TOKEN or supplied != TBG_TIMELINE_TOKEN:
+        return _oe_cors(jsonify({'error': 'unauthorized'}), 401)
+    try:
+        body = json.loads(request.get_data(as_text=True) or '{}')
+    except ValueError:
+        return _oe_cors(jsonify({'error': 'Body must be JSON.'}), 400)
+
+    to = [a.strip() for a in (body.get('to') or []) if a and '@' in a]
+    cc = [a.strip() for a in (body.get('cc') if body.get('cc') is not None else OE_DEFAULT_CC) if a and '@' in a]
+    if not to:
+        return _oe_cors(jsonify({'error': 'Add the client email address (To) before finalizing.'}), 400)
+
+    if (body.get('intake') or '').strip():
+        raw = oet.parse_intake(body['intake'])
+    else:
+        raw = {k: v for k, v in body.items()
+               if k not in ('intake', 'save', 'project', 'to', 'cc', 'greeting') and v not in (None, '', [])}
+    raw['client'] = scrub_name(raw.get('client') or body.get('client') or '')
+    try:
+        plan = oet.build_plan(raw)
+    except ValueError as e:
+        return _oe_cors(jsonify({'error': str(e)}), 400)
+
+    stem = oet.file_stem(plan)
+    pdf, docx = oet.render_pdf(plan), oet.render_docx(plan)
+    out = {'status': 'success', 'client': plan.client, 'steps': {}}
+
+    # 1. Dropbox + a download link Zapier can attach (Dropbox temporary links last 4 hours)
+    pdf_link = None
+    try:
+        dbx_module, dbx = _dropbox_client()
+        folder = find_client_dropbox_folder(plan.client + (' Renewal' if plan.kind == 'renewal' else ''),
+                                            dbx, '', oet.fmt_mdy(plan.effective)) or OE_FALLBACK_FOLDER
+        for name, data in ((stem + '.pdf', pdf), (stem + '.docx', docx)):
+            dbx.files_upload(data, f'{folder}/{name}', mode=dbx_module.files.WriteMode.overwrite)
+        pdf_link = _oe_signed_link(f'{folder}/{stem}.pdf')
+        out['steps']['dropbox'] = {'ok': True, 'folder': folder}
+    except Exception as e:
+        out['steps']['dropbox'] = {'ok': False, 'error': str(e)}
+
+    # 2. Asana
+    try:
+        proj = _oe_find_project(body.get('project') or '', plan.client, plan.kind)
+        if not proj:
+            raise RuntimeError(f'no Asana project found for {plan.client}')
+        task, where = _oe_find_subtask(proj['gid'])
+        if not task:
+            raise RuntimeError(f'no "Broker & Client Q&A/GBR Notes" task in {proj["name"]}')
+        _oe_attach(task['gid'], stem + '.pdf', pdf)
+        d = plan.dates
+        _oe_asana('POST', f"tasks/{task['gid']}/stories", json={'data': {'text': (
+            f"OE timeline finalized from the Action Center. PDF attached; calendar updated; "
+            f"Outlook draft to {', '.join(to)} is in Will's Drafts (not sent).\n"
+            f"Plan decision {oet.fmt_md(d['decision'])} · OE {oet.fmt_md(d['oe_start'])}–{oet.fmt_md(d['oe_end'])} · "
+            f"Carrier submission {oet.fmt_md(d['submission'])} · Effective {oet.fmt_mdy(plan.effective)}")}})
+        out['steps']['asana'] = {'ok': True, 'project': proj['name'], 'task': task['name'], 'where': where,
+                                 'url': f"https://app.asana.com/0/{proj['gid']}/{task['gid']}"}
+    except Exception as e:
+        print(f'/oe-timeline/finalize Asana: {e}', flush=True)
+        out['steps']['asana'] = {'ok': False, 'error': str(e)}
+
+    # 3. Zapier: calendar + Outlook draft
+    hook = os.environ.get('ZAPIER_OE_FINALIZE_HOOK', '')
+    if not hook:
+        out['steps']['calendar_email'] = {'ok': False, 'error': 'ZAPIER_OE_FINALIZE_HOOK is not set in Render'}
+    else:
+        tag, events = _oe_events(oet, plan)
+        payload = {'client': plan.client, 'event_tag': tag, 'to': to, 'cc': cc,
+                   'subject': f"{plan.client} — {plan.year} Open Enrollment Timeline",
+                   'body_html': _oe_email_html(oet, plan, (body.get('greeting') or '').strip()),
+                   'pdf_url': pdf_link, 'events': events}
+        try:
+            r = _rq.post(hook, json={'payload': json.dumps(payload)}, timeout=30)
+            r.raise_for_status()
+            out['steps']['calendar_email'] = {'ok': True, 'events': len(events),
+                                              'attached_pdf': bool(pdf_link)}
+        except Exception as e:
+            out['steps']['calendar_email'] = {'ok': False, 'error': str(e)}
+
+    out['status'] = 'success' if all(s.get('ok') for s in out['steps'].values()) else 'partial'
+    print(f"/oe-timeline/finalize: {plan.client} -> {out['status']}", flush=True)
+    return _oe_cors(jsonify(out), 200)
+
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)

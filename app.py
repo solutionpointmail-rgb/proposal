@@ -1856,13 +1856,21 @@ def oe_timeline_finalize():
         if not task:
             raise RuntimeError(f'no "Broker & Client Q&A/GBR Notes" task in {proj["name"]}')
         _oe_attach(task['gid'], stem + '.pdf', pdf)
+        completed = False
+        if where == 'subtask':
+            # The timeline is ready to go out: tick off "Send OE timeline to client".
+            # Never complete the parent "Broker & Client Q&A/GBR Notes" task.
+            _oe_asana('PUT', f"tasks/{task['gid']}", json={'data': {'completed': True}})
+            completed = True
         d = plan.dates
         _oe_asana('POST', f"tasks/{task['gid']}/stories", json={'data': {'text': (
             f"OE timeline finalized from the Action Center. PDF attached; calendar updated; "
-            f"Outlook draft to {', '.join(to)} is in Will's Drafts (not sent).\n"
+            f"Outlook draft to {', '.join(to)} is in Will's Drafts (not sent)"
+            f"{'; subtask marked complete' if where == 'subtask' else ''}.\n"
             f"Plan decision {oet.fmt_md(d['decision'])} · OE {oet.fmt_md(d['oe_start'])}–{oet.fmt_md(d['oe_end'])} · "
             f"Carrier submission {oet.fmt_md(d['submission'])} · Effective {oet.fmt_mdy(plan.effective)}")}})
         out['steps']['asana'] = {'ok': True, 'project': proj['name'], 'task': task['name'], 'where': where,
+                                 'completed': completed,
                                  'url': f"https://app.asana.com/0/{proj['gid']}/{task['gid']}"}
     except Exception as e:
         print(f'/oe-timeline/finalize Asana: {e}', flush=True)

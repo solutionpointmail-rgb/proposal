@@ -68,7 +68,8 @@ RECIPIENT ALLOWLIST (hard safety check): every TO address must be one of: tank@b
 chad@navigationhealthllc.com, luke@navigationhealthllc.com, johncasey@thecasongroup.com,
 willwestmoreland@thecasongroup.com, kcormier@gaig.com, blake.schmeling@gravie.com, rob.haire@gravie.com,
 megan.radermacher@gravie.com, jbleil@edisonehs.com, swilliams@edisonehs.com,
-bcalhoun@crumdalespecialty.com, rpaddack@onehealthplus.com, marli.griesel@beambenefits.com (Beam
+bcalhoun@crumdalespecialty.com, rpaddack@onehealthplus.com, rflynn@onehealthplus.com (One Health,
+added 2026-11-03), marli.griesel@beambenefits.com (Beam
 dental & vision, added 2026-10-15), jbutterfield2@deltadentaltn.com (Delta Dental dental & vision, added
 2026-10-16). adam@levelhealthplans.com was removed on 2026-10-15: Simpara / Level
 Health Plans is portal-only, so never email it. CC must be

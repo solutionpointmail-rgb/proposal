@@ -53,8 +53,8 @@ above, with these differences only:
 - SUBJECT: Encrypt - [Group Name] - Beam Dental & Vision Quote Request
 - First body line: "Can you send dental and vision quotes for [Group Name]? [ATTACHMENT LINE]"
 - After the Desired Effective Date line (and after "Current Dental/Vision Carrier: [X]" for a renewal
-  whose current dental/vision carrier is known; leave that line out when it isn't), add a blank line
-  and then exactly:
+  whose current dental/vision carrier is known; leave that line out when it isn't), add the line
+  "Contribution Type: Voluntary" (see CONTRIBUTION TYPE below), then a blank line and then exactly:
 
 Dental, 3 plans (no ortho):
 1. 100/80/50, $1,000 annual max, endo and perio at 80%
@@ -70,6 +70,15 @@ Please quote at 15% commission.
 
 - Then the usual blank line, "Lindsey", blank line, and **PLEASE REPLY ALL TO THIS EMAIL**.
 - Beam never gets the medical "Current Carrier: [X]" line.
+- CONTRIBUTION TYPE (Will, 2026-11-05): dental and vision are almost always employee-paid, so every
+  Beam and Delta Dental email carries "Contribution Type: Voluntary" as its own line, directly under the
+  Desired Effective Date line (or under "Current Dental/Vision Carrier: [X]" when that line is there).
+  The ONLY exception: a comment on the Send for Quotes task starting "DENTAL CONTRIBUTION:" (e.g.
+  "DENTAL CONTRIBUTION: employer pays 50% of employee-only dental"). Then the line reads
+  "Contribution Type: Employer-paid — <the text after the colon, as written>". Never infer an employer
+  contribution from the medical contribution, the Info Sheet or the Typeform; without that comment it
+  is always "Voluntary". The line also goes in REQUOTE and RESEND drafts, and a held Beam or Delta Dental
+  draft gets it when it is redrafted. Medical emails never get this line.
 - Beam's ATTACH line and [ATTACHMENT LINE] cover dental/vision only. Attach the census, plus current
   DENTAL or VISION plan info only if it exists. Never attach a medical renewal or medical plan document to
   Beam, and say "current plan info attached" only when dental/vision plan info is actually attached.
@@ -79,8 +88,9 @@ with these differences only:
 - TO: jbutterfield2@deltadentaltn.com ; greeting "Jane,"
 - SUBJECT: Encrypt - [Group Name] - Delta Dental Dental & Vision Quote Request
 - First body line: "Can you send dental and vision quotes for [Group Name]? [ATTACHMENT LINE]"
-- After the Desired Effective Date line (and "Current Dental/Vision Carrier: [X]" when known), add a
-  blank line and then exactly ONE of these two dental blocks, chosen by ENROLLING EMPLOYEES on the census:
+- After the Desired Effective Date line (and "Current Dental/Vision Carrier: [X]" when known), add the
+  line "Contribution Type: Voluntary" (CONTRIBUTION TYPE rule under Beam's draft), then a blank line and
+  then exactly ONE of these two dental blocks, chosen by ENROLLING EMPLOYEES on the census:
 
   2-9 enrolled:
 Dental, please quote these annual maximums: $1,000, $1,250 and $1,500.

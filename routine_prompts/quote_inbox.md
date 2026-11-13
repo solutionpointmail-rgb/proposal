@@ -129,6 +129,14 @@ CARRIER — from the sender's domain, then confirmed by the subject and body:
   onehealthplus.com → One Health               levelhealthplans.com → Simpara (Level Health)
   sanabenefits.com → SANA                      imagine360.com → Imagine360
   uhc.com / optum.com → UHC Level Funded       optimyl.com → Optimyl
+  optimedhealth.com → Optimed (GAP)            ezmerp.com → EZMERP (GAP)
+    GAP CARRIERS (Will, 2026-11-13): Optimed (Alex Brown) and EZMERP (Cate Lyn Tierney) quote gap /
+    supplemental plans that sit on top of a medical plan, requested by Will or Alex outside Send for
+    Quotes (subjects like "1/1 RFP: <Group>" or "Gap RFP: <Group>"). They ARE on the list: file their
+    replies like any quote into the folder "Optimed" or "EZMERP" (or the group's existing folder for
+    them, e.g. "OptiMed", "Optimed GAP", "EZMerp"), and never flag them "carrier not on the list".
+    In the summary their Reply reads "Gap quote". They never appear in "Still waiting on" (no Send for
+    Quotes subtask asks for them).
   brokersholding.com or warnerpacific.com → ABA or Arlo (Michael Tankersley submits both; he now often
     writes from warnerpacific.com — decide from the subject, body
     and attachment names; a reply covering both is two carriers)

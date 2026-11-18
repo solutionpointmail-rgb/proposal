@@ -708,6 +708,9 @@ def generate_pdf(output_path=None):
         bold = para.startswith("Plans marked ILLUSTRATIVE")
         story.append(P(esc(para), 8.2, colors.HexColor("#7C2D12") if bold else SLATE,
                        "semi" if bold else "body", leading=11.5, after=8))
+    story.append(Spacer(1, 10))
+    story.append(P(esc(F.CONFIDENTIALITY_TITLE), 8.6, NAVY, "semi", leading=12, after=4))
+    story.append(P(esc(F.CONFIDENTIALITY_NOTICE), 8.2, SLATE, "body", leading=11.5, after=8))
     doc.build(story, onFirstPage=_cover, onLaterPages=_interior)
     print(f"✅ PDF saved → {output_path}")
     return output_path

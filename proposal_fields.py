@@ -339,6 +339,17 @@ CARRIER_DISCLAIMERS = {
 }
 
 
+CONFIDENTIALITY_TITLE = "CONFIDENTIALITY & PROPRIETARY INFORMATION NOTICE"
+CONFIDENTIALITY_NOTICE = (
+    "This proposal has been prepared exclusively for the intended recipient by The Benefits Group and may "
+    "contain proprietary research, analysis, recommendations, and intellectual property developed through "
+    "our professional expertise and resources. The information is provided solely for the recipient's "
+    "evaluation and is not intended for distribution to competing brokers, consultants, or other third "
+    "parties without prior written consent from The Benefits Group. We respectfully request that the "
+    "confidentiality of our work be maintained."
+)  # Will, 2026-11-18: closes every proposal and every Client Quote Summary.
+
+
 def disclaimers(plans):
     out = [GENERAL_DISCLAIMER, RATE_CONDITIONS]
     if any(is_illustrative(p) for p in plans):

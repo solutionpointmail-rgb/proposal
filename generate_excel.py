@@ -203,6 +203,11 @@ def build_disclaimers(wb, plans):
              fill=AMBER_BG if ill else None)
         ws.row_dimensions[r].height = max(30, 14 * (len(para) // 140 + 1))
         r += 1
+    r += 1
+    _set(ws, r, 2, F.CONFIDENTIALITY_TITLE, bold=True, size=10, color=TEAL)
+    r += 1
+    _set(ws, r, 2, F.CONFIDENTIALITY_NOTICE, size=9)
+    ws.row_dimensions[r].height = max(30, 14 * (len(F.CONFIDENTIALITY_NOTICE) // 140 + 1))
     return ws
 
 

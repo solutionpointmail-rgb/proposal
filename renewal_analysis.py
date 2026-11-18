@@ -405,6 +405,28 @@ def rate_conditions(doc, text=RATE_CONDITIONS):
     add_runs(p, text, size=8.5, color=MUTED, italic=True)
 
 
+CONFIDENTIALITY_TITLE = "CONFIDENTIALITY & PROPRIETARY INFORMATION NOTICE"
+CONFIDENTIALITY_NOTICE = (
+    "This proposal has been prepared exclusively for the intended recipient by The Benefits Group and may "
+    "contain proprietary research, analysis, recommendations, and intellectual property developed through "
+    "our professional expertise and resources. The information is provided solely for the recipient's "
+    "evaluation and is not intended for distribution to competing brokers, consultants, or other third "
+    "parties without prior written consent from The Benefits Group. We respectfully request that the "
+    "confidentiality of our work be maintained."
+)
+
+
+def confidentiality(doc):
+    """Closing notice on every Client Quote Summary (Will, 2026-11-18). Always printed last."""
+    spacer(doc, 8)
+    p = doc.add_paragraph()
+    para_fmt(p, after=2, line=1.2)
+    add_runs(p, CONFIDENTIALITY_TITLE, size=8.5, color=NAVY, bold=True)
+    p = doc.add_paragraph()
+    para_fmt(p, after=0, line=1.2)
+    add_runs(p, CONFIDENTIALITY_NOTICE, size=8.5, color=MUTED, italic=True)
+
+
 def footer(doc, text):
     sec = doc.sections[0]
     p = sec.footer.paragraphs[0]
@@ -464,6 +486,7 @@ def build(data, out_path):
     next_steps(doc, data.get("next_steps", []))
     bottom_line(doc, data.get("bottom_line"))
     rate_conditions(doc, data.get("rate_conditions") or RATE_CONDITIONS)
+    confidentiality(doc)
     footer(doc, data.get("footer", "The Benefits Group  |  Benefits that feel like care."))
     doc.save(out_path)
     return out_path

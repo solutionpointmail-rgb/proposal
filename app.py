@@ -684,6 +684,18 @@ def generate():
     if not client_name or not task_id:
         return jsonify({'error': 'Missing client_name or task_id'}), 400
 
+    # EMPTY-REQUEST GUARD (Will, 2026-11-18). G Catering produced ~16 blank proposals in five days
+    # from requests that carried a client and task but no plan data and no selection at all (not a
+    # selector submit: those always carry the plan JSON and the picked names). Such a request can
+    # never build a useful proposal, so it is refused: no files, no Asana comment.
+    no_selection = not any(str(x or '').strip() for x in (medical_plans, dental_plans, vision_plans))
+    no_plan_data = not any(str(x or '').strip() not in ('', '[]', 'null') for x in
+                           (all_medical_json, all_dental_json, all_vision_json))
+    if no_selection and no_plan_data:
+        print(f"⛔ Skipped empty request for {client_name} (task {task_id}): no plans selected and no plan data", flush=True)
+        return jsonify({'status': 'skipped',
+                        'message': f'No plans were selected for {client_name}; nothing generated.'}), 200
+
     success, folder, pdf_link, excel_link = run_pipeline(
         client_name, effective_date, quote_id, task_id, notes,
         medical_plans, dental_plans, vision_plans,
